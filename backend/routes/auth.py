@@ -2,27 +2,27 @@
 File containing all the authentication routes.
 """
 from fastapi import APIRouter
+from services.cas import validate_cas_ticket
+from config import Config
 
 router = APIRouter()
 
 @router.post("/login")
-async def login():
+async def login(username: str, password: str):
     """
     Login route.
     """
-    return {"message": "Login route"}
 
 @router.post("/register")
-async def register():
+async def register(ticket: str):
     """
     Register route.
     """
-    return {"message": "Register route"}
+    service = Config.SERVICE_URL
+    response = validate_cas_ticket(ticket, service)
 
-@router.post("/reset-password")
-async def reset_password():
-    """
-    Reset password route.
-    """
-    return {"message": "Reset password route"}
-
+    if response["success"]:
+        user = response["user"]
+        # user validation logic
+        return {"message": "User registered successfully", "user": user}
+    return {"success": False, "message": "Invalid ticket"}
