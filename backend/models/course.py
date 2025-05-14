@@ -52,7 +52,8 @@ class Course(BaseModel):
                 "created_at": "2023-01-10T09:00:00.000Z",
                 "updated_at": "2023-04-12T14:30:00.000Z"
             }
-        }}
+        }
+    }
 
 
 class CourseCreate(BaseModel):
