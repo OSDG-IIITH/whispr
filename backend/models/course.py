@@ -36,12 +36,11 @@ class Course(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
 
-    class Config:
-        """Pydantic model configuration."""
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-        schema_extra = {
+    # Pydantic v2 model configuration
+    model_config = {
+        "validate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_schema_extra": {
             "example": {
                 "_id": "60d5ec9af682fbd3d45323a7",
                 "name": "Software Programming for Performance",
@@ -52,7 +51,7 @@ class Course(BaseModel):
                 "created_at": "2023-01-10T09:00:00.000Z",
                 "updated_at": "2023-04-12T14:30:00.000Z"
             }
-        }
+        }}
 
 
 class CourseCreate(BaseModel):

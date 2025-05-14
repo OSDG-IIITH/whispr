@@ -8,7 +8,6 @@ from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, HttpUrl
 from database.helpers import PyObjectId
-from bson import ObjectId
 
 
 class User(BaseModel):
@@ -36,12 +35,11 @@ class User(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
 
-    class Config:
-        """Pydantic model configuration."""
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-        schema_extra = {
+    # Pydantic v2 model configuration
+    model_config = {
+        "validate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_schema_extra": {
             "example": {
                 "_id": "60d5ec9af682fbd3d45323a4",
                 "username": "student_123",
@@ -52,7 +50,7 @@ class User(BaseModel):
                 "created_at": "2023-01-15T12:00:00.000Z",
                 "updated_at": "2023-02-20T14:30:00.000Z"
             }
-        }
+        }}
 
 
 class UserCreate(BaseModel):

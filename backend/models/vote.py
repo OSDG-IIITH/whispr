@@ -43,12 +43,12 @@ class Vote(BaseModel):
     content_id: PyObjectId
     vote_type: VoteType
 
-    class Config:
+    model_config = {
         """Pydantic model configuration."""
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-        schema_extra = {
+        "validate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+        "json_schema_extra": {
             "example": {
                 "_id": "60d5ec9af682fbd3d45323b1",
                 "user_id": "60d5ec9af682fbd3d45323a4",
@@ -57,6 +57,7 @@ class Vote(BaseModel):
                 "vote_type": "upvote"
             }
         }
+    }
 
 
 class VoteCreate(BaseModel):

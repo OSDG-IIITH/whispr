@@ -6,6 +6,7 @@ defines basic endpoints, includes the main router,
 and manages database connections.
 """
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,11 +21,26 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
 )
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """
+    Lifespan manager for the application.
+    Handles startup and shutdown events.
+    """
+    # Startup: connect to database
+    await connect_to_mongo()
+    yield
+    # Shutdown: close database connection
+    await close_mongo_connection()
+
+
 # Initialize FastAPI application
 app = FastAPI(
     title="Whispr API",
     description="Backend API for the Whispr application",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Configure CORS middleware
@@ -58,25 +74,10 @@ async def debug():
     """
     return {"message": "FastAPI is running, let's goooooo"}
 
-# Register startup and shutdown events for database connections
-
-
-@app.on_event("startup")
-async def startup_db_client():
-    """
-    Event handler that runs at application startup.
-    Initializes database connections and performs startup tasks.
-    """
-    await connect_to_mongo()
-
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    """
-    Event handler that runs at application shutdown.
-    Closes database connections and performs cleanup tasks.
-    """
-    await close_mongo_connection()
-
 # Include all routes from the main router
 app.include_router(main_router)
+
+# Run the server if the script is executed directly
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
