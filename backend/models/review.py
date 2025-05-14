@@ -36,6 +36,8 @@ class Review(BaseModel):
         instructor_ids: list of IDs of the instructors for course reviews
         semester: Semester during which the course was taken
         year: Year during which the course was taken
+        upvote_count: Number of upvotes the review has received
+        downvote_count: Number of downvotes the review has received
     """
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     type: ReviewType
@@ -48,6 +50,8 @@ class Review(BaseModel):
     instructor_ids: List[PyObjectId] = []
     semester: Optional[str] = None
     year: Optional[int] = None
+    upvote_count: int = 0
+    downvote_count: int = 0
 
     class Config:
         """Pydantic model configuration."""
@@ -66,7 +70,9 @@ class Review(BaseModel):
                 "timestamp": "2023-03-15T09:30:00.000Z",
                 "instructor_ids": ["60d5ec9af682fbd3d45323a8"],
                 "semester": "Fall",
-                "year": 2023
+                "year": 2023,
+                "upvote_count": 15,
+                "downvote_count": 2
             }
         }
 
