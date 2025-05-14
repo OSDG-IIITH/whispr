@@ -49,7 +49,7 @@ async def connect_to_mongo():
     try:
         Database.client = AsyncIOMotorClient(Config.MONGODB_URI)
         # Extract database name from the connection string, or use default
-        db_name = Config.MONGODB_URI.split("/")[-1] or "whispr"
+        db_name = Config.DATABASE_NAME or "whispr"
         Database.db = Database.client.get_database(db_name)
         logger.info("Connected to MongoDB successfully")
     except Exception as e:
