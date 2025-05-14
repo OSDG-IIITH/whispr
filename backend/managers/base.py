@@ -170,8 +170,19 @@ class BaseManager:
         Returns:
             Updated document if found and updated, None otherwise
         """
+        # Process data to ensure MongoDB compatibility
+        processed_data = {}
+        for key, value in data.items():
+            # Convert any Pydantic HttpUrl to string
+            if hasattr(value, '__str__') and 'HttpUrl' in str(type(value)):
+                processed_data[key] = str(value)
+            else:
+                processed_data[key] = value
+
         # Add updated_at timestamp
-        update_data = {"$set": {**data, "updated_at": datetime.utcnow()}}
+        update_data = {
+            "$set": {**processed_data, "updated_at": datetime.utcnow()}
+        }
 
         await self.collection.update_one(
             {"_id": ObjectId(doc_id)}, update_data

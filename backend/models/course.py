@@ -40,6 +40,7 @@ class Course(BaseModel):
     model_config = {
         "validate_by_name": True,
         "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str, HttpUrl: str},
         "json_schema_extra": {
             "example": {
                 "_id": "60d5ec9af682fbd3d45323a7",

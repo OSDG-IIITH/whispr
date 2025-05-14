@@ -4,10 +4,11 @@ User model with Pydantic validation for MongoDB storage.
 This module defines the User model representing system users, including
 their profile data and social interactions within the application.
 """
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, Field, HttpUrl
 from database.helpers import PyObjectId
+from bson import ObjectId
 
 
 class User(BaseModel):
@@ -34,11 +35,13 @@ class User(BaseModel):
     echoes: int = 0
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
+    following: List[str] = Field(default_factory=list)
 
     # Pydantic v2 model configuration
     model_config = {
         "validate_by_name": True,
         "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str, HttpUrl: str},
         "json_schema_extra": {
             "example": {
                 "_id": "60d5ec9af682fbd3d45323a4",
@@ -51,6 +54,18 @@ class User(BaseModel):
                 "updated_at": "2023-02-20T14:30:00.000Z"
             }
         }}
+
+    def model_dump(self, *args, **kwargs):
+        """
+        Override model_dump to convert HttpUrl to string for MongoDB.
+        """
+        data = super().model_dump(*args, **kwargs)
+
+        # Convert HttpUrl to str for MongoDB storage
+        if 'avatar' in data and isinstance(data['avatar'], HttpUrl):
+            data['avatar'] = str(data['avatar'])
+
+        return data
 
 
 class UserCreate(BaseModel):

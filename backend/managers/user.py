@@ -12,6 +12,7 @@ from bson import ObjectId
 
 from config import Config
 from managers.base import BaseManager, log_operation, require_auth
+from models.user import User
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -102,7 +103,13 @@ characters long"
                 'utf-8')  # Store as string
             del user_data['password']  # Remove plain password
 
-        result = await self.collection.insert_one(user_data)
+        # Create a User model instance to ensure proper conversion of types
+        # This ensures HttpUrl is properly converted to string for MongoDB
+        user_model = User(**user_data)
+        # Convert to dict with all values properly serialized
+        serialized_data = user_model.model_dump()
+
+        result = await self.collection.insert_one(serialized_data)
         return await self.get_by_id(str(result.inserted_id))
 
     @log_operation
@@ -191,6 +198,10 @@ characters long"
         allowed_fields = ['avatar', 'bio', 'student_since']
         update_data = {k: v for k, v in profile_data.items()
                        if k in allowed_fields}
+
+        # Handle HttpUrl serialization specifically
+        if 'avatar' in update_data and hasattr(update_data['avatar'], '__str__'):
+            update_data['avatar'] = str(update_data['avatar'])
 
         return await self.update(user_id, update_data)
 
