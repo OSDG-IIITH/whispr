@@ -21,7 +21,7 @@ class User(BaseModel):
         avatar: URL to user's profile image
         bio: User's self-description
         student_since: Year when user started as a student
-        voice: whether they are verified and allowed to post
+        muffled: (neg) whether they are verified and allowed to post
         echoes: User's reputation score in the system
         created_at: When the user account was created
         updated_at: When the user profile was last updated
@@ -31,7 +31,7 @@ class User(BaseModel):
     avatar: HttpUrl
     bio: Optional[str] = None
     student_since: Optional[int] = None
-    voice: bool = False
+    muffled: bool = True
     echoes: int = 0
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
