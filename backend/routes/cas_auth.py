@@ -1,5 +1,5 @@
 """
-CAS Authentication Router for the Whispr application.
+CAS Authentication Router for Whispr.
 
 This module provides endpoints for user authentication through the
 Central Authentication Service (CAS) used by IIIT Hyderabad.

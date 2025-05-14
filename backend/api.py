@@ -1,5 +1,5 @@
 """
-Main API entry point for the Whispr application.
+Main API entry point for Whispr.
 
 This module initializes the FastAPI application, configures CORS middleware,
 defines basic endpoints, includes the main router,
@@ -38,7 +38,7 @@ async def lifespan(_: FastAPI):
 # Initialize FastAPI application
 app = FastAPI(
     title="Whispr API",
-    description="Backend API for the Whispr application",
+    description="Backend API for Whispr",
     version="1.0.0",
     lifespan=lifespan
 )
