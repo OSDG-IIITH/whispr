@@ -13,37 +13,60 @@ class PyObjectId(ObjectId):
 
     Extends the MongoDB ObjectId class to properly handle Pydantic validation.
     """
+    # For Pydantic V2
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
+    def __get_pydantic_core_schema__(cls, _source_type, _handler):
         """
-        Validate if a value is a valid ObjectId.
+        Define validation schema for Pydantic v2.
 
         Args:
-            v: Value to validate
+            _source_type: Source type
+            _handler: Schema handler
 
         Returns:
-            ObjectId: A valid ObjectId instance
-
-        Raises:
-            ValueError: If value is not a valid ObjectId
+            Schema for validation
         """
-        if not ObjectId.is_valid(v):
+        from pydantic_core import core_schema
+
+        def validate_from_str(value: str) -> ObjectId:
+            if not ObjectId.is_valid(value):
+                raise ValueError("Invalid ObjectId")
+            return ObjectId(value)
+
+        def validate_from_any(value: any) -> ObjectId:
+            if isinstance(value, ObjectId):
+                return value
+            if isinstance(value, str):
+                return validate_from_str(value)
             raise ValueError("Invalid ObjectId")
-        return ObjectId(v)
+
+        # Using proper schema types for Pydantic v2
+        return core_schema.union_schema([
+            core_schema.is_instance_schema(ObjectId),
+            core_schema.with_info_plain_validator_function(
+                validate_from_str,
+                serialization=core_schema.plain_serializer_function_ser_schema(
+                    lambda x: str(x)
+                )
+            ),
+            core_schema.no_info_plain_validator_function(validate_from_any),
+        ])
 
     @classmethod
-    def __modify_schema__(cls, schema):
+    def __get_pydantic_json_schema__(cls, _core_schema, handler):
         """
-        Modify the schema to represent the ObjectId correctly.
+        Modify the schema to represent the ObjectId correctly for Pydantic v2.
 
         Args:
-            schema: Schema to modify
+            _core_schema: Core schema
+            handler: Schema handler
+
+        Returns:
+            dict: Modified field schema
         """
-        schema.update(type="string")
+        json_schema = handler(_core_schema)
+        json_schema.update(type="string")
+        return json_schema
 
 
 async def get_collection_data(collection, skip=0, limit=100, filters=None):

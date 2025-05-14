@@ -52,12 +52,12 @@ class CourseInstructor(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
 
-    class Config:
+    model_config = {
         """Pydantic model configuration."""
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-        schema_extra = {
+        "validate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+        "json_schema_extra": {
             "example": {
                 "_id": "60d5ec9af682fbd3d45323ab",
                 "course_id": "60d5ec9af682fbd3d45323a7",
@@ -76,6 +76,7 @@ class CourseInstructor(BaseModel):
                 "updated_at": "2024-01-15T10:30:00.000Z"
             }
         }
+    }
 
 
 class CourseInstructorCreate(BaseModel):

@@ -33,12 +33,12 @@ class Reply(BaseModel):
     upvote_count: int = 0
     downvote_count: int = 0
 
-    class Config:
+    model_config = {
         """Pydantic model configuration."""
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-        schema_extra = {
+        "validate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+        "json_schema_extra": {
             "example": {
                 "_id": "60d5ec9af682fbd3d45323a9",
                 "review_id": "60d5ec9af682fbd3d45323a6",
@@ -50,6 +50,7 @@ class Reply(BaseModel):
                 "downvote_count": 1
             }
         }
+    }
 
 
 class ReplyCreate(BaseModel):

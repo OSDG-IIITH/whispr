@@ -2,50 +2,77 @@
 CAS (Central Authentication Service) integration module.
 
 This module provides functionality for validating CAS service tickets
-against a CAS server as part of the authentication process.
+against a CAS server for user identity verification only.
+CAS is NOT used for login/authentication in this application, only
+for verifying institutional email addresses to unmute user accounts.
 """
 
-import xml.etree.ElementTree as ET
-from urllib.parse import quote
-import requests
+import logging
+from typing import Optional, Dict, Any
+from cas import CASClient
+from dotenv import find_dotenv, load_dotenv
 from config import Config
 
+# Load environment variables
+load_dotenv(find_dotenv(usecwd=True))
 
-def validate_cas_ticket(ticket: str, service: str) -> dict:
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# CAS client configuration
+CAS_SERVER_URL = Config.CAS_URL
+SERVICE_URL = Config.SERVICE_URL
+
+# Create CAS client - used ONLY for institutional email verification,
+# not for login
+cas_client = CASClient(
+    version=3,
+    service_url=SERVICE_URL,
+    server_url=CAS_SERVER_URL
+)
+
+
+async def verify_cas_authentication(ticket: str) -> Optional[Dict[str, Any]]:
     """
-    Validate a CAS service ticket against the configured CAS server.
+    Verify a CAS ticket to confirm institutional
+    identity for account verification.
+
+    This function is NOT used for authentication/login, but only for verifying
+    that a user has a valid institutional email address so their account
+    can be unmuted.
 
     Args:
-        ticket (str): The CAS ticket to validate
-        service (str): The service URL for which the ticket was issued
+        ticket: CAS verification ticket
 
     Returns:
-        dict: A dictionary containing validation results with keys:
-            - success (bool): Whether validation was successful
-            - message (str): A descriptive message about the validation result
-            - user (dict, optional): User data if validation was successful
+        User data dictionary if validation successful, None otherwise
     """
-    cas_url = Config.CAS_URL
-    validation_url = (
-        f"{cas_url}/serviceValidate?"
-        f"ticket={quote(ticket)}&"
-        f"service={quote(service)}"
-    )
+    logger.info("Verifying institutional identity with CAS ticket")
 
-    response = requests.get(validation_url, timeout=10)
-    data = response.text
-    json_data = ET.fromstring(data)
-    cas_response = json_data['cas:serviceResponse']
+    try:
+        # Use the CASClient to verify the ticket
+        user, attributes, _pgtiou = cas_client.verify_ticket(ticket)
 
-    if cas_response['cas:authenticationFailure']:
-        return {
-            "success": False,
-            "message": "Invalid ticket"
+        if not user:
+            logger.error("CAS validation failed: No user returned")
+            return None
+
+        # Return user details with standardized structure
+        user_data = {
+            "email": user,
+            "uid": attributes.get("uid"),
+            "name": attributes.get("Name"),
+            "roll_no": attributes.get("RollNo"),
+            "first_name": attributes.get("FirstName"),
+            "last_name": attributes.get("LastName"),
+            "attributes": attributes or {}
         }
 
-    user = cas_response['cas:authenticationSuccess']
-    return {
-        "success": True,
-        "message": "Ticket validated successfully",
-        "user": user
-    }
+        logger.info("CAS validation successful for user: %s", user)
+        return user_data
+    except (AttributeError, ValueError, KeyError) as e:
+        logger.error("Error validating specific CAS attributes: %s", str(e))
+        return None
+    except Exception as e:
+        logger.error("CAS library error during validation: %s", str(e))
+        return None
