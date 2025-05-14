@@ -1,11 +1,57 @@
 """
-Model for Reply
+Reply model for responses to reviews.
 
-Fields:
-- id: The unique identifier for the reply.
-- reviewId: The unique identifier for the review to which the reply belongs.
-- editted: boolean indicating if the reply has been edited.
-- timestamp: The timestamp of when the reply was created.
-- text: The text of the reply.
+This module defines the Reply model representing user responses
+to reviews of courses and professors.
 """
+from datetime import datetime
+from pydantic import BaseModel, Field
+from database.helpers import PyObjectId
+from bson import ObjectId
 
+
+class Reply(BaseModel):
+    """
+    Reply model represents responses to reviews.
+
+    Attributes:
+        id: Unique reply identifier
+        review_id: ID of the review being replied to
+        replier_id: ID of the user who wrote the reply
+        edited: Whether the reply has been edited
+        timestamp: When the reply was created
+        content: Textual content of the reply
+    """
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    review_id: PyObjectId
+    replier_id: PyObjectId
+    edited: bool = False
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    content: str = Field(..., max_length=4096)
+
+    class Config:
+        """Pydantic model configuration."""
+        allow_population_by_field_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
+        schema_extra = {
+            "example": {
+                "_id": "60d5ec9af682fbd3d45323a9",
+                "review_id": "60d5ec9af682fbd3d45323a6",
+                "replier_id": "60d5ec9af682fbd3d45323a4",
+                "edited": False,
+                "timestamp": "2023-03-16T14:45:00.000Z",
+                "content": "You suck almost as much as the course!"
+            }
+        }
+
+
+class ReplyCreate(BaseModel):
+    """Schema for reply creation requests."""
+    review_id: str
+    content: str
+
+
+class ReplyUpdate(BaseModel):
+    """Schema for reply update requests."""
+    content: str
