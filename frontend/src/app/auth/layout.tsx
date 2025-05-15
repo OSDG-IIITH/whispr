@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { ModeToggle } from "@/components/theme-toggle";
 
 export const metadata: Metadata = {
@@ -28,7 +29,7 @@ export default function AuthLayout({
         
         {/* Content with improved text visibility */}
         <div className="relative z-10 flex flex-col justify-between h-full p-8">
-          <div className="flex items-center gap-2">
+          <Link className="flex items-center gap-2" href="/">
             <Image 
               src="/logo.png" 
               alt="Whispr" 
@@ -37,7 +38,7 @@ export default function AuthLayout({
               className="h-10 w-10" 
             />
             <span className="text-xl font-bold text-white drop-shadow-md">Whispr</span>
-          </div>
+          </Link>
           
           <div className="space-y-4">
             <h1 className="text-3xl font-bold text-white drop-shadow-md">The Review Portal for IIIT Hyderabad</h1>
