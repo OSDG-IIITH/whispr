@@ -57,7 +57,7 @@ export default function RegisterPage() {
         
         <Button 
           onClick={handleCASAuth}
-          className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+          className="w-full cursor-pointer"
           disabled={isLoading}
         >
           {isLoading ? (
