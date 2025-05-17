@@ -25,7 +25,7 @@ export default function RegisterPage() {
       const casLoginUrl = "https://login.iiit.ac.in/cas/login";
       
       // You would typically add service parameter for the callback URL
-      const serviceUrl = `${window.location.origin}/auth/cas-callback`;
+      const serviceUrl = `${window.location.origin}/cas-callback`;
       const redirectUrl = `${casLoginUrl}?service=${encodeURIComponent(serviceUrl)}`;
       
       // Redirect to CAS
@@ -94,7 +94,7 @@ export default function RegisterPage() {
         <div className="text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link
-            href="/auth/login"
+            href="/login"
             className="text-primary/80 font-medium underline-offset-4 hover:underline transition-colors"
           >
             Sign in
