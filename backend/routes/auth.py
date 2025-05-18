@@ -27,7 +27,6 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 
 AUTH_COOKIE_NAME = "Authorization"
 
-
 @router.post("/register", response_model=User)
 async def register(user_data: UserCreate):
     """
