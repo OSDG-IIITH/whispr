@@ -25,12 +25,12 @@ export function SiteHeader({
 
   if (siteName === undefined) {
     const pathSegments = pathname.split('/').filter(Boolean);
-    if (pathSegments.length > 0) {
-      const firstSegment = pathSegments[0];
-      siteName = firstSegment.charAt(0).toUpperCase() + 
-                 firstSegment.slice(1).replace(/[-_]/g, ' ');
-    } else {
-      siteName = 'Home';
+    if (pathSegments.length > 1) {
+      const heading = pathSegments[1];
+      siteName = heading.charAt(0).toUpperCase() + 
+                 heading.slice(1).replace(/[-_]/g, ' ');
+    } else if (pathSegments.length == 1) {
+      siteName = 'Dashboard';
     }
   }
 
