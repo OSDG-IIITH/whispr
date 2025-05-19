@@ -35,7 +35,7 @@ export default function CASCallbackPage() {
         localStorage.setItem('authToken', 'sample-auth-token');
         
         // Redirect to dashboard after successful authentication
-        router.push('/dashboard');
+        router.push('/search');
       } catch (err) {
         console.error("Error validating CAS ticket:", err);
         setError("Failed to verify your identity. Please try again.");

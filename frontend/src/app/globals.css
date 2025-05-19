@@ -45,71 +45,116 @@
 
 :root {
   --radius: 0.625rem;
+  
+  /* Core colors - Ocean theme */
+  --primary: oklch(0.48 0.22 235);         /* Vibrant royal blue */
+  --primary-foreground: oklch(0.98 0.005 260);
+  
+  --secondary: oklch(0.95 0.03 235);       /* Soft sky blue */
+  --secondary-foreground: oklch(0.3 0.15 230);
+  
+  --accent: oklch(0.55 0.17 165);          /* Lush emerald green */
+  --accent-foreground: oklch(0.98 0.005 260);
+  
+  /* UI elements */
+  --background: oklch(0.99 0.005 260);     /* Off-white with slight blue hint */
+  --foreground: oklch(0.2 0.02 240);       /* Deep blue-gray */
+  
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
+  --card-foreground: oklch(0.2 0.02 240);
+  
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
+  --popover-foreground: oklch(0.2 0.02 240);
+  
+  --muted: oklch(0.96 0.02 220);           /* Muted blue-gray */
+  --muted-foreground: oklch(0.45 0.05 235);/* Subtly visible text on muted */
+  
+  /* Alert & feedback colors */
+  --destructive: oklch(0.65 0.29 25);      /* Rich vermilion red */
+  --destructive-foreground: oklch(0.98 0.005 260);
+  
+  /* Interface elements */
+  --border: oklch(0.85 0.03 220);          /* Subtle blue-tinted border */
+  --input: oklch(0.85 0.03 220);
+  --ring: oklch(0.48 0.22 235 / 60%);      /* Match primary but translucent */
+  
+  /* Chart & data visualization colors */
+  --chart-1: oklch(0.55 0.17 165);         /* Emerald */
+  --chart-2: oklch(0.48 0.22 235);         /* Royal blue */
+  --chart-3: oklch(0.65 0.15 205);         /* Aqua */
+  --chart-4: oklch(0.58 0.19 140);         /* Forest green */
+  --chart-5: oklch(0.42 0.20 255);         /* Indigo */
+  
+  /* Sidebar specific colors */
+  --sidebar: oklch(0.99 0.005 260);
+  --sidebar-foreground: oklch(0.2 0.02 240);
+  --sidebar-primary: oklch(0.48 0.22 235);
+  --sidebar-primary-foreground: oklch(0.98 0.005 260);
+  --sidebar-accent: oklch(0.55 0.17 165);
+  --sidebar-accent-foreground: oklch(0.98 0.005 260);
+  --sidebar-border: oklch(0.85 0.03 220);
+  --sidebar-ring: oklch(0.48 0.22 235 / 60%);
+  
+  /* Additional semantic colors */
+  --success: oklch(0.55 0.17 165);         /* Green for success states */
+  --info: oklch(0.52 0.20 235);            /* Blue for information */
+  --warning: oklch(0.70 0.20 80);          /* Amber for warnings */
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
+  /* Core colors - Deep ocean theme */
+  --primary: oklch(0.60 0.20 235);         /* Brighter blue for dark mode */
+  --primary-foreground: oklch(0.1 0.01 240);
+  
+  --secondary: oklch(0.22 0.05 230);       /* Deep blue-gray */
+  --secondary-foreground: oklch(0.98 0.005 260);
+  
+  --accent: oklch(0.50 0.22 165);          /* Vivid green */
+  --accent-foreground: oklch(0.1 0.01 240);
+  
+  /* UI elements */
+  --background: oklch(0.12 0.03 240);      /* Deep ocean blue background */
+  --foreground: oklch(0.95 0.01 260);      /* Almost white text */
+  
+  --card: oklch(0.15 0.04 235);            /* Slightly lighter than background */
+  --card-foreground: oklch(0.95 0.01 260);
+  
+  --popover: oklch(0.15 0.04 235);
+  --popover-foreground: oklch(0.95 0.01 260);
+  
+  --muted: oklch(0.20 0.05 230);           /* Muted deep blue */
+  --muted-foreground: oklch(0.65 0.05 235);/* Subdued but visible text */
+  
+  /* Alert & feedback colors */
+  --destructive: oklch(0.68 0.25 25);      /* Bright red for visibility */
+  --destructive-foreground: oklch(0.98 0.005 260);
+  
+  /* Interface elements */
+  --border: oklch(0.30 0.05 235 / 40%);    /* Subtle luminous borders */
+  --input: oklch(0.30 0.05 235 / 40%);
+  --ring: oklch(0.60 0.20 235 / 70%);
+  
+  /* Chart & data visualization colors */
+  --chart-1: oklch(0.58 0.22 165);         /* Bright green */
+  --chart-2: oklch(0.65 0.24 235);         /* Vibrant blue */
+  --chart-3: oklch(0.70 0.18 205);         /* Cyan */
+  --chart-4: oklch(0.72 0.22 80);          /* Gold */
+  --chart-5: oklch(0.50 0.25 280);         /* Purple */
+  
+  /* Sidebar specific colors */
+  --sidebar: oklch(0.14 0.03 235);
+  --sidebar-foreground: oklch(0.95 0.01 260);
+  --sidebar-primary: oklch(0.60 0.20 235);
+  --sidebar-primary-foreground: oklch(0.1 0.01 240);
+  --sidebar-accent: oklch(0.50 0.22 165);
+  --sidebar-accent-foreground: oklch(0.1 0.01 240);
+  --sidebar-border: oklch(0.30 0.05 235 / 40%);
+  --sidebar-ring: oklch(0.60 0.20 235 / 70%);
+  
+  /* Additional semantic colors */
+  --success: oklch(0.55 0.22 165);
+  --info: oklch(0.60 0.24 235);
+  --warning: oklch(0.65 0.20 80);
 }
 
 @layer base {
@@ -120,3 +165,113 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom utility classes for gradients and effects */
+@layer utilities {
+  /* Blue gradient */
+  .bg-gradient-ocean {
+    background: linear-gradient(135deg, oklch(0.48 0.22 235) 0%, oklch(0.65 0.15 205) 100%);
+  }
+  
+  /* Green gradient */
+  .bg-gradient-emerald {
+    background: linear-gradient(135deg, oklch(0.55 0.17 165) 0%, oklch(0.58 0.19 140) 100%);
+  }
+  
+  /* Text gradients */
+  .text-gradient-ocean {
+    background: linear-gradient(90deg, oklch(0.48 0.22 235), oklch(0.65 0.15 205));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-emerald {
+    background: linear-gradient(90deg, oklch(0.55 0.17 165), oklch(0.58 0.19 140));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Card glass effect for light mode */
+  .card-glass {
+    background: oklch(1 0 0 / 70%);
+    backdrop-filter: blur(8px);
+    border: 1px solid oklch(1 0 0 / 30%);
+  }
+  
+  /* Card glass effect for dark mode */
+  .dark .card-glass {
+    background: oklch(0.15 0.04 235 / 70%);
+    backdrop-filter: blur(8px);
+    border: 1px solid oklch(1 0 0 / 10%);
+  }
+}
+
+/* Custom Scrollbar Styling */
+@layer base {
+  /* For Webkit browsers (Chrome, Safari) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: var(--radius);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.7 0.05 240);
+    border: 3px solid var(--background);
+    border-radius: var(--radius);
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.6 0.08 240);
+  }
+  
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.7 0.05 240) var(--background);
+  }
+  
+  /* Dark mode scrollbar adjustments */
+  .dark::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  
+  .dark::-webkit-scrollbar-thumb {
+    background: oklch(0.3 0.05 235);
+    border-color: var(--background);
+  }
+  
+  .dark::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.4 0.08 235);
+  }
+  
+  .dark * {
+    scrollbar-color: oklch(0.3 0.05 235) var(--background);
+  }
+  
+  /* Fine-tuned adjustments for specific containers */
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    border-width: 2px;
+  }
+  
+  /* Hide scrollbar when not needed but keep functionality */
+  .scrollbar-hidden {
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+}
+
