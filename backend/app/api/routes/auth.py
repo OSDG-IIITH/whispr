@@ -62,7 +62,10 @@ async def logout(response: Response) -> Any:
 
 
 @router.post(
-    "/register", response_model=User, status_code=status.HTTP_201_CREATED)
+    "/register",
+    response_model=User,
+    status_code=status.HTTP_201_CREATED
+)
 async def register_user(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db),
@@ -74,6 +77,7 @@ async def register_user(
     stmt = select(UserModel).where(UserModel.username == user_in.username)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
+
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -101,38 +105,6 @@ async def register_user(
     await db.commit()
 
     return created_user
-
-
-# @router.post("/verify-email")
-# async def verify_email(
-#     email: str,
-#     db: AsyncSession = Depends(get_db),
-#     current_user: UserModel = Depends(get_current_user),
-# ) -> Any:
-#     """
-#     Verify an email address.
-#     """
-#     # Check if email exists in used_emails
-#     stmt = select(UsedEmailModel).where(UsedEmailModel.email == email)
-#     result = await db.execute(stmt)
-#     email_record = result.scalar_one_or_none()
-
-#     if not email_record:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Email not found",
-#         )
-
-#     # Update email verification status
-#     async with db.begin():
-#         stmt = update(UsedEmailModel).where(
-#             UsedEmailModel.email == email
-#         ).values(
-#             verified_at=datetime.utcnow()
-#         )
-#         await db.execute(stmt)
-
-#     return {"message": "Email verified successfully"}
 
 
 @router.get("/me", response_model=User)

@@ -1,5 +1,6 @@
 """
 Whispr API - Main entry point for the backend API.
+Anonymous review platform for IIITH with CAS verification.
 """
 
 from contextlib import asynccontextmanager
@@ -27,8 +28,8 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="API for Whispr - \
-A platform for IIITH course and professor reviews",
+    description="Anonymous review platform for IIITH \
+- Speak softly. Help loudly.",
     version="1.0.0",
     lifespan=lifespan,
     root_path="/api",

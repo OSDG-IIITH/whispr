@@ -38,7 +38,8 @@ class UserCreate(BaseModel):
 
     @validator("username")
     def username_alphanumeric(cls, v):
-        assert v.isalnum(), "Username must be alphanumeric"
+        if not v.isalnum():
+            raise ValueError("Username must be alphanumeric")
         return v
 
 
@@ -55,8 +56,8 @@ class UserUpdate(BaseModel):
 
     @validator("username")
     def username_alphanumeric(cls, v):
-        if v is not None:
-            assert v.isalnum(), "Username must be alphanumeric"
+        if v is not None and not v.isalnum():
+            raise ValueError("Username must be alphanumeric")
         return v
 
 
