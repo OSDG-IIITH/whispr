@@ -41,7 +41,7 @@ services:
       - ENVIRONMENT=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/whispr
       - DATABASE_NAME=whispr
-      - JWT_SECRET=changeme_in_production
+      - JWT_SECRET=change_me_in_production
       - JWT_ALGORITHM=HS256
       - JWT_EXPIRATION=86400
     networks:

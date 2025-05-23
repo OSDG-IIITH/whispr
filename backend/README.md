@@ -60,23 +60,23 @@ Represents user accounts and profiles:
 ```python
 class User(Base):
     __tablename__ = "users"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = Column(String(50), unique=True, nullable=False, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     avatar_url = Column(String(255), nullable=True)
     bio = Column(String(500), nullable=True)
-    
+
     # Status flags
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     is_muffled = Column(Boolean, default=True)  # Can't post until verified
     is_admin = Column(Boolean, default=False)
-    
+
     # Stats
     echoes = Column(Integer, default=0)  # Reputation system
-    
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -89,14 +89,14 @@ Represents academic courses:
 ```python
 class Course(Base):
     __tablename__ = "courses"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     code = Column(String(20), nullable=False, unique=True, index=True)
     name = Column(String(255), nullable=False, index=True)
     credits = Column(Integer, nullable=True)
     department = Column(String(100), nullable=True)
     description = Column(Text, nullable=True)
-    
+
     # Stats
     review_count = Column(Integer, default=0)
     average_rating = Column(Float, default=0.0)
@@ -109,13 +109,13 @@ Represents professors/instructors:
 ```python
 class Professor(Base):
     __tablename__ = "professors"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False, index=True)
     lab = Column(String(255), nullable=True)
     homepage_url = Column(String(255), nullable=True)
     research_interests = Column(ARRAY(String), nullable=True)
-    
+
     # Stats
     review_count = Column(Integer, default=0)
     average_rating = Column(Float, default=0.0)
@@ -145,6 +145,7 @@ The application uses JWT tokens for authentication:
 ### To Be Implemented
 
 - User Management:
+
   - `GET /api/users/me`: Get current user
   - `PUT /api/users/me`: Update current user
   - `GET /api/users/{username}`: Get user by username
@@ -152,6 +153,7 @@ The application uses JWT tokens for authentication:
   - `POST /api/users/{username}/unfollow`: Unfollow a user
 
 - Courses:
+
   - `GET /api/courses`: List courses
   - `GET /api/courses/{code}`: Get course by code
   - `POST /api/courses`: Create a course (admin only)
@@ -159,6 +161,7 @@ The application uses JWT tokens for authentication:
   - `GET /api/courses/{code}/reviews`: Get reviews for a course
 
 - Professors:
+
   - `GET /api/professors`: List professors
   - `GET /api/professors/{id}`: Get professor by ID
   - `POST /api/professors`: Create a professor (admin only)
@@ -166,6 +169,7 @@ The application uses JWT tokens for authentication:
   - `GET /api/professors/{id}/reviews`: Get reviews for a professor
 
 - Reviews:
+
   - `POST /api/reviews`: Create a review
   - `GET /api/reviews/{id}`: Get review by ID
   - `PUT /api/reviews/{id}`: Update a review
@@ -173,6 +177,7 @@ The application uses JWT tokens for authentication:
   - `POST /api/reviews/{id}/vote`: Vote on a review
 
 - Replies:
+
   - `POST /api/reviews/{id}/replies`: Create a reply
   - `GET /api/replies/{id}`: Get reply by ID
   - `PUT /api/replies/{id}`: Update a reply
