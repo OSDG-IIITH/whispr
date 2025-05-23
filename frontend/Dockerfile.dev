@@ -1,0 +1,24 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies needed for node-gyp
+RUN apk add --no-cache python3 make g++
+
+# Copy package files first for better caching  
+COPY package*.json ./
+
+# Install dependencies (including dev dependencies)
+RUN npm ci && npm cache clean --force
+
+# Copy application code
+COPY . .
+
+# Create .env.local file for development
+RUN echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/" > .env.local
+
+# Expose port
+EXPOSE 3000
+
+# Development command with hot reload
+CMD ["npm", "run", "dev"]

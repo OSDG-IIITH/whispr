@@ -1,0 +1,137 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { ReplyCard } from "./ReplyCard";
+import { ReplyForm } from "./ReplyForm";
+
+interface Reply {
+  id: string;
+  author: {
+    username: string;
+    echoes: number;
+    isVerified: boolean;
+  };
+  content: string;
+  upvotes: number;
+  downvotes: number;
+  createdAt: string;
+  isEdited: boolean;
+  userVote?: "up" | "down" | null;
+  isOwn?: boolean;
+}
+
+interface ReplyListProps {
+  replies: Reply[];
+  reviewId: string;
+  onVote: (replyId: string, type: "up" | "down") => void;
+  onSubmitReply: (reviewId: string, content: string) => void;
+  onEdit?: (replyId: string) => void;
+  onDelete?: (replyId: string) => void;
+  onReport?: (replyId: string) => void;
+  collapsed?: boolean;
+}
+
+export function ReplyList({ 
+  replies, 
+  reviewId,
+  onVote, 
+  onSubmitReply,
+  onEdit, 
+  onDelete, 
+  onReport,
+  collapsed = false
+}: ReplyListProps) {
+  const [isExpanded, setIsExpanded] = useState(!collapsed);
+  const [showReplyForm, setShowReplyForm] = useState(false);
+
+  const handleSubmitReply = async (content: string) => {
+    await onSubmitReply(reviewId, content);
+    setShowReplyForm(false);
+  };
+
+  if (replies.length === 0 && !showReplyForm) {
+    return (
+      <div className="ml-12 mt-3">
+        <button
+          onClick={() => setShowReplyForm(true)}
+          className="flex items-center gap-2 text-sm text-secondary hover:text-primary transition-colors"
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>Be the first to reply</span>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      {replies.length > 0 && (
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-2 text-sm text-secondary hover:text-primary transition-colors mb-3 ml-12"
+        >
+          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          <span>{replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
+        </button>
+      )}
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="space-y-3"
+          >
+            {replies.map((reply, index) => (
+              <motion.div
+                key={reply.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <ReplyCard
+                  reply={reply}
+                  onVote={onVote}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onReport={onReport}
+                />
+              </motion.div>
+            ))}
+
+            {showReplyForm && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <ReplyForm
+                  onSubmit={handleSubmitReply}
+                  onCancel={() => setShowReplyForm(false)}
+                />
+              </motion.div>
+            )}
+
+            {!showReplyForm && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="ml-12"
+              >
+                <button
+                  onClick={() => setShowReplyForm(true)}
+                  className="flex items-center gap-2 text-sm text-secondary hover:text-primary transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Add a reply</span>
+                </button>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
