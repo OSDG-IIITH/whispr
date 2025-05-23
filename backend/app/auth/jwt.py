@@ -8,7 +8,8 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -78,7 +79,7 @@ async def get_current_user(
         if user_id is None:
             raise credentials_exception
         token_data = TokenPayload(sub=user_id)
-    except JWTError:
+    except InvalidTokenError:
         raise credentials_exception
 
     # Get user from database
