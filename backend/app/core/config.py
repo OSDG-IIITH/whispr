@@ -55,6 +55,15 @@ class Settings(BaseSettings):
         "students.iiit.ac.in,research.iiit.ac.in"
     ).split(",")
 
+    # CAS settings
+    CAS_SERVER_URL: str = os.getenv(
+        "CAS_SERVER_URL", "https://login.iiit.ac.in/cas")
+    CAS_SERVICE_URL: str = os.getenv(
+        "CAS_SERVICE_URL", "http://localhost:8000/auth/callback")
+    VERIFICATION_SESSION_EXPIRE_MINUTES: int = int(
+        os.getenv("VERIFICATION_SESSION_EXPIRE_MINUTES", "30")
+    )
+
     class Config:
         """
         Configuration for Pydantic settings.
