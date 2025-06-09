@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, AlertCircle, Star, MessageSquare, TrendingUp } from "lucide-react";
-import { getRank } from "@/lib/utils";
+import { Shield, Star, MessageSquare, TrendingUp } from "lucide-react";
+import { getRankWithProgress } from "@/lib/utils";
 
 // Mock user data - in real app this would come from API
 const mockUser = {
@@ -29,7 +29,7 @@ export default function DashboardPage() {
     setShowVerificationBanner(user.is_muffled || !user.is_verified);
   }, [user]);
 
-  const rank = getRank(user.echoes);
+  const rank = getRankWithProgress(user.echoes);
 
   return (
     <div className="min-h-screen bg-black">
@@ -93,8 +93,8 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="text-xs text-secondary">
-              {rank.max === Infinity 
-                ? "You've reached the highest rank!" 
+              {rank.max === Infinity
+                ? "You've reached the highest rank!"
                 : `${rank.max - user.echoes + 1} echoes to next rank`
               }
             </div>
@@ -193,7 +193,7 @@ export default function DashboardPage() {
               {
                 type: "upvote",
                 content: "Your review was upvoted",
-                time: "5 hours ago", 
+                time: "5 hours ago",
                 echoes: "+1"
               },
               {

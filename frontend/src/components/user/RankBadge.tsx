@@ -1,6 +1,6 @@
 "use client";
 
-import { getRank } from "@/lib/utils";
+import { getRankWithProgress } from "@/lib/utils";
 
 interface RankBadgeProps {
   echoes: number;
@@ -10,7 +10,7 @@ interface RankBadgeProps {
 }
 
 export function RankBadge({ echoes, size = "md", showIcon = true, showProgress = false }: RankBadgeProps) {
-  const rank = getRank(echoes);
+  const rank = getRankWithProgress(echoes);
   
   const sizeClasses = {
     sm: "px-2 py-1 text-xs",
@@ -22,9 +22,7 @@ export function RankBadge({ echoes, size = "md", showIcon = true, showProgress =
     sm: "text-xs",
     md: "text-sm",
     lg: "text-base"
-  };
-
-  // Calculate progress to next rank
+  };  // Calculate progress to next rank
   const progress = rank.max === Infinity 
     ? 100 
     : Math.min(100, ((echoes - rank.min) / (rank.max - rank.min)) * 100);
@@ -48,12 +46,12 @@ export function RankBadge({ echoes, size = "md", showIcon = true, showProgress =
       {showProgress && rank.max !== Infinity && (
         <div className="flex items-center gap-2 text-xs text-secondary">
           <div className="flex-1 bg-muted rounded-full h-1.5">
-            <div 
+            <div
               className="bg-gradient-to-r from-primary to-green-600 h-1.5 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <span>{rank.max - echoes + 1} to next</span>
+          <span>{rank.echoesToNext} to next</span>
         </div>
       )}
     </div>

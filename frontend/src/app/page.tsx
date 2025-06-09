@@ -40,7 +40,7 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-        
+
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -94,7 +94,7 @@ export default function LandingPage() {
               </button>
             </Link>
             <Link href="/design-doc.pdf" target="_blank">
-              <button className="btn btn-secondary px-8 py-3 text-lg border border-primary text-primary hover:bg-primary/10">
+              <button className="btn  px-8 py-3 text-lg border border-primary text-primary hover:bg-primary/10">
                 Design Doc <Download className="ml-2 h-5 w-5" />
               </button>
             </Link>
@@ -113,7 +113,7 @@ export default function LandingPage() {
           >
             Why Whispr?
           </motion.h2>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {FEATURES.map((feature, index) => (
               <motion.div
@@ -124,7 +124,9 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.1 }}
                 className="card p-6 h-full bg-card/50 backdrop-blur-xl border-primary/20 hover:border-primary/50 transition-all duration-300"
               >
-                <div className="text-4xl mb-4">{feature.icon}</div>
+                <div className="text-primary mb-4">
+                  <feature.icon className="w-8 h-8" />
+                </div>
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-secondary">{feature.description}</p>
               </motion.div>
@@ -154,14 +156,14 @@ export default function LandingPage() {
                 icon: <Users className="w-6 h-6" />
               },
               {
-                step: "2", 
+                step: "2",
                 title: "Verify Your Student Status",
                 description: "Use CAS login once to prove you're from IIITH - we never store your email",
                 icon: <Shield className="w-6 h-6" />
               },
               {
                 step: "3",
-                title: "Share Your Experience", 
+                title: "Share Your Experience",
                 description: "Write honest reviews about courses and professors",
                 icon: <MessageSquare className="w-6 h-6" />
               },
