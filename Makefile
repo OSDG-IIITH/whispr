@@ -1,4 +1,4 @@
-.PHONY: up up_n down build rebuild logs ps shell-backend shell-frontend shell-db clean setup-frontend help
+.PHONY: up up_n down build rebuild logs ps shell-backend shell-frontend shell-db clean setup-frontend help start
 
 # Default target
 help:
@@ -14,6 +14,7 @@ help:
 	@echo "  make shell-db        - Open a shell in the database container"
 	@echo "  make clean           - Remove all containers, volumes, and networks"
 	@echo "  make setup-frontend  - Initialize the Next.js frontend project"
+	@echo "  make start           - Properly start services in the correct order"
 
 # Start all containers
 up:
@@ -68,3 +69,17 @@ setup-frontend:
 	docker-compose exec frontend sh -c "cd /app && npm install axios js-cookie @types/js-cookie zustand react-hook-form zod @hookform/resolvers"
 	@echo "Frontend setup complete! The Next.js project has been initialized."
 	@echo "You can now start developing by accessing the container with 'make shell-frontend'"
+
+# Start services in the correct order
+start:
+	@echo "Starting services in the correct order..."
+	docker-compose up -d db
+	@echo "Waiting for database to be ready..."
+	@sleep 10  # Wait for PostgreSQL to initialize
+	docker-compose up -d backend
+	@echo "Waiting for backend to be ready..."
+	@sleep 5   # Wait for backend to initialize
+	docker-compose up -d frontend nginx
+	@echo "All services started successfully."
+	@echo "Access the application at http://localhost"
+	@echo "API documentation available at http://localhost/api/docs"
