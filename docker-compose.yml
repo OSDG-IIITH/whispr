@@ -9,8 +9,10 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/certs:/etc/nginx/certs
     depends_on:
-      - frontend
-      - backend
+      frontend:
+        condition: service_started
+      backend:
+        condition: service_healthy
     networks:
       - whispr-network
 
@@ -28,7 +30,8 @@ services:
     networks:
       - whispr-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
   backend:
     build:
@@ -48,7 +51,14 @@ services:
       - whispr-network
       - backend-db-network
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   db:
     image: postgres:15-alpine
@@ -62,6 +72,12 @@ services:
       - POSTGRES_DB=whispr
     networks:
       - backend-db-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d whispr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   whispr-network:

@@ -1,12 +1,25 @@
-.PHONY: up up_n down build rebuild logs ps shell-backend shell-frontend shell-db clean setup-frontend help start
+.PHONY: up up_n down build rebuild logs ps shell-backend shell-frontend shell-db clean setup-frontend help start dev dev-up dev-down dev-build dev-rebuild dev-logs
 
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  make up              - Start all containers"
+	@echo ""
+	@echo "Production commands:"
+	@echo "  make up              - Start all containers (production)"
 	@echo "  make down            - Stop all containers"
-	@echo "  make build           - Build all containers"
-	@echo "  make rebuild         - Rebuild and restart all containers"
+	@echo "  make build           - Build all containers (production)"
+	@echo "  make rebuild         - Rebuild and restart all containers (production)"
+	@echo "  make start           - Properly start services in the correct order (production)"
+	@echo ""
+	@echo "Development commands:"
+	@echo "  make dev             - Start all containers in development mode"
+	@echo "  make dev-up          - Start all containers in development mode (detached)"
+	@echo "  make dev-down        - Stop development containers"
+	@echo "  make dev-build       - Build all containers for development"
+	@echo "  make dev-rebuild     - Rebuild and restart all containers in development mode"
+	@echo "  make dev-logs        - View logs from development containers"
+	@echo ""
+	@echo "Utility commands:"
 	@echo "  make logs            - View logs from all containers"
 	@echo "  make ps              - List running containers"
 	@echo "  make shell-backend   - Open a shell in the backend container"
@@ -14,11 +27,10 @@ help:
 	@echo "  make shell-db        - Open a shell in the database container"
 	@echo "  make clean           - Remove all containers, volumes, and networks"
 	@echo "  make setup-frontend  - Initialize the Next.js frontend project"
-	@echo "  make start           - Properly start services in the correct order"
 
 # Start all containers
 up:
-	docker-compose up -d
+	docker-compose up -d --wait
 
 # Start all containers without detach
 up_n:
@@ -36,7 +48,36 @@ build:
 rebuild:
 	docker-compose down
 	docker-compose build
-	docker-compose up -d
+	docker-compose up -d --wait
+
+# Development mode commands
+# Start all containers in development mode (interactive)
+dev:
+	@echo "Starting services in development mode..."
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+# Start all containers in development mode (detached)
+dev-up:
+	@echo "Starting services in development mode (detached)..."
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --wait
+
+# Stop development containers
+dev-down:
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+
+# Build all containers for development
+dev-build:
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
+
+# Rebuild and restart all containers in development mode
+dev-rebuild:
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --wait
+
+# View logs from development containers
+dev-logs:
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
 
 # View logs from all containers
 logs:
@@ -72,14 +113,8 @@ setup-frontend:
 
 # Start services in the correct order
 start:
-	@echo "Starting services in the correct order..."
-	docker-compose up -d db
-	@echo "Waiting for database to be ready..."
-	@sleep 10  # Wait for PostgreSQL to initialize
-	docker-compose up -d backend
-	@echo "Waiting for backend to be ready..."
-	@sleep 5   # Wait for backend to initialize
-	docker-compose up -d frontend nginx
-	@echo "All services started successfully."
+	@echo "Starting services with proper dependency waiting..."
+	docker-compose up -d --wait
+	@echo "All services started successfully with health checks."
 	@echo "Access the application at http://localhost"
 	@echo "API documentation available at http://localhost/api/docs"

@@ -13,36 +13,69 @@ This guide explains how to set up, develop, and extend the Whispr platform.
 ### Setting Up the Development Environment
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/yourusername/whispr.git
 cd whispr
 ```
 
 2. Create a `.env` file from the template:
+
 ```bash
 cp .env.example .env
 ```
 
 3. Start the development environment:
+
 ```bash
-make up
+make dev
 ```
 
-This will start all the containers:
-- Frontend (Next.js)
-- Backend (FastAPI)
+This will start all the containers in development mode with hot reload:
+
+- Frontend (Next.js with hot reload)
+- Backend (FastAPI with auto-reload)
 - Database (PostgreSQL)
 - Nginx (Reverse Proxy)
 
 4. Initialize the frontend (if not already set up):
+
 ```bash
 make setup-frontend
 ```
 
 5. Access the applications:
-   - Frontend: http://localhost
-   - Backend API: http://localhost/api
+   - Frontend: http://localhost (or http://localhost:3000 for direct access)
+   - Backend API: http://localhost/api (or http://localhost:8000 for direct access)
    - API Documentation: http://localhost/api/docs
+
+## Development vs Production
+
+### Development Mode Commands
+
+For active development with hot reload and debugging:
+
+```bash
+make dev          # Start in development mode (interactive)
+make dev-up       # Start in development mode (detached)
+make dev-down     # Stop development containers
+make dev-build    # Build development containers
+make dev-rebuild  # Rebuild and restart development containers
+make dev-logs     # View development logs
+```
+
+### Production Mode Commands
+
+For production-like testing:
+
+```bash
+make up           # Start in production mode
+make down         # Stop all containers
+make build        # Build production containers
+make rebuild      # Rebuild and restart production containers
+make start        # Start with proper initialization order
+make logs         # View production logs
+```
 
 ## Development Workflow
 
@@ -79,6 +112,7 @@ make shell-frontend
 ```
 
 Inside the container, you can run any npm commands:
+
 ```bash
 npm run dev  # Already running by default
 npm install some-package
@@ -100,6 +134,7 @@ make shell-db
 ```
 
 This opens a PostgreSQL shell where you can run SQL queries:
+
 ```sql
 -- List all tables
 \dt
@@ -115,6 +150,7 @@ To make schema changes:
 1. Create a new migration script in the `init-scripts` directory
 2. Update the corresponding models in `backend/app/models/`
 3. Rebuild the containers to apply the changes:
+
 ```bash
 make rebuild
 ```
@@ -154,11 +190,13 @@ whispr/
 ### Working with Docker
 
 - **Rebuilding Containers**: If you change Dockerfiles or install new dependencies, rebuild the containers:
+
 ```bash
 make rebuild
 ```
 
 - **Viewing Logs**: Check container logs for debugging:
+
 ```bash
 make logs
 # Or for a specific container
@@ -166,6 +204,7 @@ docker-compose logs -f backend
 ```
 
 - **Restarting Containers**: If a service isn't working correctly, restart it:
+
 ```bash
 docker-compose restart backend
 ```
@@ -189,17 +228,20 @@ docker-compose restart backend
 ### Git Workflow
 
 1. Create a feature branch:
+
 ```bash
 git checkout -b feature/my-feature
 ```
 
 2. Make your changes and commit:
+
 ```bash
 git add .
 git commit -m "Add my feature"
 ```
 
 3. Push to the remote repository:
+
 ```bash
 git push origin feature/my-feature
 ```
@@ -211,16 +253,19 @@ git push origin feature/my-feature
 ### Adding a New Feature
 
 1. **Plan the feature**:
+
    - Define the database schema changes (if any)
    - Define the API endpoints needed
    - Design the UI components
 
 2. **Implement backend components**:
+
    - Add/update database models
    - Create API schemas
    - Implement API endpoints
 
 3. **Implement frontend components**:
+
    - Create UI components
    - Implement data fetching
    - Add routing and navigation
@@ -245,15 +290,18 @@ The current authentication uses JWT tokens with username/password. To add additi
 For production deployment:
 
 1. Update environment variables in `.env`:
+
    - Set strong JWT secret
    - Configure production database credentials
    - Set secure cookie settings
 
 2. Configure HTTPS in Nginx:
+
    - Add SSL certificates
    - Update Nginx configuration
 
 3. Deploy using Docker Compose:
+
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
@@ -261,6 +309,7 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ### Continuous Integration/Deployment
 
 Consider setting up CI/CD pipelines with GitHub Actions or GitLab CI to automate:
+
 - Running tests
 - Building Docker images
 - Deploying to staging/production environments
@@ -270,14 +319,17 @@ Consider setting up CI/CD pipelines with GitHub Actions or GitLab CI to automate
 ### Common Issues
 
 1. **Container fails to start**:
+
    - Check logs: `docker-compose logs <service-name>`
    - Verify environment variables
 
 2. **Database connection issues**:
+
    - Check if the database container is running
    - Verify database credentials in `.env`
 
 3. **Frontend can't connect to API**:
+
    - Check Nginx configuration
    - Verify API URLs in frontend code
 
@@ -288,6 +340,7 @@ Consider setting up CI/CD pipelines with GitHub Actions or GitLab CI to automate
 ### Getting Help
 
 If you encounter issues:
+
 1. Check the documentation for the specific component
 2. Search for similar issues in the project's issue tracker
 3. Create a new issue with detailed information about the problem

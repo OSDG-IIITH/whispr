@@ -15,7 +15,7 @@ RUN npm ci && npm cache clean --force
 COPY . .
 
 # Create .env.local file for development
-RUN echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/" > .env.local
+RUN echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1" > .env.local
 
 # Expose port
 EXPOSE 3000
