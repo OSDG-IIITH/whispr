@@ -34,6 +34,7 @@ const config: Config = {
           foreground: '#ffffff', // Adding card-foreground color
         },
         border: '#262626',
+        input: 'hsl(var(--input))',
         ring: '#22c55e',
         muted: {
           DEFAULT: '#262626',
