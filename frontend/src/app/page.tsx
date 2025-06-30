@@ -3,7 +3,14 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, Download, Shield, Users, MessageSquare, TrendingUp } from "lucide-react";
+import {
+  ArrowRight,
+  Download,
+  Shield,
+  Users,
+  MessageSquare,
+  TrendingUp,
+} from "lucide-react";
 import { FEATURES, RANKS } from "@/lib/constants";
 
 export default function LandingPage() {
@@ -124,9 +131,7 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.1 }}
                 className="card p-6 h-full bg-card/50 backdrop-blur-xl border-primary/20 hover:border-primary/50 transition-all duration-300"
               >
-                <div className="text-primary mb-4">
-                  <feature.icon className="w-8 h-8" />
-                </div>
+                <div className="text-4xl mb-4">{feature.icon}</div>
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-secondary">{feature.description}</p>
               </motion.div>
@@ -152,27 +157,31 @@ export default function LandingPage() {
               {
                 step: "1",
                 title: "Create Your Anonymous Identity",
-                description: "Choose a unique username - no email required for registration",
-                icon: <Users className="w-6 h-6" />
+                description:
+                  "Choose a unique username - no email required for registration",
+                icon: <Users className="w-6 h-6" />,
               },
               {
                 step: "2",
                 title: "Verify Your Student Status",
-                description: "Use CAS login once to prove you're from IIITH - we never store your email",
-                icon: <Shield className="w-6 h-6" />
+                description:
+                  "Use CAS login once to prove you're from IIITH - we never store your email",
+                icon: <Shield className="w-6 h-6" />,
               },
               {
                 step: "3",
                 title: "Share Your Experience",
-                description: "Write honest reviews about courses and professors",
-                icon: <MessageSquare className="w-6 h-6" />
+                description:
+                  "Write honest reviews about courses and professors",
+                icon: <MessageSquare className="w-6 h-6" />,
               },
               {
                 step: "4",
                 title: "Earn Echoes & Climb Ranks",
-                description: "Get recognized for helpful contributions without revealing who you are",
-                icon: <TrendingUp className="w-6 h-6" />
-              }
+                description:
+                  "Get recognized for helpful contributions without revealing who you are",
+                icon: <TrendingUp className="w-6 h-6" />,
+              },
             ].map((item, index) => (
               <motion.div
                 key={item.step}
@@ -236,9 +245,12 @@ export default function LandingPage() {
           viewport={{ once: true }}
           className="max-w-2xl mx-auto text-center"
         >
-          <h2 className="text-4xl font-bold mb-4">Ready to Share Your Voice?</h2>
+          <h2 className="text-4xl font-bold mb-4">
+            Ready to Share Your Voice?
+          </h2>
           <p className="text-xl text-secondary mb-8">
-            Join the community of IIITH students helping each other make informed decisions.
+            Join the community of IIITH students helping each other make
+            informed decisions.
           </p>
           <Link href="/auth/register">
             <button className="btn btn-primary px-8 py-3 text-lg glow-green">
