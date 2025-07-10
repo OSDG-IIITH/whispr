@@ -134,6 +134,15 @@ CREATE TABLE used_emails (
     verified_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Create verification_sessions table for temporary CAS verification flow
+CREATE TABLE verification_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    session_token VARCHAR(255) NOT NULL UNIQUE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 -- Create notifications table
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -175,6 +184,8 @@ CREATE INDEX idx_notifications_actor_username ON notifications(actor_username);
 CREATE INDEX idx_notifications_source ON notifications(source_id, source_type);
 CREATE INDEX idx_notifications_type ON notifications(type);
 CREATE INDEX idx_used_emails_email ON used_emails(email);
+CREATE INDEX idx_verification_sessions_session_token ON verification_sessions(session_token);
+CREATE INDEX idx_verification_sessions_user_id ON verification_sessions(user_id);
 CREATE INDEX idx_professor_social_media_professor_id ON professor_social_media(professor_id);
 CREATE INDEX idx_course_instructors_professor_id ON course_instructors(professor_id);
 CREATE INDEX idx_course_instructors_course_id ON course_instructors(course_id);

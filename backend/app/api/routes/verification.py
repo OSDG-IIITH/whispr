@@ -49,12 +49,14 @@ async def initiate_verification(
     # Create new verification session
     session_token = generate_session_token()
 
-    stmt = insert(VerificationSession).values(
+    # Create VerificationSession instance to trigger __init__ method
+    verification_session = VerificationSession(
         user_id=current_user.id,
         session_token=session_token,
     )
 
-    await db.execute(stmt)
+    # Add to database
+    db.add(verification_session)
     await db.commit()
 
     # Generate CAS login URL
@@ -96,32 +98,28 @@ async def cas_callback(
                 url=f"{settings.FRONTEND_URL}/verify?error=invalid_session"
             )
 
+        # Validate CAS ticket
+        email = await cas_client.validate_ticket(ticket, state)
+        if not email:
+            return RedirectResponse(
+                url=f"{settings.FRONTEND_URL}/verify?error=cas_validation_failed"
+            )
+
         # Check if session expired
         if session.is_expired:
+            # Delete expired session
             await db.execute(
                 delete(VerificationSession).where(
                     VerificationSession.id == session.id
                 )
             )
             await db.commit()
-
             return RedirectResponse(
                 url=f"{settings.FRONTEND_URL}/verify?error=session_expired"
             )
 
-        # Validate CAS ticket
-        email = await cas_client.validate_ticket(ticket, state)
-        if not email:
-            return RedirectResponse(
-                url=f"{settings.FRONTEND_URL}\
-/verify?error=cas_validation_failed"
-            )
-
-        # Hash email for anonymous storage
-        email_hash = hash_email(email)
-
-        # Check if email hash already used
-        stmt = select(UsedEmail).where(UsedEmail.email_hash == email_hash)
+        # Check if email already used
+        stmt = select(UsedEmail).where(UsedEmail.email == email)
         result = await db.execute(stmt)
         existing_email = result.scalar_one_or_none()
 
@@ -133,32 +131,31 @@ async def cas_callback(
                 )
             )
             await db.commit()
-
             return RedirectResponse(
                 url=f"{settings.FRONTEND_URL}/verify?error=email_already_used"
             )
 
-        # Start transaction for verification
-        async with db.begin():
-            # Add email hash to used emails
-            await db.execute(insert(UsedEmail).values(email_hash=email_hash))
+        # Add email to used emails
+        await db.execute(insert(UsedEmail).values(email=email))
 
-            # Update user verification status
-            await db.execute(
-                update(User)
-                .where(User.id == session.user_id)
-                .values(is_verified=True, is_muffled=False)
+        # Update user verification status
+        await db.execute(
+            update(User)
+            .where(User.id == session.user_id)
+            .values(is_muffled=False)
+        )
+
+        # Delete verification session
+        await db.execute(
+            delete(VerificationSession).where(
+                VerificationSession.id == session.id
             )
+        )
 
-            # Delete verification session
-            await db.execute(
-                delete(VerificationSession).where(
-                    VerificationSession.id == session.id
-                )
-            )
+        # Commit all changes
+        await db.commit()
 
-        return RedirectResponse(url=f"{settings.FRONTEND_URL}\
-/verify?success=true")
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}/verify?success=true")
 
     except Exception as e:
         print(f"Verification error: {e}")
@@ -175,7 +172,6 @@ async def get_verification_status(
     Get current user's verification status.
     """
     return {
-        "is_verified": current_user.is_verified,
         "is_muffled": current_user.is_muffled,
         "username": current_user.username,
         "echoes": current_user.echoes,

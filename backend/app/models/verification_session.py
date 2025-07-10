@@ -3,11 +3,11 @@ VerificationSession model for temporary CAS verification flow.
 """
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Column, String, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 
-from app.db.init_db import Base
+from app.db.session import Base
 from app.core.config import settings
 
 
@@ -26,16 +26,16 @@ class VerificationSession(Base):
     session_token = Column(String(255), unique=True,
                            nullable=False, index=True)
     expires_at = Column(DateTime(timezone=True), nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.expires_at:
-            self.expires_at = datetime.utcnow() + timedelta(
-                minutes=settings.verification_session_expire_minutes
+            self.expires_at = datetime.now(timezone.utc) + timedelta(
+                minutes=settings.VERIFICATION_SESSION_EXPIRE_MINUTES
             )
 
     @property
     def is_expired(self) -> bool:
         """Check if session has expired."""
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at

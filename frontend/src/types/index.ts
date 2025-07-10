@@ -5,7 +5,6 @@ export interface User {
   bio?: string;
   student_since_year?: number;
   is_muffled: boolean;
-  is_verified: boolean;
   is_admin: boolean;
   echoes: number;
   created_at: string;
@@ -18,7 +17,6 @@ export interface AuthResponse {
 }
 
 export interface VerificationStatus {
-  is_verified: boolean;
   is_muffled: boolean;
   username: string;
   echoes: number;

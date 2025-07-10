@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Shield, CheckCircle, XCircle, AlertCircle, ExternalLink } from "lucide-react";
+import api from "@/lib/api";
 
 export default function VerifyPage() {
   const searchParams = useSearchParams();
@@ -20,7 +21,7 @@ export default function VerifyPage() {
     if (success === 'true') {
       setStatus('success');
       setMessage('Your account has been successfully verified! You can now post reviews and vote.');
-      
+
       // Redirect to dashboard after 3 seconds
       setTimeout(() => {
         router.push('/dashboard');
@@ -56,18 +57,19 @@ export default function VerifyPage() {
       setStep('redirect');
     } else if (step === 'redirect') {
       try {
-        // TODO: Call API to initiate verification
-        console.log('Initiating verification...');
-        
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // In real implementation, redirect to CAS
-        window.location.href = 'https://login.iiit.ac.in/cas/login?service=http://localhost:3000/verify/callback';
-      } catch (error) {
+        setStatus('loading');
+        setMessage('Initiating verification...');
+
+        // Call backend API to initiate verification
+        const response = await api.post('/verify/initiate');
+        const { cas_url } = response.data;
+
+        // Redirect to CAS login
+        window.location.href = cas_url;
+      } catch (error: any) {
         console.error('Verification initiation failed:', error);
         setStatus('error');
-        setMessage('Failed to initiate verification. Please try again.');
+        setMessage(error.response?.data?.detail || 'Failed to initiate verification. Please try again.');
       }
     }
   };
@@ -185,7 +187,7 @@ export default function VerifyPage() {
                     >
                       Cancel
                     </button>
-                    <button 
+                    <button
                       onClick={handleInitiateVerification}
                       disabled={!agreed}
                       className="btn btn-primary px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -223,7 +225,7 @@ export default function VerifyPage() {
                     >
                       Back
                     </button>
-                    <button 
+                    <button
                       onClick={handleInitiateVerification}
                       className="btn btn-primary px-6 py-3"
                     >
@@ -249,7 +251,7 @@ export default function VerifyPage() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-gradient-to-br from-black via-primary/5 to-black" />
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

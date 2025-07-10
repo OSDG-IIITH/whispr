@@ -13,7 +13,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       // Check if user needs verification
-      setShowVerificationBanner(user.is_muffled || !user.is_verified);
+      setShowVerificationBanner(user.is_muffled);
     }
   }, [user]);
 
@@ -107,8 +107,8 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-secondary">Status</span>
-                    <span className={user.is_verified ? "text-green-400" : "text-yellow-400"}>
-                      {user.is_verified ? "Verified" : "Unverified"}
+                    <span className={!user.is_muffled ? "text-green-400" : "text-yellow-400"}>
+                      {!user.is_muffled ? "Verified" : "Unverified"}
                     </span>
                   </div>
                 </div>

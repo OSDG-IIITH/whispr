@@ -47,7 +47,7 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-semibold">{user.username}</h4>
-              {user.is_verified && (
+              {!user.is_muffled && (
                 <Shield className="w-4 h-4 text-primary" />
               )}
             </div>
@@ -86,7 +86,7 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
           <span>Settings</span>
         </motion.button>
 
-        {!user.is_verified && (
+        {user.is_muffled && (
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

@@ -31,7 +31,6 @@ export function useAuthState() {
           bio: userData.bio,
           student_since_year: userData.student_since_year,
           is_muffled: userData.is_muffled,
-          is_verified: !userData.is_muffled, // Map is_muffled to is_verified
           is_admin: userData.is_admin,
           echoes: userData.echoes,
           created_at: userData.created_at,
