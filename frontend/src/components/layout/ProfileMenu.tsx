@@ -1,32 +1,31 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { User, Settings, Shield, LogOut, X } from "lucide-react";
-import Link from "next/link";
+import { X, Settings, Shield, LogOut, User, Star } from "lucide-react";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { RankBadge } from "@/components/user/RankBadge";
 import { EchoesDisplay } from "@/components/user/EchoesDisplay";
+import { useAuth } from "@/providers/AuthProvider";
 
 interface ProfileMenuProps {
   onClose: () => void;
 }
 
-// Mock user data
-const mockUser = {
-  id: "1",
-  username: "anonymous_whisperer",
-  echoes: 150,
-  rank: "trusted_whisperer",
-  is_verified: true,
-  is_admin: false
-};
-
 export function ProfileMenu({ onClose }: ProfileMenuProps) {
-  const handleLogout = () => {
-    // TODO: Implement logout logic
-    console.log("Logging out...");
-    onClose();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      onClose();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="bg-card/90 backdrop-blur-xl border border-primary/20 rounded-xl shadow-2xl overflow-hidden">
@@ -44,64 +43,71 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
       {/* User Info */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3 mb-3">
-          <UserAvatar username={mockUser.username} size="lg" />
+          <UserAvatar username={user.username} echoes={user.echoes} size="lg" />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h4 className="font-semibold">{mockUser.username}</h4>
-              {mockUser.is_verified && (
+              <h4 className="font-semibold">{user.username}</h4>
+              {user.is_verified && (
                 <Shield className="w-4 h-4 text-primary" />
               )}
             </div>
-            <RankBadge echoes={mockUser.echoes} size="sm" />
+            <RankBadge echoes={user.echoes} size="sm" />
           </div>
         </div>
-        <EchoesDisplay echoes={mockUser.echoes} />
+        <EchoesDisplay echoes={user.echoes} />
       </div>
 
       {/* Menu Items */}
       <div className="p-2">
-        <Link href={`/profile/${mockUser.username}`}>
-          <motion.button
-            whileHover={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-            onClick={onClose}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
-          >
-            <User className="w-4 h-4 text-secondary" />
-            <span>View Profile</span>
-          </motion.button>
-        </Link>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
+        >
+          <User className="w-5 h-5 text-secondary" />
+          <span>View Profile</span>
+        </motion.button>
 
         <motion.button
-          whileHover={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-          onClick={onClose}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
         >
-          <Settings className="w-4 h-4 text-secondary" />
+          <Star className="w-5 h-5 text-secondary" />
+          <span>My Reviews</span>
+        </motion.button>
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
+        >
+          <Settings className="w-5 h-5 text-secondary" />
           <span>Settings</span>
         </motion.button>
 
-        {mockUser.is_admin && (
-          <Link href="/admin">
-            <motion.button
-              whileHover={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-              onClick={onClose}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors"
-            >
-              <Shield className="w-4 h-4 text-yellow-500" />
-              <span>Admin Panel</span>
-            </motion.button>
-          </Link>
+        {!user.is_verified && (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
+            onClick={() => window.location.href = '/verify'}
+          >
+            <Shield className="w-5 h-5 text-secondary" />
+            <span>Verify Account</span>
+          </motion.button>
         )}
 
-        <div className="border-t border-border my-2"></div>
+        <div className="border-t border-border my-2" />
 
         <motion.button
-          whileHover={{ backgroundColor: "rgba(239, 68, 68, 0.1)" }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors text-red-400 hover:text-red-300"
+          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-500/10 text-red-400 hover:text-red-300 transition-colors"
         >
-          <LogOut className="w-4 h-4" />
-          <span>Logout</span>
+          <LogOut className="w-5 h-5" />
+          <span>Sign Out</span>
         </motion.button>
       </div>
     </div>

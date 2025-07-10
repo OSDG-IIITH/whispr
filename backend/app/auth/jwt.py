@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from jwt import InvalidTokenError
@@ -48,15 +48,79 @@ def create_access_token(
     return encoded_jwt
 
 
+def get_token_from_cookie(request: Request) -> Optional[str]:
+    """
+    Extract JWT token from auth_token cookie.
+    
+    Args:
+        request: FastAPI request object.
+        
+    Returns:
+        The JWT token if found, None otherwise.
+    """
+    return request.cookies.get("auth_token")
+
+
 async def get_current_user(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+) -> User:
+    """
+    Get the current user from the JWT token in cookies.
+
+    Args:
+        request: FastAPI request object.
+        db: Database session.
+
+    Returns:
+        The current user.
+
+    Raises:
+        HTTPException: If the token is invalid or the user doesn't exist.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    # Get token from cookie
+    token = get_token_from_cookie(request)
+    if not token:
+        raise credentials_exception
+
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
+        )
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+        token_data = TokenPayload(sub=user_id)
+    except InvalidTokenError:
+        raise credentials_exception
+
+    # Get user from database
+    stmt = select(User).where(User.id == UUID(token_data.sub))
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise credentials_exception
+
+    return user
+
+
+async def get_current_user_from_header(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
-    Get the current user from the JWT token.
+    Get the current user from the JWT token in Authorization header.
+    This is kept for compatibility with OAuth2PasswordBearer.
 
     Args:
-        token: The JWT token.
+        token: The JWT token from Authorization header.
         db: Database session.
 
     Returns:

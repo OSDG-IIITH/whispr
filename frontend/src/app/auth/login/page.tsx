@@ -3,9 +3,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, User, Lock, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -21,11 +25,11 @@ export default function LoginPage() {
 
     // Basic validation
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.username.trim()) {
       newErrors.username = "Username is required";
     }
-    
+
     if (!formData.password) {
       newErrors.password = "Password is required";
     }
@@ -37,17 +41,13 @@ export default function LoginPage() {
     }
 
     try {
-      // TODO: Implement login API call
-      console.log("Login data:", formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Redirect to dashboard
-      window.location.href = "/dashboard";
+      await login(formData.username, formData.password);
+
+      // Redirect to dashboard on successful login
+      router.push("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      setErrors({ general: "Invalid username or password" });
+      setErrors({ general: error instanceof Error ? error.message : "Invalid username or password" });
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +56,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-gradient-to-br from-black via-primary/5 to-black" />
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -92,10 +92,9 @@ export default function LoginPage() {
                 <input
                   type="text"
                   value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
-                    errors.username ? 'border-red-500' : 'border-border'
-                  }`}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.username ? 'border-red-500' : 'border-border'
+                    }`}
                   placeholder="Enter your username"
                 />
               </div>
@@ -113,10 +112,9 @@ export default function LoginPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className={`w-full pl-10 pr-12 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
-                    errors.password ? 'border-red-500' : 'border-border'
-                  }`}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className={`w-full pl-10 pr-12 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.password ? 'border-red-500' : 'border-border'
+                    }`}
                   placeholder="Enter your password"
                 />
                 <button

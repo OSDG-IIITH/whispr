@@ -3,9 +3,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, User, Lock, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { register } = useAuth();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -22,19 +26,19 @@ export default function RegisterPage() {
 
     // Basic validation
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.username.trim()) {
       newErrors.username = "Username is required";
     } else if (!/^[a-zA-Z0-9]+$/.test(formData.username)) {
       newErrors.username = "Username must be alphanumeric";
     }
-    
+
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters";
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
@@ -46,17 +50,13 @@ export default function RegisterPage() {
     }
 
     try {
-      // TODO: Implement registration API call
-      console.log("Registration data:", formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Redirect to login or dashboard
-      window.location.href = "/auth/login";
+      await register(formData.username, formData.password);
+
+      // Redirect to dashboard on successful registration
+      router.push("/dashboard");
     } catch (error) {
       console.error("Registration error:", error);
-      setErrors({ general: "Registration failed. Please try again." });
+      setErrors({ general: error instanceof Error ? error.message : "Registration failed. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +65,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-gradient-to-br from-black via-primary/5 to-black" />
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -111,10 +111,9 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
-                    errors.username ? 'border-red-500' : 'border-border'
-                  }`}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.username ? 'border-red-500' : 'border-border'
+                    }`}
                   placeholder="Choose a unique username"
                 />
               </div>
@@ -132,10 +131,9 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className={`w-full pl-10 pr-12 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
-                    errors.password ? 'border-red-500' : 'border-border'
-                  }`}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className={`w-full pl-10 pr-12 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.password ? 'border-red-500' : 'border-border'
+                    }`}
                   placeholder="At least 8 characters"
                 />
                 <button
@@ -160,10 +158,9 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-border'
-                  }`}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.confirmPassword ? 'border-red-500' : 'border-border'
+                    }`}
                   placeholder="Confirm your password"
                 />
               </div>

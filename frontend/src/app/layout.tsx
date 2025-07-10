@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { FloatingDock } from '@/components/layout/FloatingDock'
+import { AuthProvider } from '@/providers/AuthProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,8 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-black text-white antialiased`}>
-        {children}
-        <FloatingDock />
+        <AuthProvider>
+          {children}
+          <FloatingDock />
+        </AuthProvider>
       </body>
     </html>
   )
