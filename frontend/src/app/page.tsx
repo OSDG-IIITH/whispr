@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -131,7 +132,7 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.1 }}
                 className="card p-6 h-full bg-card/50 backdrop-blur-xl border-primary/20 hover:border-primary/50 transition-all duration-300"
               >
-                <div className="text-4xl mb-4">{feature.icon}</div>
+                <div className="text-4xl mb-4">{React.createElement(feature.icon, { className: "w-8 h-8" })}</div>
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-secondary">{feature.description}</p>
               </motion.div>
