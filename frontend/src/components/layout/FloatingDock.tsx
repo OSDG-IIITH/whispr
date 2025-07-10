@@ -49,12 +49,12 @@ export function FloatingDock() {
         <div className="bg-card/80 backdrop-blur-xl border border-primary/20 rounded-2xl px-4 py-3 shadow-2xl">
           <div className="flex items-center gap-4">
             {/* Logo/Home */}
-            <Link href="/home">
+            <Link href="/dashboard">
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 className={`p-3 rounded-xl transition-colors ${
-                  pathname === '/home' 
+                  pathname === '/dashboard' 
                     ? 'bg-primary text-black' 
                     : 'text-primary hover:bg-primary/10'
                 }`}

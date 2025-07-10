@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Shield, Star, MessageSquare, TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { getRankWithProgress } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
   const [showVerificationBanner, setShowVerificationBanner] = useState(false);
 
   useEffect(() => {
@@ -123,13 +125,22 @@ export default function DashboardPage() {
               >
                 <h3 className="font-semibold mb-4">Quick Actions</h3>
                 <div className="space-y-3">
-                  <button className="w-full h-10 btn btn-primary text-sm">
+                  <button
+                    onClick={() => router.push('/courses')}
+                    className="w-full h-10 btn btn-primary text-sm"
+                  >
                     Write Review
                   </button>
-                  <button className="w-full h-10 btn btn-secondary text-sm">
+                  <button
+                    onClick={() => router.push('/courses')}
+                    className="w-full h-10 btn btn-secondary text-sm"
+                  >
                     Browse Courses
                   </button>
-                  <button className="w-full h-10 btn btn-secondary text-sm">
+                  <button
+                    onClick={() => router.push(`/profile/${user?.username}`)}
+                    className="w-full h-10 btn btn-secondary text-sm"
+                  >
                     View Profile
                   </button>
                 </div>
