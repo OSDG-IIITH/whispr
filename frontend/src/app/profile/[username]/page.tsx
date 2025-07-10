@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, MessageSquare, TrendingUp, Settings, Flag, ArrowLeft } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -10,88 +10,116 @@ import { EchoesDisplay } from "@/components/user/EchoesDisplay";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { KillSwitch } from "@/components/common/KillSwitch";
 import { formatDate } from "@/lib/utils";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
+import { userAPI, reviewAPI, voteAPI } from "@/lib/api";
+import type { User, Review, Vote } from "@/lib/api";
 
-const mockUser = {
-  id: "1",
-  username: "anonymous_whisperer",
-  bio: "Just sharing my honest thoughts about courses and professors. Love helping fellow students make informed decisions! 🎓",
-  studentSinceYear: 2022,
-  echoes: 450,
-  isVerified: true,
-  isOwn: true, // This would be determined by comparing with current user
-  joinDate: "2023-01-15T00:00:00Z",
-  avatarUrl: undefined,
-  stats: {
-    reviewCount: 24,
-    upvotesReceived: 156,
-    profileViews: 89,
-    followersCount: 12,
-    followingCount: 8
-  }
+// Helper function to transform backend review to frontend format
+const transformReview = (review: Review, userVotes: Vote[], isOwn: boolean) => {
+  const userVote = userVotes.find(vote => vote.review_id === review.id);
+
+  return {
+    id: review.id,
+    author: {
+      username: review.user?.username || "Unknown",
+      echoes: review.user?.echoes || 0,
+      isVerified: !review.user?.is_muffled
+    },
+    content: review.content || "",
+    rating: review.rating,
+    upvotes: review.upvotes,
+    downvotes: review.downvotes,
+    replyCount: 0, // TODO: Add reply count when replies are implemented
+    createdAt: review.created_at,
+    isEdited: review.is_edited,
+    userVote: userVote?.vote_type || null,
+    isOwn,
+    courseName: review.course?.name || review.course_instructor?.course?.name,
+    professorName: review.professor?.name || review.course_instructor?.professor?.name
+  };
 };
-
-const mockReviews = [
-  {
-    id: "1",
-    author: {
-      username: "anonymous_whisperer",
-      echoes: 450,
-      isVerified: true
-    },
-    content: "Computer Networks was an amazing course! Prof really knows how to explain complex topics. The assignments are challenging but you learn a lot. Definitely recommend if you're interested in systems.",
-    rating: 5,
-    upvotes: 28,
-    downvotes: 2,
-    replyCount: 8,
-    createdAt: "2024-01-20T10:30:00Z",
-    isEdited: false,
-    userVote: null,
-    isOwn: true
-  },
-  {
-    id: "2",
-    author: {
-      username: "anonymous_whisperer",
-      echoes: 450,
-      isVerified: true
-    },
-    content: "Data Structures course is well-structured but moves quite fast. Make sure you have good programming fundamentals before taking this. The projects are interesting though!",
-    rating: 4,
-    upvotes: 15,
-    downvotes: 1,
-    replyCount: 3,
-    createdAt: "2024-01-18T15:45:00Z",
-    isEdited: true,
-    userVote: null,
-    isOwn: true
-  }
-];
 
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const [reviews, setReviews] = useState(mockReviews);
+  const { user: currentUser } = useAuth();
+  const { showError } = useToast();
+
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [userVotes, setUserVotes] = useState<Vote[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showKillSwitch, setShowKillSwitch] = useState(false);
   const [filterBy, setFilterBy] = useState("all");
 
+  const username = params.username as string;
+  const isOwnProfile = currentUser?.username === username;
+
+  useEffect(() => {
+    if (username) {
+      fetchProfileData();
+    }
+  }, [username]);
+
+  const fetchProfileData = async () => {
+    setLoading(true);
+    try {
+      // Fetch user profile
+      const userData = await userAPI.getUserByUsername(username);
+      setProfileUser(userData);
+
+      // Fetch user reviews
+      const userReviews = await reviewAPI.getReviews({ user_id: userData.id });
+      setReviews(userReviews);
+
+      // Fetch current user's votes if authenticated
+      if (currentUser) {
+        const votes = await voteAPI.getMyVotes();
+        setUserVotes(votes);
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile data:", error);
+      showError("Failed to load profile. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleVote = async (reviewId: string, type: "up" | "down") => {
-    console.log(`Voting ${type} on review ${reviewId}`);
+    try {
+      await voteAPI.createVote({ review_id: reviewId, vote_type: type });
+      // Refresh votes and reviews
+      if (currentUser) {
+        const votes = await voteAPI.getMyVotes();
+        setUserVotes(votes);
+      }
+      const userReviews = await reviewAPI.getReviews({ user_id: profileUser!.id });
+      setReviews(userReviews);
+    } catch (error) {
+      console.error("Failed to vote:", error);
+      showError("Failed to vote. Please try again.");
+    }
   };
 
   const handleReply = (reviewId: string) => {
     console.log(`Replying to review ${reviewId}`);
+    // TODO: Implement reply functionality
   };
 
   const handleEdit = (reviewId: string) => {
     console.log(`Editing review ${reviewId}`);
+    // TODO: Implement edit functionality
   };
 
   const handleDelete = (reviewId: string) => {
     console.log(`Deleting review ${reviewId}`);
+    // TODO: Implement delete functionality
   };
 
   const handleReport = (reviewId: string) => {
     console.log(`Reporting review ${reviewId}`);
+    // TODO: Implement report functionality
   };
 
   const handleKillSwitch = async () => {
@@ -99,25 +127,63 @@ export default function ProfilePage() {
     // TODO: Implement account deletion
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-secondary">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileUser) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-secondary mb-4">User not found</p>
+          <button
+            onClick={() => router.back()}
+            className="btn btn-primary"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Transform reviews to frontend format
+  const transformedReviews = reviews.map(review =>
+    transformReview(review, userVotes, isOwnProfile)
+  );
+
+  // Calculate stats from actual data
+  const totalUpvotes = reviews.reduce((sum, review) => sum + review.upvotes, 0);
+  const totalDownvotes = reviews.reduce((sum, review) => sum + review.downvotes, 0);
+  const followersCount = 0; // TODO: Implement followers when backend supports it
+  const profileViews = 0; // TODO: Implement profile views when backend supports it
+
   const stats = [
     {
       label: "Reviews",
-      value: mockUser.stats.reviewCount,
+      value: reviews.length,
       icon: <MessageSquare className="w-5 h-5 text-blue-500" />
     },
     {
       label: "Upvotes",
-      value: mockUser.stats.upvotesReceived,
+      value: totalUpvotes,
       icon: <TrendingUp className="w-5 h-5 text-green-500" />
     },
     {
       label: "Profile Views",
-      value: mockUser.stats.profileViews,
+      value: profileViews,
       icon: <Settings className="w-5 h-5 text-purple-500" />
     },
     {
       label: "Followers",
-      value: mockUser.stats.followersCount,
+      value: followersCount,
       icon: <Calendar className="w-5 h-5 text-yellow-500" />
     }
   ];
@@ -144,16 +210,16 @@ export default function ProfilePage() {
         >
           <div className="flex items-start gap-6 mb-6">
             <UserAvatar
-              username={mockUser.username}
-              echoes={mockUser.echoes}
+              username={profileUser.username}
+              echoes={profileUser.echoes}
               size="xl"
-              avatarUrl={mockUser.avatarUrl}
+              avatarUrl={profileUser.avatar_url}
             />
 
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold">{mockUser.username}</h1>
-                {mockUser.isVerified && (
+                <h1 className="text-3xl font-bold">{profileUser.username}</h1>
+                {!profileUser.is_muffled && (
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                     <span className="text-black text-sm">✓</span>
                   </div>
@@ -161,43 +227,39 @@ export default function ProfilePage() {
               </div>
 
               <div className="mb-4">
-                <RankBadge echoes={mockUser.echoes} size="lg" showProgress />
+                <RankBadge echoes={profileUser.echoes} size="lg" showProgress />
               </div>
 
               <div className="mb-4">
-                <EchoesDisplay echoes={mockUser.echoes} recentChange={+12} size="lg" />
+                <EchoesDisplay echoes={profileUser.echoes} size="lg" />
               </div>
 
-              {mockUser.bio && (
-                <p className="text-secondary leading-relaxed mb-4">{mockUser.bio}</p>
+              {profileUser.bio && (
+                <p className="text-secondary leading-relaxed mb-4">{profileUser.bio}</p>
               )}
 
               <div className="flex items-center gap-4 text-sm text-secondary">
+                {profileUser.student_since_year && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>Student since {profileUser.student_since_year}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>Student since {mockUser.studentSinceYear}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>Joined {formatDate(mockUser.joinDate)}</span>
+                  <span>Joined {formatDate(profileUser.created_at)}</span>
                 </div>
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex flex-col gap-2">
-              {mockUser.isOwn ? (
-                <>
-                  <button className="btn btn-secondary px-4 py-2 flex items-center gap-2">
-                    <Settings className="w-4 h-4" />
-                    Edit Profile
-                  </button>
-                  <button
-                    onClick={() => setShowKillSwitch(true)}
-                    className="btn text-red-400 border-red-400/50 hover:bg-red-400/10 px-4 py-2 text-sm"
-                  >
-                    Kill Switch
-                  </button>
-                </>
+              {isOwnProfile ? (
+                <button
+                  onClick={() => setShowKillSwitch(true)}
+                  className="btn text-red-400 border-red-400/50 hover:bg-red-400/10 px-4 py-2 text-sm"
+                >
+                  Kill Switch
+                </button>
               ) : (
                 <>
                   <button className="btn btn-primary px-4 py-2">
@@ -239,7 +301,7 @@ export default function ProfilePage() {
           transition={{ delay: 0.2 }}
         >
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold">Reviews ({reviews.length})</h3>
+            <h3 className="text-2xl font-bold">Reviews ({transformedReviews.length})</h3>
 
             <div className="flex items-center gap-2">
               <span className="text-secondary">Filter:</span>
@@ -259,13 +321,13 @@ export default function ProfilePage() {
           </div>
 
           <ReviewList
-            reviews={reviews}
+            reviews={transformedReviews}
             onVote={handleVote}
             onReply={handleReply}
-            onEdit={mockUser.isOwn ? handleEdit : undefined}
-            onDelete={mockUser.isOwn ? handleDelete : undefined}
-            onReport={!mockUser.isOwn ? handleReport : undefined}
-            emptyMessage={`${mockUser.username} hasn't written any reviews yet.`}
+            onEdit={isOwnProfile ? handleEdit : undefined}
+            onDelete={isOwnProfile ? handleDelete : undefined}
+            onReport={!isOwnProfile ? handleReport : undefined}
+            emptyMessage={`${profileUser.username} hasn't written any reviews yet.`}
           />
         </motion.div>
 
