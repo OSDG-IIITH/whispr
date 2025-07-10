@@ -29,7 +29,7 @@ const mockResults: SearchResult[] = [
     metadata: { reviewCount: 45, code: "CS101" }
   },
   {
-    id: "2", 
+    id: "2",
     type: "professor",
     title: "Dr. Network Expert",
     subtitle: "Networking Lab",
@@ -40,7 +40,7 @@ const mockResults: SearchResult[] = [
   {
     id: "3",
     type: "user",
-    title: "network_ninja", 
+    title: "network_ninja",
     subtitle: "Trusted Whisperer",
     description: "Active reviewer with expertise in systems and networking courses",
     metadata: { echoes: 234, reviewCount: 12, isVerified: true }
@@ -75,8 +75,8 @@ export default function SearchPage() {
       // TODO: Implement actual search API call
       await new Promise(resolve => setTimeout(resolve, 500));
       // Filter results based on type
-      const filteredResults = filter === "all" 
-        ? mockResults 
+      const filteredResults = filter === "all"
+        ? mockResults
         : mockResults.filter(result => result.type === filter);
       setResults(filteredResults);
     } finally {
@@ -118,9 +118,8 @@ export default function SearchPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <span
         key={i}
-        className={`text-sm ${
-          i < Math.floor(rating) ? 'text-yellow-500' : 'text-secondary'
-        }`}
+        className={`text-sm ${i < Math.floor(rating) ? 'text-yellow-500' : 'text-secondary'
+          }`}
       >
         ★
       </span>
@@ -167,11 +166,10 @@ export default function SearchPage() {
               <button
                 key={filterOption}
                 onClick={() => setFilter(filterOption)}
-                className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                  filter === filterOption
+                className={`px-4 py-2 text-sm rounded-lg transition-colors ${filter === filterOption
                     ? 'bg-primary text-black'
                     : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                }`}
+                  }`}
               >
                 {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
               </button>
@@ -234,10 +232,11 @@ export default function SearchPage() {
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0 w-10 h-10 bg-muted/50 rounded-lg flex items-center justify-center">
                         {result.type === "user" ? (
-                          <UserAvatar 
-                            username={result.title} 
+                          <UserAvatar
+                            username={result.title}
                             echoes={result.metadata?.echoes || 0}
                             size="sm"
+                            avatarUrl={result.metadata?.avatarUrl}
                           />
                         ) : (
                           getResultIcon(result.type)
@@ -282,11 +281,11 @@ export default function SearchPage() {
                               )}
                             </>
                           )}
-                          
+
                           {(result.type === "course" || result.type === "professor") && result.metadata && (
                             <span>{result.metadata.reviewCount} reviews</span>
                           )}
-                          
+
                           {result.type === "review" && result.metadata && (
                             <>
                               <span>{result.metadata.upvotes} upvotes</span>

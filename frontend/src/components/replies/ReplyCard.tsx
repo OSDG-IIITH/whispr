@@ -15,6 +15,7 @@ interface Reply {
     username: string;
     echoes: number;
     isVerified: boolean;
+    avatarUrl?: string;
   };
   content: string;
   upvotes: number;
@@ -33,12 +34,12 @@ interface ReplyCardProps {
   onReport?: (replyId: string) => void;
 }
 
-export function ReplyCard({ 
-  reply, 
-  onVote, 
-  onEdit, 
-  onDelete, 
-  onReport 
+export function ReplyCard({
+  reply,
+  onVote,
+  onEdit,
+  onDelete,
+  onReport
 }: ReplyCardProps) {
   const [showActions, setShowActions] = useState(false);
 
@@ -73,20 +74,23 @@ export function ReplyCard({
               username={reply.author.username}
               echoes={reply.author.echoes}
               isVerified={reply.author.isVerified}
+              avatarUrl={reply.author.avatarUrl}
             >
-              <UserAvatar 
-                username={reply.author.username} 
+              <UserAvatar
+                username={reply.author.username}
                 echoes={reply.author.echoes}
-                size="sm" 
+                size="sm"
+                avatarUrl={reply.author.avatarUrl}
               />
             </UserHoverCard>
-            
+
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <UserHoverCard
                   username={reply.author.username}
                   echoes={reply.author.echoes}
                   isVerified={reply.author.isVerified}
+                  avatarUrl={reply.author.avatarUrl}
                 >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {reply.author.username}

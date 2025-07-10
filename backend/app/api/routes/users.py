@@ -91,12 +91,12 @@ async def update_user_me(
         update_data["hashed_password"] = hashed_password
         del update_data["password"]
 
-    async with db.begin():
-        stmt = update(UserModel).where(
-            UserModel.id == current_user.id
-        ).values(**update_data).returning(*UserModel.__table__.c)
-        result = await db.execute(stmt)
-        updated_user = result.fetchone()
+    stmt = update(UserModel).where(
+        UserModel.id == current_user.id
+    ).values(**update_data).returning(*UserModel.__table__.c)
+    result = await db.execute(stmt)
+    updated_user = result.fetchone()
+    await db.commit()
 
     return updated_user
 

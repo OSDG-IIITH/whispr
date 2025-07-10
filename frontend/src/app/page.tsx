@@ -13,15 +13,17 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { FEATURES, RANKS } from "@/lib/constants";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
+  if (!mounted || loading) {
     return null;
   }
 
@@ -96,9 +98,9 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 1.0 }}
             className="flex gap-4 justify-center flex-wrap"
           >
-            <Link href="/auth/register">
+            <Link href={user ? "/dashboard" : "/auth/register"}>
               <button className="btn btn-primary px-8 py-3 text-lg glow-green">
-                Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                {user ? "Go to Dashboard" : "Get Started"} <ArrowRight className="ml-2 h-5 w-5" />
               </button>
             </Link>
             <Link href="/design-doc.pdf" target="_blank">
@@ -253,9 +255,9 @@ export default function LandingPage() {
             Join the community of IIITH students helping each other make
             informed decisions.
           </p>
-          <Link href="/auth/register">
+          <Link href={user ? "/dashboard" : "/auth/register"}>
             <button className="btn btn-primary px-8 py-3 text-lg glow-green">
-              Start Whispering <ArrowRight className="ml-2 h-5 w-5" />
+              {user ? "Go to Dashboard" : "Start Whispering"} <ArrowRight className="ml-2 h-5 w-5" />
             </button>
           </Link>
         </motion.div>

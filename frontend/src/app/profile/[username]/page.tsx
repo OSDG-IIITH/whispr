@@ -20,6 +20,7 @@ const mockUser = {
   isVerified: true,
   isOwn: true, // This would be determined by comparing with current user
   joinDate: "2023-01-15T00:00:00Z",
+  avatarUrl: undefined,
   stats: {
     reviewCount: 24,
     upvotesReceived: 156,
@@ -50,7 +51,7 @@ const mockReviews = [
   {
     id: "2",
     author: {
-      username: "anonymous_whisperer", 
+      username: "anonymous_whisperer",
       echoes: 450,
       isVerified: true
     },
@@ -142,12 +143,13 @@ export default function ProfilePage() {
           className="bg-card border border-primary/20 rounded-xl p-8 mb-8"
         >
           <div className="flex items-start gap-6 mb-6">
-            <UserAvatar 
-              username={mockUser.username} 
+            <UserAvatar
+              username={mockUser.username}
               echoes={mockUser.echoes}
-              size="xl" 
+              size="xl"
+              avatarUrl={mockUser.avatarUrl}
             />
-            
+
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold">{mockUser.username}</h1>
@@ -157,19 +159,19 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
-              
+
               <div className="mb-4">
                 <RankBadge echoes={mockUser.echoes} size="lg" showProgress />
               </div>
-              
+
               <div className="mb-4">
                 <EchoesDisplay echoes={mockUser.echoes} recentChange={+12} size="lg" />
               </div>
-              
+
               {mockUser.bio && (
                 <p className="text-secondary leading-relaxed mb-4">{mockUser.bio}</p>
               )}
-              
+
               <div className="flex items-center gap-4 text-sm text-secondary">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
@@ -189,7 +191,7 @@ export default function ProfilePage() {
                     <Settings className="w-4 h-4" />
                     Edit Profile
                   </button>
-                  <button 
+                  <button
                     onClick={() => setShowKillSwitch(true)}
                     className="btn text-red-400 border-red-400/50 hover:bg-red-400/10 px-4 py-2 text-sm"
                   >
@@ -238,18 +240,17 @@ export default function ProfilePage() {
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold">Reviews ({reviews.length})</h3>
-            
+
             <div className="flex items-center gap-2">
               <span className="text-secondary">Filter:</span>
               {["all", "courses", "professors"].map((option) => (
                 <button
                   key={option}
                   onClick={() => setFilterBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    filterBy === option
-                      ? 'bg-primary text-black'
-                      : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                  }`}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${filterBy === option
+                    ? 'bg-primary text-black'
+                    : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

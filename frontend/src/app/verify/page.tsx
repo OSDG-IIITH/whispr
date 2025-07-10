@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Shield, CheckCircle, XCircle, AlertCircle, ExternalLink } from "lucide-react";
-import api from "@/lib/api";
+import { verificationAPI } from "@/lib/api";
 
 export default function VerifyPage() {
   const searchParams = useSearchParams();
@@ -61,15 +61,15 @@ export default function VerifyPage() {
         setMessage('Initiating verification...');
 
         // Call backend API to initiate verification
-        const response = await api.post('/verify/initiate');
-        const { cas_url } = response.data;
+        const response = await verificationAPI.initiate();
+        const { cas_url } = response;
 
         // Redirect to CAS login
         window.location.href = cas_url;
       } catch (error: any) {
         console.error('Verification initiation failed:', error);
         setStatus('error');
-        setMessage(error.response?.data?.detail || 'Failed to initiate verification. Please try again.');
+        setMessage(error.message || 'Failed to initiate verification. Please try again.');
       }
     }
   };

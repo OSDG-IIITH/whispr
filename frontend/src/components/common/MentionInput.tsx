@@ -15,9 +15,9 @@ interface MentionInputProps {
   rows?: number;
 }
 
-export function MentionInput({ 
-  value, 
-  onChange, 
+export function MentionInput({
+  value,
+  onChange,
   placeholder = "Type @ to mention someone...",
   className = "",
   maxLength,
@@ -26,7 +26,7 @@ export function MentionInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState(0);
   const [mentionPosition, setMentionPosition] = useState<{ start: number; end: number } | null>(null);
-  
+
   const {
     isOpen,
     mentionUsers,
@@ -42,17 +42,17 @@ export function MentionInput({
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     const position = e.target.selectionStart;
-    
+
     onChange(newValue);
     setCursorPosition(position);
-    
+
     // Check for @ symbol
     const textBeforeCursor = newValue.slice(0, position);
     const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-    
+
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
-      
+
       // Check if we're still in the mention (no spaces after @)
       if (!textAfterAt.includes(' ') && textAfterAt.length <= 20) {
         setMentionPosition({ start: lastAtIndex, end: position });
@@ -101,10 +101,10 @@ export function MentionInput({
     const beforeMention = value.slice(0, mentionPosition.start);
     const afterMention = value.slice(mentionPosition.end);
     const newValue = `${beforeMention}@${username} ${afterMention}`;
-    
+
     onChange(newValue);
     setMentionPosition(null);
-    
+
     // Focus and position cursor after mention
     setTimeout(() => {
       if (textareaRef.current) {
@@ -120,7 +120,7 @@ export function MentionInput({
 
     const textarea = textareaRef.current;
     const textBeforeMention = value.slice(0, mentionPosition.start);
-    
+
     // Create a temporary div to measure text position
     const div = document.createElement('div');
     div.style.cssText = window.getComputedStyle(textarea).cssText;
@@ -129,13 +129,13 @@ export function MentionInput({
     div.style.height = 'auto';
     div.style.whiteSpace = 'pre-wrap';
     div.textContent = textBeforeMention;
-    
+
     document.body.appendChild(div);
     const rect = textarea.getBoundingClientRect();
     const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight) || 20;
-    
+
     document.body.removeChild(div);
-    
+
     return {
       top: rect.bottom + 5,
       left: rect.left
@@ -169,16 +169,16 @@ export function MentionInput({
               <button
                 key={user.username}
                 onClick={() => insertMention(index)}
-                className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${
-                  index === selectedIndex 
-                    ? 'bg-primary/10 border-l-2 border-primary' 
+                className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${index === selectedIndex
+                    ? 'bg-primary/10 border-l-2 border-primary'
                     : 'hover:bg-muted/50'
-                }`}
+                  }`}
               >
-                <UserAvatar 
-                  username={user.username} 
+                <UserAvatar
+                  username={user.username}
                   echoes={user.echoes}
-                  size="sm" 
+                  size="sm"
+                  avatarUrl={user.avatarUrl}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

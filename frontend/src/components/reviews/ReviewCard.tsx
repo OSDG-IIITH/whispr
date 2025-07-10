@@ -15,6 +15,7 @@ interface Review {
     username: string;
     echoes: number;
     isVerified: boolean;
+    avatarUrl?: string;
   };
   content: string;
   rating: number;
@@ -90,11 +91,13 @@ export function ReviewCard({
               username={review.author.username}
               echoes={review.author.echoes}
               isVerified={review.author.isVerified}
+              avatarUrl={review.author.avatarUrl}
             >
               <UserAvatar 
                 username={review.author.username} 
                 echoes={review.author.echoes}
                 size="sm" 
+                avatarUrl={review.author.avatarUrl}
               />
             </UserHoverCard>
             
@@ -104,6 +107,7 @@ export function ReviewCard({
                   username={review.author.username}
                   echoes={review.author.echoes}
                   isVerified={review.author.isVerified}
+                  avatarUrl={review.author.avatarUrl}
                 >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {review.author.username}

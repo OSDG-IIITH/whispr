@@ -12,6 +12,7 @@ interface Review {
     username: string;
     echoes: number;
     isVerified: boolean;
+    avatarUrl?: string;
   };
   content: string;
   rating: number;
@@ -37,21 +38,21 @@ interface ReviewListProps {
   emptyMessage?: string;
 }
 
-export function ReviewList({ 
-  reviews, 
+export function ReviewList({
+  reviews,
   loading = false,
   hasMore = false,
   onLoadMore,
-  onVote, 
-  onReply, 
-  onEdit, 
-  onDelete, 
+  onVote,
+  onReply,
+  onEdit,
+  onDelete,
   onReport,
   emptyMessage = "No reviews yet. Be the first to share your experience!"
 }: ReviewListProps) {
   const { loadMoreRef } = useInfiniteScroll({
     hasMore,
-    onLoadMore: onLoadMore || (() => {}),
+    onLoadMore: onLoadMore || (() => { }),
     loading
   });
 

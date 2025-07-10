@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-
-interface User {
-  username: string;
-  echoes: number;
-  isVerified: boolean;
-}
+import { userSearchAPI, type User } from "@/lib/api";
 
 export function useMentions() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,23 +9,16 @@ export function useMentions() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [query, setQuery] = useState("");
 
-  const searchUsers = useCallback(async (searchQuery: string) => {
+    const searchUsers = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
       setMentionUsers([]);
       return;
     }
 
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch(`/api/v1/users/search?q=${encodeURIComponent(searchQuery)}`, {
-        credentials: "include"
-      });
-      
-      if (response.ok) {
-        const users = await response.json();
-        setMentionUsers(users.slice(0, 5)); // Limit to 5 results
-        setSelectedIndex(0);
-      }
+      const users = await userSearchAPI.searchUsers(searchQuery);
+      setMentionUsers(users.slice(0, 5)); // Limit to 5 results
+      setSelectedIndex(0);
     } catch (error) {
       console.error("Failed to search users:", error);
       setMentionUsers([]);

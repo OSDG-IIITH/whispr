@@ -1,16 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-interface Notification {
-  id: string;
-  type: "mention" | "vote" | "reply" | "rank" | "system";
-  title: string;
-  content: string;
-  timestamp: string;
-  read: boolean;
-  actionUrl?: string;
-}
+import { notificationAPI, type Notification } from "@/lib/api";
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -23,16 +14,9 @@ export function useNotifications() {
 
   const fetchNotifications = async () => {
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch("/api/v1/notifications", {
-        credentials: "include"
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data);
-        setUnreadCount(data.filter((n: Notification) => !n.read).length);
-      }
+      const data = await notificationAPI.getNotifications();
+      setNotifications(data);
+      setUnreadCount(data.filter((n: Notification) => !n.read).length);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     } finally {
@@ -42,14 +26,10 @@ export function useNotifications() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      // TODO: Replace with actual API call
-      await fetch(`/api/v1/notifications/${notificationId}/read`, {
-        method: "POST",
-        credentials: "include"
-      });
+      await notificationAPI.markAsRead(notificationId);
 
-      setNotifications(prev => 
-        prev.map(n => 
+      setNotifications(prev =>
+        prev.map(n =>
           n.id === notificationId ? { ...n, read: true } : n
         )
       );
@@ -61,13 +41,9 @@ export function useNotifications() {
 
   const markAllAsRead = async () => {
     try {
-      // TODO: Replace with actual API call
-      await fetch("/api/v1/notifications/read-all", {
-        method: "POST",
-        credentials: "include"
-      });
+      await notificationAPI.markAllAsRead();
 
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => ({ ...n, read: true }))
       );
       setUnreadCount(0);

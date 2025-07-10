@@ -15,7 +15,8 @@ const mockUser = {
   rank: "trusted_whisperer",
   reviewCount: 12,
   followingCount: 8,
-  viewCount: 234
+  viewCount: 234,
+  avatarUrl: undefined
 };
 
 const mockReviews = [
@@ -24,7 +25,8 @@ const mockReviews = [
     author: {
       username: "silent_student",
       echoes: 89,
-      isVerified: true
+      isVerified: true,
+      avatarUrl: undefined
     },
     content: "Honestly one of the best courses I've taken at IIITH. Prof explains concepts really well and the assignments are challenging but fair. Highly recommend if you're interested in networking fundamentals.",
     rating: 5,
@@ -36,11 +38,12 @@ const mockReviews = [
     userVote: null
   },
   {
-    id: "2", 
+    id: "2",
     author: {
       username: "code_monk",
       echoes: 267,
-      isVerified: true
+      isVerified: true,
+      avatarUrl: undefined
     },
     content: "The course content is good but the pace is quite fast. Make sure you have solid programming basics before taking this. The projects are interesting though.",
     rating: 4,
@@ -102,17 +105,18 @@ export default function HomePage() {
                 className="bg-card border border-primary/20 rounded-xl p-6"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <UserAvatar 
-                    username={mockUser.username} 
+                  <UserAvatar
+                    username={mockUser.username}
                     echoes={mockUser.echoes}
-                    size="lg" 
+                    size="lg"
+                    avatarUrl={mockUser.avatarUrl}
                   />
                   <div className="flex-1">
                     <h3 className="font-semibold">{mockUser.username}</h3>
                     <RankBadge echoes={mockUser.echoes} size="sm" />
                   </div>
                 </div>
-                
+
                 <div className="mb-4">
                   <EchoesDisplay echoes={mockUser.echoes} recentChange={+5} />
                 </div>
@@ -198,11 +202,10 @@ export default function HomePage() {
               {["All", "Following", "Courses", "Professors"].map((filter, index) => (
                 <button
                   key={filter}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    index === 0
-                      ? 'bg-primary text-black'
-                      : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${index === 0
+                    ? 'bg-primary text-black'
+                    : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
+                    }`}
                 >
                   {filter}
                 </button>

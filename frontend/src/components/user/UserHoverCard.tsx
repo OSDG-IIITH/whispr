@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Calendar, MessageSquare } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { UserAvatar } from "./UserAvatar";
 import { RankBadge } from "./RankBadge";
 import { EchoesDisplay } from "./EchoesDisplay";
@@ -14,27 +15,30 @@ interface UserHoverCardProps {
   isVerified?: boolean;
   joinDate?: string;
   reviewCount?: number;
+  avatarUrl?: string;
   children: React.ReactNode;
 }
 
-export function UserHoverCard({ 
-  username, 
-  echoes = 0, 
+export function UserHoverCard({
+  username,
+  echoes = 0,
   isVerified = false,
   joinDate = "2024-01-01",
   reviewCount = 0,
-  children 
+  avatarUrl,
+  children
 }: UserHoverCardProps) {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div 
+    <div
       className="relative inline-block"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {children}
-      
+
       <AnimatePresence>
         {isHovered && (
           <motion.div
@@ -47,7 +51,7 @@ export function UserHoverCard({
             <div className="bg-card/95 backdrop-blur-xl border border-primary/20 rounded-xl p-4 shadow-2xl">
               {/* Header */}
               <div className="flex items-center gap-3 mb-3">
-                <UserAvatar username={username} echoes={echoes} size="lg" />
+                <UserAvatar username={username} echoes={echoes} size="lg" avatarUrl={avatarUrl} />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-semibold">{username}</h4>
@@ -62,7 +66,7 @@ export function UserHoverCard({
               {/* Stats */}
               <div className="space-y-2 mb-3">
                 <EchoesDisplay echoes={echoes} size="sm" />
-                
+
                 <div className="flex items-center gap-4 text-xs text-secondary">
                   <div className="flex items-center gap-1">
                     <MessageSquare className="w-3 h-3" />
@@ -76,7 +80,10 @@ export function UserHoverCard({
               </div>
 
               {/* Action */}
-              <button className="w-full bg-primary/10 hover:bg-primary/20 text-primary py-2 rounded-lg text-sm font-medium transition-colors">
+              <button
+                onClick={() => router.push(`/profile/${username}`)}
+                className="w-full bg-primary/10 hover:bg-primary/20 text-primary py-2 rounded-lg text-sm font-medium transition-colors"
+              >
                 View Profile
               </button>
             </div>

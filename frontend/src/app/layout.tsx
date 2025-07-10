@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { FloatingDock } from '@/components/layout/FloatingDock'
 import { AuthProvider } from '@/providers/AuthProvider'
+import { ToastProvider } from '@/providers/ToastProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,8 +21,10 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-black text-white antialiased`}>
         <AuthProvider>
-          {children}
-          <FloatingDock />
+          <ToastProvider>
+            {children}
+            <FloatingDock />
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

@@ -123,13 +123,13 @@ export default function DashboardPage() {
               >
                 <h3 className="font-semibold mb-4">Quick Actions</h3>
                 <div className="space-y-3">
-                  <button className="w-full btn btn-primary text-sm">
+                  <button className="w-full h-10 btn btn-primary text-sm">
                     Write Review
                   </button>
-                  <button className="w-full btn btn-secondary text-sm">
+                  <button className="w-full h-10 btn btn-secondary text-sm">
                     Browse Courses
                   </button>
-                  <button className="w-full btn btn-secondary text-sm">
+                  <button className="w-full h-10 btn btn-secondary text-sm">
                     View Profile
                   </button>
                 </div>
