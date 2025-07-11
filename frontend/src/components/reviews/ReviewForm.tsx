@@ -14,14 +14,14 @@ interface ReviewFormProps {
   title?: string;
 }
 
-export function ReviewForm({ 
-  onSubmit, 
-  onCancel, 
-  initialContent = "", 
+export function ReviewForm({
+  onSubmit,
+  onCancel,
+  initialContent = "",
   initialRating = 0,
   placeholder = "Share your honest thoughts about this course/professor...",
-  submitText = "Post Review",
-  title = "Write a Review"
+  submitText = "Submit Rating",
+  title = "Rate & Review"
 }: ReviewFormProps) {
   const [content, setContent] = useState(initialContent);
   const [rating, setRating] = useState(initialRating);
@@ -30,7 +30,7 @@ export function ReviewForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || rating === 0 || isSubmitting) return;
+    if (rating === 0 || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
@@ -46,7 +46,7 @@ export function ReviewForm({
     return Array.from({ length: 5 }, (_, i) => {
       const starValue = i + 1;
       const isFilled = starValue <= (hoveredRating || rating);
-      
+
       return (
         <motion.button
           key={i}
@@ -56,9 +56,8 @@ export function ReviewForm({
           onClick={() => setRating(starValue)}
           onMouseEnter={() => setHoveredRating(starValue)}
           onMouseLeave={() => setHoveredRating(0)}
-          className={`p-1 transition-colors ${
-            isFilled ? 'text-yellow-500' : 'text-secondary hover:text-yellow-400'
-          }`}
+          className={`p-1 transition-colors ${isFilled ? 'text-yellow-500' : 'text-secondary hover:text-yellow-400'
+            }`}
         >
           <Star className={`w-6 h-6 ${isFilled ? 'fill-current' : ''}`} />
         </motion.button>
@@ -103,7 +102,7 @@ export function ReviewForm({
         {/* Content */}
         <div>
           <label className="block text-sm font-medium mb-2">
-            Review <span className="text-red-400">*</span>
+            Review <span className="text-secondary">(optional)</span>
           </label>
           <textarea
             value={content}
@@ -138,7 +137,7 @@ export function ReviewForm({
           )}
           <button
             type="submit"
-            disabled={!content.trim() || rating === 0 || isSubmitting}
+            disabled={rating === 0 || isSubmitting}
             className="btn btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting ? (

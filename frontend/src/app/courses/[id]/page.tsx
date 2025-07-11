@@ -7,10 +7,14 @@ import { useParams, useRouter } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { courseAPI, reviewAPI, Course, Review } from "@/lib/api";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function CoursePage() {
   const params = useParams();
   const router = useRouter();
+  const { showSuccess, showError } = useToast();
+  const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,13 +68,18 @@ export default function CoursePage() {
   const handleSubmitReview = async (data: { content: string; rating: number }) => {
     if (!course) return;
 
+    if (!user) {
+      showError("Please log in to submit a review");
+      return;
+    }
+
     try {
       setSubmittingReview(true);
 
       const newReview = await reviewAPI.createReview({
         course_id: course.id,
         rating: data.rating,
-        content: data.content,
+        content: data.content || undefined, // Handle empty content properly
       });
 
       // Add the new review to the list
@@ -86,9 +95,11 @@ export default function CoursePage() {
       }
 
       setShowReviewForm(false);
-    } catch (err) {
+      showSuccess("Review submitted successfully!");
+    } catch (err: any) {
       console.error("Error submitting review:", err);
-      alert("Failed to submit review. Please try again.");
+      const errorMessage = err?.message || "Failed to submit review. Please try again.";
+      showError(errorMessage);
     } finally {
       setSubmittingReview(false);
     }
@@ -256,12 +267,12 @@ export default function CoursePage() {
           {/* Actions */}
           <div className="flex gap-4">
             <button
-              onClick={() => setShowReviewForm(true)}
+              onClick={() => user ? setShowReviewForm(true) : showError("Please log in to submit a review")}
               className="btn btn-primary px-6 py-3 flex items-center gap-2"
               disabled={submittingReview}
             >
               <Plus className="w-4 h-4" />
-              {submittingReview ? "Submitting..." : "Write Review"}
+              {submittingReview ? "Submitting..." : user ? "Rate & Review" : "Login to Review"}
             </button>
             <button className="btn btn-secondary px-6 py-3">
               View Professors

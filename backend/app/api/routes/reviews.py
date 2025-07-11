@@ -158,23 +158,23 @@ or course_instructor_id must be provided"
             detail="You have already reviewed this target"
         )
 
-    async with db.begin():
-        stmt = insert(ReviewModel).values(
-            **review_in.dict(),
-            user_id=current_user.id
-        ).returning(*ReviewModel.__table__.c)
-        result = await db.execute(stmt)
-        review = result.fetchone()
+    # Remove transaction context, just use db directly
+    stmt = insert(ReviewModel).values(
+        **review_in.dict(),
+        user_id=current_user.id
+    ).returning(*ReviewModel.__table__.c)
+    result = await db.execute(stmt)
+    review = result.fetchone()
 
-        # Update target's review stats
-        if review_in.course_id:
-            await _update_course_stats(db, review_in.course_id)
-        if review_in.professor_id:
-            await _update_professor_stats(db, review_in.professor_id)
-        if review_in.course_instructor_id:
-            await _update_course_instructor_stats(
-                db, review_in.course_instructor_id
-            )
+    # Update target's review stats
+    if review_in.course_id:
+        await _update_course_stats(db, review_in.course_id)
+    if review_in.professor_id:
+        await _update_professor_stats(db, review_in.professor_id)
+    if review_in.course_instructor_id:
+        await _update_course_instructor_stats(
+            db, review_in.course_instructor_id
+        )
 
     return review
 

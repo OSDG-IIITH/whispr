@@ -86,9 +86,8 @@ export default function ProfessorPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-secondary'
-        }`}
+        className={`w-5 h-5 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-secondary'
+          }`}
       />
     ));
   };
@@ -117,7 +116,7 @@ export default function ProfessorPage() {
             <div className="w-20 h-20 bg-gradient-to-br from-primary to-green-600 rounded-full flex items-center justify-center">
               <GraduationCap className="w-10 h-10 text-white" />
             </div>
-            
+
             <div className="flex-1">
               <h1 className="text-3xl font-bold mb-2">{mockProfessor.name}</h1>
               <p className="text-primary text-lg mb-4">{mockProfessor.lab}</p>
@@ -134,7 +133,7 @@ export default function ProfessorPage() {
               <span className="font-semibold text-lg">{mockProfessor.averageRating.toFixed(1)}</span>
               <span className="text-secondary">({mockProfessor.reviewCount} reviews)</span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-secondary" />
               <span>{mockProfessor.courses.length} courses taught</span>
@@ -193,7 +192,7 @@ export default function ProfessorPage() {
               className="btn btn-primary px-6 py-3 flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Write Review
+              Rate & Review
             </button>
             <button className="btn btn-secondary px-6 py-3">
               View Courses
@@ -225,18 +224,17 @@ export default function ProfessorPage() {
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold">Reviews ({reviews.length})</h3>
-            
+
             <div className="flex items-center gap-2">
               <span className="text-secondary">Sort:</span>
               {["newest", "oldest", "rating", "helpful"].map((option) => (
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    sortBy === option
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${sortBy === option
                       ? 'bg-primary text-black'
                       : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                  }`}
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
