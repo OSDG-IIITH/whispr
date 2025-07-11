@@ -1,94 +1,172 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Star, Users, BookOpen, Calendar, Plus, ArrowLeft } from "lucide-react";
+import { Star, Users, BookOpen, Calendar, Plus, ArrowLeft, Loader2, GraduationCap } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
-
-const mockCourse = {
-  id: "1",
-  code: "CS101",
-  name: "Computer Networks",
-  credits: 3,
-  description: "Introduction to computer networks covering fundamental concepts of networking protocols, distributed systems, and network security. Students will learn about TCP/IP, HTTP, DNS, routing algorithms, and modern network architectures.",
-  averageRating: 4.2,
-  reviewCount: 45,
-  semester: "MONSOON",
-  year: 2024,
-  officialDocumentUrl: "https://example.com/cs101-syllabus.pdf",
-  instructors: [
-    { name: "Dr. Network Expert", lab: "Networking Lab" },
-    { name: "Prof. Protocol Master", lab: "Systems Lab" }
-  ]
-};
-
-const mockReviews = [
-  {
-    id: "1",
-    author: {
-      username: "network_ninja",
-      echoes: 234,
-      isVerified: true
-    },
-    content: "Excellent course! The professor explains networking concepts very clearly. The assignments are practical and help you understand how protocols actually work. Highly recommend for anyone interested in systems.",
-    rating: 5,
-    upvotes: 28,
-    downvotes: 2,
-    replyCount: 8,
-    createdAt: "2024-01-20T10:30:00Z",
-    isEdited: false,
-    userVote: null
-  },
-  {
-    id: "2",
-    author: {
-      username: "code_student",
-      echoes: 89,
-      isVerified: true
-    },
-    content: "Good course content but the pace is quite fast. Make sure you have solid programming fundamentals before taking this. The projects are interesting though - you'll build a mini web server!",
-    rating: 4,
-    upvotes: 15,
-    downvotes: 1,
-    replyCount: 3,
-    createdAt: "2024-01-19T15:45:00Z",
-    isEdited: false,
-    userVote: "up" as const
-  }
-];
+import { courseAPI, reviewAPI, Course, Review } from "@/lib/api";
 
 export default function CoursePage() {
   const params = useParams();
   const router = useRouter();
+  const [course, setCourse] = useState<Course | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviews, setReviews] = useState(mockReviews);
   const [sortBy, setSortBy] = useState("newest");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const courseCode = params.id as string;
+
+  useEffect(() => {
+    if (courseCode) {
+      fetchCourseData();
+    }
+  }, [courseCode]);
+
+  const fetchCourseData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch course details
+      const courseData = await courseAPI.getCourse(courseCode);
+      setCourse(courseData);
+
+      // Fetch course reviews
+      const reviewsData = await courseAPI.getCourseReviews(courseData.id, 0, 100);
+      setReviews(reviewsData);
+    } catch (err) {
+      console.error("Error fetching course data:", err);
+      setError("Failed to load course data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleVote = async (reviewId: string, type: "up" | "down") => {
-    console.log(`Voting ${type} on review ${reviewId}`);
+    try {
+      // TODO: Implement vote functionality
+      console.log(`Voting ${type} on review ${reviewId}`);
+    } catch (err) {
+      console.error("Error voting on review:", err);
+    }
   };
 
   const handleReply = (reviewId: string) => {
+    // TODO: Implement reply functionality
     console.log(`Replying to review ${reviewId}`);
   };
 
   const handleSubmitReview = async (data: { content: string; rating: number }) => {
-    console.log("Submitting review:", data);
-    setShowReviewForm(false);
+    if (!course) return;
+
+    try {
+      setSubmittingReview(true);
+
+      const newReview = await reviewAPI.createReview({
+        course_id: course.id,
+        rating: data.rating,
+        content: data.content,
+      });
+
+      // Add the new review to the list
+      setReviews((prevReviews: Review[]) => [newReview, ...prevReviews]);
+
+      // Update course stats
+      if (course) {
+        setCourse((prevCourse: Course | null) => prevCourse ? {
+          ...prevCourse,
+          review_count: prevCourse.review_count + 1,
+          average_rating: ((parseFloat(prevCourse.average_rating) * prevCourse.review_count) + data.rating) / (prevCourse.review_count + 1)
+        } : null);
+      }
+
+      setShowReviewForm(false);
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      alert("Failed to submit review. Please try again.");
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-secondary'
-        }`}
+        className={`w-5 h-5 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-secondary'
+          }`}
       />
     ));
   };
+
+  const formatTimeInfo = (course: Course) => {
+    if (!course.course_instructors || course.course_instructors.length === 0) {
+      return null;
+    }
+
+    // Get unique semester/year combinations
+    const timeSlots = new Set<string>();
+    course.course_instructors.forEach(instructor => {
+      if (instructor.semester && instructor.year) {
+        timeSlots.add(`${instructor.semester} ${instructor.year}`);
+      }
+    });
+
+    return Array.from(timeSlots).join(", ");
+  };
+
+  const getProfessors = (course: Course) => {
+    if (!course.course_instructors || course.course_instructors.length === 0) {
+      return [];
+    }
+
+    // Get unique professors
+    const professors = new Map<string, string>();
+    course.course_instructors.forEach(instructor => {
+      if (instructor.professor) {
+        professors.set(instructor.professor.id, instructor.professor.name);
+      }
+    });
+
+    return Array.from(professors.values());
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-secondary">Loading course...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <BookOpen className="w-16 h-16 text-secondary mx-auto mb-4" />
+          <h3 className="text-xl font-semibold mb-2">Course Not Found</h3>
+          <p className="text-secondary mb-4">{error || "The requested course could not be found."}</p>
+          <button
+            onClick={() => router.back()}
+            className="btn btn-primary"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const timeInfo = formatTimeInfo(course);
+  const professors = getProfessors(course);
 
   return (
     <div className="min-h-screen bg-black pb-24">
@@ -112,14 +190,41 @@ export default function CoursePage() {
         >
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
+              {/* Time Info - More Prominent */}
+              {timeInfo && (
+                <div className="flex items-center gap-2 mb-4">
+                  <Calendar className="w-5 h-5 text-primary" />
+                  <span className="text-lg font-semibold text-primary">{timeInfo}</span>
+                </div>
+              )}
+
               <div className="flex items-center gap-4 mb-2">
-                <h1 className="text-3xl font-bold text-primary">{mockCourse.code}</h1>
+                <h1 className="text-3xl font-bold text-primary">{course.code}</h1>
                 <span className="px-3 py-1 bg-primary/20 text-primary text-sm rounded-full">
-                  {mockCourse.credits} Credits
+                  {course.credits} Credits
                 </span>
               </div>
-              <h2 className="text-2xl font-semibold mb-4">{mockCourse.name}</h2>
-              <p className="text-secondary leading-relaxed">{mockCourse.description}</p>
+              <h2 className="text-2xl font-semibold mb-4">{course.name}</h2>
+
+              {/* Professors */}
+              {professors.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <GraduationCap className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {professors.map((professor, i) => (
+                      <span key={i} className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full">
+                        {professor}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <p className="text-secondary leading-relaxed">
+                {course.description || "No description available"}
+              </p>
             </div>
           </div>
 
@@ -127,41 +232,25 @@ export default function CoursePage() {
           <div className="grid md:grid-cols-3 gap-6 mb-6">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
-                {renderStars(mockCourse.averageRating)}
+                {renderStars(parseFloat(course.average_rating) || 0)}
               </div>
-              <span className="font-semibold">{mockCourse.averageRating.toFixed(1)}</span>
-              <span className="text-secondary">({mockCourse.reviewCount} reviews)</span>
+              <span className="font-semibold">{(parseFloat(course.average_rating) || 0).toFixed(1)}</span>
+              <span className="text-secondary">({course.review_count || 0} reviews)</span>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-secondary" />
-              <span>{mockCourse.semester} {mockCourse.year}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-secondary" />
-              <a 
-                href={mockCourse.officialDocumentUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:text-primary/80 transition-colors"
-              >
-                Course Syllabus
-              </a>
-            </div>
-          </div>
 
-          {/* Instructors */}
-          <div className="mb-6">
-            <h3 className="font-semibold mb-3">Instructors</h3>
-            <div className="flex flex-wrap gap-2">
-              {mockCourse.instructors.map((instructor, index) => (
-                <div key={index} className="bg-muted px-3 py-2 rounded-lg">
-                  <div className="font-medium">{instructor.name}</div>
-                  <div className="text-sm text-secondary">{instructor.lab}</div>
-                </div>
-              ))}
-            </div>
+            {course.official_document_url && (
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-secondary" />
+                <a
+                  href={course.official_document_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:text-primary/80 transition-colors"
+                >
+                  Course Syllabus
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
@@ -169,9 +258,10 @@ export default function CoursePage() {
             <button
               onClick={() => setShowReviewForm(true)}
               className="btn btn-primary px-6 py-3 flex items-center gap-2"
+              disabled={submittingReview}
             >
               <Plus className="w-4 h-4" />
-              Write Review
+              {submittingReview ? "Submitting..." : "Write Review"}
             </button>
             <button className="btn btn-secondary px-6 py-3">
               View Professors
@@ -189,7 +279,8 @@ export default function CoursePage() {
             <ReviewForm
               onSubmit={handleSubmitReview}
               onCancel={() => setShowReviewForm(false)}
-              placeholder={`Share your experience with ${mockCourse.name}...`}
+              placeholder={`Share your experience with ${course.name}...`}
+              disabled={submittingReview}
             />
           </motion.div>
         )}
@@ -202,18 +293,17 @@ export default function CoursePage() {
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold">Reviews ({reviews.length})</h3>
-            
+
             <div className="flex items-center gap-2">
               <span className="text-secondary">Sort:</span>
               {["newest", "oldest", "rating", "helpful"].map((option) => (
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    sortBy === option
-                      ? 'bg-primary text-black'
-                      : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                  }`}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${sortBy === option
+                    ? 'bg-primary text-black'
+                    : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
@@ -222,10 +312,25 @@ export default function CoursePage() {
           </div>
 
           <ReviewList
-            reviews={reviews}
+            reviews={reviews.map(review => ({
+              id: review.id,
+              author: {
+                username: review.user?.username || "Anonymous",
+                echoes: review.user?.echoes || 0,
+                isVerified: !review.user?.is_muffled
+              },
+              content: review.content || "",
+              rating: review.rating,
+              upvotes: review.upvotes,
+              downvotes: review.downvotes,
+              replyCount: 0, // TODO: Add reply count from backend
+              createdAt: review.created_at,
+              isEdited: review.is_edited,
+              userVote: null // TODO: Add user vote from backend
+            }))}
             onVote={handleVote}
             onReply={handleReply}
-            emptyMessage={`No reviews yet for ${mockCourse.name}. Be the first to share your experience!`}
+            emptyMessage={`No reviews yet for ${course.name}. Be the first to share your experience!`}
           />
         </motion.div>
       </div>
