@@ -339,7 +339,7 @@ export default function ProfessorPage() {
 
             <div className="flex items-center gap-2">
               <span className="text-secondary">Sort:</span>
-              {["newest", "oldest", "rating", "helpful"].map((option) => (
+              {["newest", "oldest", "rating"].map((option) => (
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}

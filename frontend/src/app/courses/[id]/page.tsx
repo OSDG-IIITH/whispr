@@ -606,7 +606,7 @@ export default function CoursePage() {
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-secondary text-xs sm:text-base">Sort:</span>
-              {["newest", "oldest", "rating", "helpful"].map((option) => (
+              {["newest", "oldest", "rating"].map((option) => (
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}

@@ -234,8 +234,6 @@ export default function MyReviewsPage() {
         );
       case "rating":
         return b.rating - a.rating;
-      case "helpful":
-        return b.upvotes - b.downvotes - (a.upvotes - a.downvotes);
       default:
         return 0;
     }
@@ -385,7 +383,6 @@ export default function MyReviewsPage() {
                   <option value="newest">Newest</option>
                   <option value="oldest">Oldest</option>
                   <option value="rating">Rating</option>
-                  <option value="helpful">Most Helpful</option>
                 </select>
               </div>
             </div>
