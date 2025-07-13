@@ -15,6 +15,8 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { ReplyForm } from "@/components/replies/ReplyForm";
+import { ReplyList } from "@/components/replies/ReplyList";
 import {
   courseAPI,
   reviewAPI,
@@ -26,6 +28,7 @@ import {
 } from "@/lib/api";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
+import { convertReplyToFrontendReply } from '@/types/frontend-models';
 
 export default function CoursePage() {
   const params = useParams();
@@ -40,6 +43,9 @@ export default function CoursePage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [sortBy, setSortBy] = useState("newest");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [activeReplyReviewId, setActiveReplyReviewId] = useState<string | null>(null);
+  const [replySubmitting, setReplySubmitting] = useState(false);
+  const [repliesByReview, setRepliesByReview] = useState<Record<string, any[]>>({});
 
   const courseCode = params.id as string;
 
@@ -78,18 +84,26 @@ export default function CoursePage() {
     }
   }, [courseCode, user]);
 
-  useEffect(() => {
-    if (courseCode) {
-      fetchCourseData();
-    }
-  }, [courseCode, fetchCourseData]);
+  // Fetch replies for all reviews
+  const fetchRepliesForReviews = useCallback(async (reviews: Review[]) => {
+    const repliesObj: Record<string, any[]> = {};
+    await Promise.all(
+      reviews.map(async (review) => {
+        const replies = await replyAPI.getReplies({ review_id: review.id });
+        // Transform replies to FrontendReply
+        repliesObj[review.id] = replies.map((reply: any) => convertReplyToFrontendReply(reply));
+      })
+    );
+    setRepliesByReview(repliesObj);
+  }, []);
 
-  const fetchReviews = useCallback(async () => {
+  // Fetch reviews and their replies
+  const fetchReviewsAndReplies = useCallback(async () => {
     if (!course) return;
     try {
       const reviewsData = await reviewAPI.getReviews({ course_id: course.id });
       setReviews(reviewsData);
-
+      await fetchRepliesForReviews(reviewsData);
       // Also refresh user votes if logged in
       if (user) {
         try {
@@ -102,7 +116,20 @@ export default function CoursePage() {
     } catch (err) {
       console.error("Error fetching reviews:", err);
     }
-  }, [course, user]);
+  }, [course, user, fetchRepliesForReviews]);
+
+  // Replace fetchReviews with fetchReviewsAndReplies
+  useEffect(() => {
+    if (courseCode) {
+      fetchCourseData();
+    }
+  }, [courseCode, fetchCourseData]);
+
+  useEffect(() => {
+    if (course) {
+      fetchReviewsAndReplies();
+    }
+  }, [course, fetchReviewsAndReplies]);
 
   // Helper function to get user's vote for a specific review
   const getUserVoteForReview = (reviewId: string): "up" | "down" | null => {
@@ -124,7 +151,7 @@ export default function CoursePage() {
       });
 
       // Refresh reviews to show updated vote counts
-      await fetchReviews();
+      await fetchReviewsAndReplies();
     } catch (err: any) {
       console.error("Error voting on review:", err);
       showError(err.message || "Failed to vote. Please try again.");
@@ -136,24 +163,25 @@ export default function CoursePage() {
       showError("Please log in to reply");
       return;
     }
-
     if (!content) {
-      showError("Reply content cannot be empty");
+      // Open the reply box for this review
+      setActiveReplyReviewId(reviewId);
       return;
     }
-
+    setReplySubmitting(true);
     try {
       await replyAPI.createReply({
         review_id: reviewId,
         content: content,
       });
-
-      // Refresh reviews to show updated reply counts
-      await fetchReviews();
+      await fetchReviewsAndReplies();
       showSuccess("Reply submitted successfully!");
+      setActiveReplyReviewId(null);
     } catch (err: any) {
       console.error("Error creating reply:", err);
       showError(err.message || "Failed to create reply. Please try again.");
+    } finally {
+      setReplySubmitting(false);
     }
   };
 
@@ -185,15 +213,15 @@ export default function CoursePage() {
         setCourse((prevCourse: Course | null) =>
           prevCourse
             ? {
-                ...prevCourse,
-                review_count: prevCourse.review_count + 1,
-                average_rating: String(
-                  (parseFloat(prevCourse.average_rating) *
-                    prevCourse.review_count +
-                    data.rating) /
-                    (prevCourse.review_count + 1)
-                ),
-              }
+              ...prevCourse,
+              review_count: prevCourse.review_count + 1,
+              average_rating: String(
+                (parseFloat(prevCourse.average_rating) *
+                  prevCourse.review_count +
+                  data.rating) /
+                (prevCourse.review_count + 1)
+              ),
+            }
             : null
         );
       }
@@ -214,11 +242,10 @@ export default function CoursePage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < Math.floor(rating)
-            ? "text-yellow-500 fill-current"
-            : "text-secondary"
-        }`}
+        className={`w-5 h-5 ${i < Math.floor(rating)
+          ? "text-yellow-500 fill-current"
+          : "text-secondary"
+          }`}
       />
     ));
   };
@@ -397,8 +424,8 @@ export default function CoursePage() {
               {submittingReview
                 ? "Submitting..."
                 : user
-                ? "Rate & Review"
-                : "Login to Review"}
+                  ? "Rate & Review"
+                  : "Login to Review"}
             </button>
             <button className="btn btn-secondary px-6 py-3">
               View Professors
@@ -437,11 +464,10 @@ export default function CoursePage() {
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    sortBy === option
-                      ? "bg-primary text-black"
-                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${sortBy === option
+                    ? "bg-primary text-black"
+                    : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
@@ -462,15 +488,39 @@ export default function CoursePage() {
               rating: review.rating,
               upvotes: review.upvotes,
               downvotes: review.downvotes,
-              replyCount: 0, // TODO: Add reply count from backend
+              replyCount: repliesByReview[review.id]?.length || 0,
               createdAt: review.created_at,
               isEdited: review.is_edited,
               userVote: getUserVoteForReview(review.id),
               isOwn: user ? review.user_id === user.id : false,
             }))}
             onVote={handleVote}
-            onReply={handleReply}
+            onReply={(reviewId) => handleReply(reviewId)}
             emptyMessage={`No reviews yet for ${course.name}. Be the first to share your experience!`}
+            renderExtra={(review) => (
+              <>
+                {activeReplyReviewId === review.id && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="mt-2"
+                  >
+                    <ReplyForm
+                      onSubmit={async (content) => await handleReply(review.id, content)}
+                      onCancel={() => setActiveReplyReviewId(null)}
+                      disabled={replySubmitting}
+                    />
+                  </motion.div>
+                )}
+                <ReplyList
+                  replies={repliesByReview[review.id] || []}
+                  reviewId={review.id}
+                  onVote={() => { }}
+                  onSubmitReply={async (reviewId, content) => await handleReply(reviewId, content)}
+                />
+              </>
+            )}
           />
         </motion.div>
       </div>

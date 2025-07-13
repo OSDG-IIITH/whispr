@@ -27,6 +27,7 @@ interface ReviewListProps {
     reason?: string
   ) => Promise<void> | void;
   emptyMessage?: string;
+  renderExtra?: (review: FrontendReview) => React.ReactNode;
 }
 
 export function ReviewList({
@@ -40,10 +41,11 @@ export function ReviewList({
   onDelete,
   onReport,
   emptyMessage = "No reviews yet. Be the first to share your experience!",
+  renderExtra,
 }: ReviewListProps) {
   const { loadMoreRef } = useInfiniteScroll({
     hasMore,
-    onLoadMore: onLoadMore || (() => {}),
+    onLoadMore: onLoadMore || (() => { }),
     loading,
   });
 
@@ -107,6 +109,7 @@ export function ReviewList({
               onDelete={onDelete}
               onReport={onReport}
             />
+            {renderExtra && renderExtra(review)}
           </motion.div>
         ))}
       </AnimatePresence>

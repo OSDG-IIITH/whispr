@@ -52,9 +52,8 @@ export function ReviewCard({
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${
-          i < rating ? "text-yellow-500 fill-current" : "text-secondary"
-        }`}
+        className={`w-4 h-4 ${i < rating ? "text-yellow-500 fill-current" : "text-secondary"
+          }`}
       />
     ));
   };
@@ -142,7 +141,9 @@ export function ReviewCard({
                   className="flex items-center gap-1.5 text-sm text-secondary hover:text-primary transition-colors"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span>{review.replyCount} replies</span>
+                  <span>
+                    Reply{review.replyCount > 0 ? ` (${review.replyCount})` : ""}
+                  </span>
                 </button>
               )}
             </div>

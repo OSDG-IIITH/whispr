@@ -91,13 +91,12 @@ async def create_reply(
             detail="Review not found"
         )
 
-    async with db.begin():
-        stmt = insert(ReplyModel).values(
-            **reply_in.dict(),
-            user_id=current_user.id
-        ).returning(*ReplyModel.__table__.c)
-        result = await db.execute(stmt)
-        reply = result.fetchone()
+    stmt = insert(ReplyModel).values(
+        **reply_in.dict(),
+        user_id=current_user.id
+    ).returning(*ReplyModel.__table__.c)
+    result = await db.execute(stmt)
+    reply = result.fetchone()
 
         # Create notification for the review author
         await notify_on_reply(db, reply_in.review_id, reply.id, current_user.username)
@@ -112,6 +111,7 @@ async def create_reply(
                 author_username=current_user.username
             )
 
+    await db.commit()
     return reply
 
 

@@ -6,6 +6,7 @@ from typing import Optional, Any
 from datetime import datetime
 from pydantic import BaseModel, UUID4
 from pydantic.version import VERSION as PYDANTIC_VERSION
+from app.schemas.user import User
 
 config_dict = {}
 if PYDANTIC_VERSION.startswith('2.'):
@@ -69,4 +70,7 @@ class ReplyWithUser(Reply):
     """
     Schema for reply with user information.
     """
-    user: Any  # Using Any to avoid circular import
+    user: User
+
+    class Config:
+        from_attributes = True  # For Pydantic v2
