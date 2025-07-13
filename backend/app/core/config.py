@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     CAS_SERVER_URL: str = os.getenv(
         "CAS_SERVER_URL", "https://login.iiit.ac.in/cas")
     CAS_SERVICE_URL: str = os.getenv(
-        "CAS_SERVICE_URL", "http://localhost:8000/verify/callback")
+        "CAS_SERVICE_URL", "http://localhost:8000/api/verify/callback")
     VERIFICATION_SESSION_EXPIRE_MINUTES: int = int(
         os.getenv("VERIFICATION_SESSION_EXPIRE_MINUTES", "30")
     )

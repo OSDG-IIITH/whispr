@@ -176,6 +176,7 @@ or course_instructor_id must be provided"
             db, review_in.course_instructor_id
         )
 
+    await db.commit()
     return review
 
 

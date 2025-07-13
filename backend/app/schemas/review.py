@@ -80,8 +80,11 @@ class Review(ReviewInDBBase):
     pass
 
 
+from app.schemas.user import User
+
+
 class ReviewWithUser(Review):
     """
     Schema for review with user information.
     """
-    user: Any  # Using Any to avoid circular import
+    user: User
