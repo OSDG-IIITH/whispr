@@ -75,11 +75,11 @@ async function apiCall<T>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('API Error:', {
+      console.error("API Error:", {
         url: url,
         status: response.status,
         statusText: response.statusText,
-        errorData
+        errorData,
       });
       throw new Error(
         errorData.detail || `HTTP ${response.status}: ${response.statusText}`
@@ -174,6 +174,28 @@ export const userAPI = {
     return apiCall<User>(`/users/${userId}/unfollow`, {
       method: "POST",
     });
+  },
+
+  getFollowers: async (userId: string, skip = 0, limit = 100) => {
+    return apiCall<User[]>(
+      `/users/${userId}/followers?skip=${skip}&limit=${limit}`
+    );
+  },
+
+  getFollowing: async (userId: string, skip = 0, limit = 100) => {
+    return apiCall<User[]>(
+      `/users/${userId}/following?skip=${skip}&limit=${limit}`
+    );
+  },
+
+  getFollowStatus: async (userId: string) => {
+    return apiCall<{
+      user_id: string;
+      is_following: boolean;
+      is_followed_by: boolean;
+      followers_count: number;
+      following_count: number;
+    }>(`/users/${userId}/follow-status`);
   },
 };
 
@@ -372,11 +394,11 @@ export const reportAPI = {
     reply_id?: string;
     reported_user_id?: string;
     report_type:
-    | "spam"
-    | "harassment"
-    | "inappropriate"
-    | "misinformation"
-    | "other";
+      | "spam"
+      | "harassment"
+      | "inappropriate"
+      | "misinformation"
+      | "other";
     reason: string;
   }) => {
     return apiCall<Report>("/reports", {
@@ -557,5 +579,23 @@ export const notificationAPI = {
 export const userSearchAPI = {
   searchUsers: async (query: string) => {
     return apiCall<User[]>(`/users/search?q=${encodeURIComponent(query)}`);
+  },
+};
+
+// Feed API
+export const feedAPI = {
+  getFeed: async (skip = 0, limit = 20) => {
+    return apiCall<Review[]>(`/feed?skip=${skip}&limit=${limit}`);
+  },
+
+  getStats: async () => {
+    return apiCall<{
+      review_count: number;
+      reply_count: number;
+      vote_count: number;
+      followers_count: number;
+      following_count: number;
+      echoes: number;
+    }>("/feed/stats");
   },
 };

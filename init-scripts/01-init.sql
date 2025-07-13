@@ -152,7 +152,8 @@ CREATE TABLE notifications (
             'VOTE',
             'REPLY',
             'RANK_CHANGE',
-            'SYSTEM'
+            'SYSTEM',
+            'FOLLOW'
         )
     ),
     content TEXT NOT NULL,

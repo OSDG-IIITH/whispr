@@ -14,6 +14,7 @@ import { useParams, useRouter } from "next/navigation";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { RankBadge } from "@/components/user/RankBadge";
 import { EchoesDisplay } from "@/components/user/EchoesDisplay";
+import { FollowButton } from "@/components/user/FollowButton";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { KillSwitch } from "@/components/common/KillSwitch";
 import { formatDate } from "@/lib/utils";
@@ -69,6 +70,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [showKillSwitch, setShowKillSwitch] = useState(false);
   const [filterBy, setFilterBy] = useState("all");
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   const username = params.username as string;
   const isOwnProfile = currentUser?.username === username;
@@ -88,6 +92,18 @@ export default function ProfilePage() {
       if (currentUser) {
         const votes = await voteAPI.getMyVotes();
         setUserVotes(votes);
+        
+        // Fetch follow status if viewing someone else's profile
+        if (!isOwnProfile) {
+          try {
+            const followStatus = await userAPI.getFollowStatus(userData.id);
+            setIsFollowing(followStatus.is_following);
+            setFollowersCount(followStatus.followers_count);
+            setFollowingCount(followStatus.following_count);
+          } catch (error) {
+            console.error("Failed to fetch follow status:", error);
+          }
+        }
       }
     } catch (error) {
       console.error("Failed to fetch profile data:", error);
@@ -95,7 +111,7 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [username, currentUser, showError]);
+  }, [username, currentUser, isOwnProfile, showError]);
 
   useEffect(() => {
     if (username) {
@@ -124,6 +140,28 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Failed to vote:", error);
       showError("Failed to vote. Please try again.");
+    }
+  };
+
+  const handleFollowChange = async (newIsFollowing: boolean) => {
+    if (!currentUser || !profileUser) {
+      showError("Please log in to follow users");
+      return;
+    }
+
+    try {
+      // Update local state optimistically
+      setIsFollowing(newIsFollowing);
+      setFollowersCount(prev => newIsFollowing ? prev + 1 : prev - 1);
+
+      // The FollowButton component handles the actual API call
+      showSuccess(newIsFollowing ? "User followed!" : "User unfollowed!");
+    } catch (error) {
+      console.error("Failed to update follow status:", error);
+      // Revert optimistic update
+      setIsFollowing(!newIsFollowing);
+      setFollowersCount(prev => newIsFollowing ? prev - 1 : prev + 1);
+      showError("Failed to update follow status. Please try again.");
     }
   };
 
@@ -255,7 +293,6 @@ export default function ProfilePage() {
     (sum, review) => sum + review.downvotes,
     0
   );
-  const followersCount = 0; // TODO: Implement followers when backend supports it
   const profileViews = 0; // TODO: Implement profile views when backend supports it
 
   const stats = [
@@ -356,7 +393,14 @@ export default function ProfilePage() {
                 </button>
               ) : (
                 <>
-                  <button className="btn btn-primary px-4 py-2">Follow</button>
+                  {currentUser && (
+                    <FollowButton
+                      userId={profileUser.id}
+                      isFollowing={isFollowing}
+                      onFollowChange={handleFollowChange}
+                      className="px-4 py-2"
+                    />
+                  )}
                   <button className="btn btn-secondary px-4 py-2 flex items-center gap-2">
                     <Flag className="w-4 h-4" />
                     Report

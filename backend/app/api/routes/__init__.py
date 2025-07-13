@@ -11,7 +11,8 @@ from app.api.routes import (
     votes,
     notifications,
     search,
-    reports
+    reports,
+    feed
 )
 
 api_router = APIRouter()
@@ -34,3 +35,4 @@ api_router.include_router(notifications.router,
                           prefix="/notifications", tags=["notifications"])
 api_router.include_router(search.router, prefix="/search", tags=["search"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
+api_router.include_router(feed.router, prefix="/feed", tags=["feed"])

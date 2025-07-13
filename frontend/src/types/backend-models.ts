@@ -130,7 +130,7 @@ export interface Vote {
 export interface Notification {
   id: string;
   username: string;
-  type: "MENTION" | "VOTE" | "REPLY" | "RANK_CHANGE" | "SYSTEM";
+  type: "MENTION" | "VOTE" | "REPLY" | "RANK_CHANGE" | "SYSTEM" | "FOLLOW";
   content: string;
   source_id?: string;
   source_type?: string;

@@ -139,7 +139,7 @@ async def notify_on_follow(
         await create_notification(
             db=db,
             username=followed_user.username,
-            notification_type="SYSTEM",
+            notification_type="FOLLOW",
             content=f"{follower_username} started following you",
             source_id=None,
             source_type="user",

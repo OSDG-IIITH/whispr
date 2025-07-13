@@ -91,3 +91,11 @@ class UserInDB(UserInDBBase):
     Schema for user in database.
     """
     hashed_password: str
+
+
+class UserWithCounts(UserInDBBase):
+    """
+    Schema for user response with follower/following counts.
+    """
+    followers_count: int = 0
+    following_count: int = 0

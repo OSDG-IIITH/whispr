@@ -17,6 +17,7 @@ import {
 
 export interface FrontendUser extends User {
   isVerified: boolean; // Derived from is_muffled (inverse of is_muffled)
+  isFollowing?: boolean; // Whether current user is following this user
 }
 
 export interface FrontendNotification extends Omit<Notification, "is_read"> {
@@ -39,6 +40,14 @@ export interface FrontendCourseInstructor
 
 export interface FrontendReview {
   id: string;
+  user_id?: string;
+  course_id?: string;
+  professor_id?: string;
+  course_instructor_id?: string;
+  user?: FrontendUser;
+  course?: FrontendCourse;
+  professor?: FrontendProfessor;
+  course_instructor?: FrontendCourseInstructor;
   author: {
     username: string;
     echoes: number;
@@ -50,8 +59,10 @@ export interface FrontendReview {
   downvotes: number;
   replyCount: number;
   createdAt: string;
+  created_at?: string;
   isEdited: boolean;
   userVote: "up" | "down" | null;
+  user_vote?: Vote;
   isOwn: boolean;
   courseName?: string;
   professorName?: string;
@@ -154,10 +165,14 @@ export interface Rank {
 }
 
 // Helper functions for converting between backend and frontend models
-export function convertUserToFrontendUser(user: User): FrontendUser {
+export function convertUserToFrontendUser(
+  user: User,
+  isFollowing?: boolean
+): FrontendUser {
   return {
     ...user,
     isVerified: !user.is_muffled,
+    isFollowing: isFollowing,
   };
 }
 
@@ -178,6 +193,16 @@ export function convertReviewToFrontendReview(
 ): FrontendReview {
   return {
     id: review.id,
+    user_id: review.user_id,
+    course_id: review.course_id,
+    professor_id: review.professor_id,
+    course_instructor_id: review.course_instructor_id,
+    user: review.user
+      ? convertUserToFrontendUser(review.user, false)
+      : undefined,
+    course: review.course as FrontendCourse,
+    professor: review.professor as FrontendProfessor,
+    course_instructor: review.course_instructor as FrontendCourseInstructor,
     author: {
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,
@@ -189,8 +214,10 @@ export function convertReviewToFrontendReview(
     downvotes: review.downvotes,
     replyCount: 0, // This should be populated by the caller
     createdAt: review.created_at,
+    created_at: review.created_at,
     isEdited: review.is_edited,
     userVote: userVote ? (userVote.vote_type ? "up" : "down") : null,
+    user_vote: userVote || undefined,
     isOwn: currentUserId ? review.user_id === currentUserId : false,
     courseName: review.course?.name,
     professorName: review.professor?.name,
