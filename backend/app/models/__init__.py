@@ -15,3 +15,4 @@ from app.models.used_email import UsedEmail
 from app.models.user_followers import user_followers
 from app.models.used_email import UsedEmail
 from app.models.verification_session import VerificationSession
+from app.models.report import Report

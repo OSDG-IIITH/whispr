@@ -14,6 +14,7 @@ from app.models.user import User as UserModel
 from app.schemas.user import User, UserUpdate
 from app.auth.jwt import get_current_user, get_current_unmuffled_user
 from app.auth.password import get_password_hash
+from app.core.notifications import notify_on_follow
 
 router = APIRouter()
 
@@ -130,6 +131,10 @@ async def follow_user(
     # Add the relationship
     if user_to_follow not in current_user.following:
         current_user.following.append(user_to_follow)
+        await db.commit()
+        
+        # Create notification
+        await notify_on_follow(db, user_id, current_user.username)
         await db.commit()
 
     return current_user

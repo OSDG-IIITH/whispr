@@ -7,6 +7,7 @@ import { UserAvatar } from "@/components/user/UserAvatar";
 import { UserHoverCard } from "@/components/user/UserHoverCard";
 import { RankBadge } from "@/components/user/RankBadge";
 import { VoteButtons } from "./VoteButtons";
+import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
 
 interface Review {
@@ -34,23 +35,30 @@ interface ReviewCardProps {
   onReply: (reviewId: string) => void;
   onEdit?: (reviewId: string) => void;
   onDelete?: (reviewId: string) => void;
-  onReport?: (reviewId: string) => void;
+  onReport?: (reviewId: string, reportType: string, reason: string) => void;
   showReplies?: boolean;
 }
 
-export function ReviewCard({ 
-  review, 
-  onVote, 
-  onReply, 
-  onEdit, 
-  onDelete, 
+export function ReviewCard({
+  review,
+  onVote,
+  onReply,
+  onEdit,
+  onDelete,
   onReport,
-  showReplies = true 
+  showReplies = true,
 }: ReviewCardProps) {
   const [showActions, setShowActions] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const handleVote = (type: "up" | "down") => {
     onVote(review.id, type);
+  };
+
+  const handleReport = async (reportType: string, reason: string) => {
+    if (onReport) {
+      await onReport(review.id, reportType, reason);
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -58,7 +66,7 @@ export function ReviewCard({
       <Star
         key={i}
         className={`w-4 h-4 ${
-          i < rating ? 'text-yellow-500 fill-current' : 'text-secondary'
+          i < rating ? "text-yellow-500 fill-current" : "text-secondary"
         }`}
       />
     ));
@@ -93,14 +101,14 @@ export function ReviewCard({
               isVerified={review.author.isVerified}
               avatarUrl={review.author.avatarUrl}
             >
-              <UserAvatar 
-                username={review.author.username} 
+              <UserAvatar
+                username={review.author.username}
                 echoes={review.author.echoes}
-                size="sm" 
+                size="sm"
                 avatarUrl={review.author.avatarUrl}
               />
             </UserHoverCard>
-            
+
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <UserHoverCard
@@ -113,7 +121,11 @@ export function ReviewCard({
                     {review.author.username}
                   </span>
                 </UserHoverCard>
-                <RankBadge echoes={review.author.echoes} size="sm" showIcon={false} />
+                <RankBadge
+                  echoes={review.author.echoes}
+                  size="sm"
+                  showIcon={false}
+                />
               </div>
               <div className="flex items-center gap-2 text-xs text-secondary">
                 <span>{formatDate(review.createdAt)}</span>
@@ -178,7 +190,7 @@ export function ReviewCard({
               ) : (
                 onReport && (
                   <button
-                    onClick={() => onReport(review.id)}
+                    onClick={() => setShowReportModal(true)}
                     className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
                     title="Report review"
                   >
@@ -190,6 +202,15 @@ export function ReviewCard({
           </div>
         </div>
       </div>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onSubmit={handleReport}
+        targetType="review"
+        targetId={review.id}
+      />
     </motion.div>
   );
 }

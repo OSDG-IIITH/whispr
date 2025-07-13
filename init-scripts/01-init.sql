@@ -134,7 +134,6 @@ CREATE TABLE used_emails (
     verified_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
 -- Create verification_sessions table for temporary CAS verification flow
 CREATE TABLE verification_sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -162,6 +161,52 @@ CREATE TABLE notifications (
     actor_username VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+-- Create reports table
+CREATE TABLE reports (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
+    reply_id UUID REFERENCES replies(id) ON DELETE CASCADE,
+    reported_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    report_type VARCHAR(50) NOT NULL CHECK (
+        report_type IN (
+            'spam',
+            'harassment',
+            'inappropriate',
+            'misinformation',
+            'other'
+        )
+    ),
+    reason TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending' CHECK (
+        status IN (
+            'pending',
+            'reviewed',
+            'resolved',
+            'dismissed'
+        )
+    ),
+    admin_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CHECK (
+        (
+            review_id IS NOT NULL
+            AND reply_id IS NULL
+            AND reported_user_id IS NULL
+        )
+        OR (
+            review_id IS NULL
+            AND reply_id IS NOT NULL
+            AND reported_user_id IS NULL
+        )
+        OR (
+            review_id IS NULL
+            AND reply_id IS NULL
+            AND reported_user_id IS NOT NULL
+        )
+    )
 );
 -- Add indexes for performance
 CREATE INDEX idx_users_username ON users(username);

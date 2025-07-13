@@ -10,7 +10,8 @@ from app.api.routes import (
     replies,
     votes,
     notifications,
-    search
+    search,
+    reports
 )
 
 api_router = APIRouter()
@@ -32,3 +33,4 @@ api_router.include_router(votes.router, prefix="/votes", tags=["votes"])
 api_router.include_router(notifications.router,
                           prefix="/notifications", tags=["notifications"])
 api_router.include_router(search.router, prefix="/search", tags=["search"])
+api_router.include_router(reports.router, prefix="/reports", tags=["reports"])

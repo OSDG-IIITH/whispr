@@ -7,6 +7,7 @@ import { UserAvatar } from "@/components/user/UserAvatar";
 import { UserHoverCard } from "@/components/user/UserHoverCard";
 import { RankBadge } from "@/components/user/RankBadge";
 import { VoteButtons } from "@/components/reviews/VoteButtons";
+import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
 
 interface Reply {
@@ -31,7 +32,7 @@ interface ReplyCardProps {
   onVote: (replyId: string, type: "up" | "down") => void;
   onEdit?: (replyId: string) => void;
   onDelete?: (replyId: string) => void;
-  onReport?: (replyId: string) => void;
+  onReport?: (replyId: string, reportType: string, reason: string) => void;
 }
 
 export function ReplyCard({
@@ -39,12 +40,19 @@ export function ReplyCard({
   onVote,
   onEdit,
   onDelete,
-  onReport
+  onReport,
 }: ReplyCardProps) {
   const [showActions, setShowActions] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const handleVote = (type: "up" | "down") => {
     onVote(reply.id, type);
+  };
+
+  const handleReport = async (reportType: string, reason: string) => {
+    if (onReport) {
+      await onReport(reply.id, reportType, reason);
+    }
   };
 
   return (
@@ -96,7 +104,11 @@ export function ReplyCard({
                     {reply.author.username}
                   </span>
                 </UserHoverCard>
-                <RankBadge echoes={reply.author.echoes} size="sm" showIcon={false} />
+                <RankBadge
+                  echoes={reply.author.echoes}
+                  size="sm"
+                  showIcon={false}
+                />
               </div>
               <div className="flex items-center gap-2 text-xs text-secondary">
                 <span>{formatDate(reply.createdAt)}</span>
@@ -134,7 +146,7 @@ export function ReplyCard({
               ) : (
                 onReport && (
                   <button
-                    onClick={() => onReport(reply.id)}
+                    onClick={() => setShowReportModal(true)}
                     className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
                     title="Report reply"
                   >
@@ -153,6 +165,15 @@ export function ReplyCard({
           </div>
         </div>
       </div>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onSubmit={handleReport}
+        targetType="reply"
+        targetId={reply.id}
+      />
     </motion.div>
   );
 }

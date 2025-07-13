@@ -54,3 +54,9 @@ class User(Base):
         primaryjoin="User.username==Notification.username",
         cascade="all, delete-orphan"
     )
+    reports_made = relationship("Report", foreign_keys="Report.reporter_id",
+                               back_populates="reporter",
+                               cascade="all, delete-orphan")
+    reports_received = relationship("Report", foreign_keys="Report.reported_user_id",
+                                   back_populates="reported_user",
+                                   cascade="all, delete-orphan")

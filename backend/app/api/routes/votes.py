@@ -16,6 +16,8 @@ from app.models.reply import Reply as ReplyModel
 from app.schemas.vote import Vote, VoteCreate
 from app.auth.jwt import get_current_unmuffled_user
 from app.models.user import User as UserModel
+from app.core.notifications import notify_on_vote
+from app.core.echo_points import update_user_echo_points
 
 router = APIRouter()
 
@@ -108,12 +110,6 @@ async def create_vote(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Review not found"
             )
-        # Check if user is voting on their own review
-        if getattr(review, "user_id", None) == current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You cannot vote on your own review"
-            )
 
     if vote_in.reply_id:
         stmt = select(ReplyModel).where(ReplyModel.id == vote_in.reply_id)
@@ -123,12 +119,6 @@ async def create_vote(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Reply not found"
-            )
-        # Check if user is voting on their own reply
-        if getattr(reply, "user_id", None) == current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You cannot vote on your own reply"
             )
 
     # Check if user already voted on this target
@@ -160,8 +150,24 @@ async def create_vote(
             # Update target's vote stats
             if vote_in.review_id:
                 await _update_review_vote_stats(db, vote_in.review_id)
+                # Update echo points for review author
+                review = await db.execute(select(ReviewModel).where(ReviewModel.id == vote_in.review_id))
+                review_obj = review.scalar_one_or_none()
+                if review_obj:
+                    await update_user_echo_points(db, review_obj.user_id, notify=False)
             if vote_in.reply_id:
                 await _update_reply_vote_stats(db, vote_in.reply_id)
+                # Update echo points for reply author
+                reply = await db.execute(select(ReplyModel).where(ReplyModel.id == vote_in.reply_id))
+                reply_obj = reply.scalar_one_or_none()
+                if reply_obj:
+                    await update_user_echo_points(db, reply_obj.user_id, notify=False)
+
+            # Create notification
+            if vote_in.review_id:
+                await notify_on_vote(db, vote_in.review_id, "review", vote_in.vote_type, current_user.username)
+            if vote_in.reply_id:
+                await notify_on_vote(db, vote_in.reply_id, "reply", vote_in.vote_type, current_user.username)
 
         return updated_vote
 
@@ -179,8 +185,24 @@ async def create_vote(
         # Update target's vote stats
         if vote_in.review_id:
             await _update_review_vote_stats(db, vote_in.review_id)
+            # Update echo points for review author
+            review = await db.execute(select(ReviewModel).where(ReviewModel.id == vote_in.review_id))
+            review_obj = review.scalar_one_or_none()
+            if review_obj:
+                await update_user_echo_points(db, review_obj.user_id, notify=False)
         if vote_in.reply_id:
             await _update_reply_vote_stats(db, vote_in.reply_id)
+            # Update echo points for reply author
+            reply = await db.execute(select(ReplyModel).where(ReplyModel.id == vote_in.reply_id))
+            reply_obj = reply.scalar_one_or_none()
+            if reply_obj:
+                await update_user_echo_points(db, reply_obj.user_id, notify=False)
+
+        # Create notification
+        if vote_in.review_id:
+            await notify_on_vote(db, vote_in.review_id, "review", vote_in.vote_type, current_user.username)
+        if vote_in.reply_id:
+            await notify_on_vote(db, vote_in.reply_id, "reply", vote_in.vote_type, current_user.username)
 
     return vote
 
@@ -224,8 +246,18 @@ async def delete_vote(
         # Update target's vote stats
         if review_id:
             await _update_review_vote_stats(db, review_id)
+            # Update echo points for review author
+            review = await db.execute(select(ReviewModel).where(ReviewModel.id == review_id))
+            review_obj = review.scalar_one_or_none()
+            if review_obj:
+                await update_user_echo_points(db, review_obj.user_id, notify=False)
         if reply_id:
             await _update_reply_vote_stats(db, reply_id)
+            # Update echo points for reply author
+            reply = await db.execute(select(ReplyModel).where(ReplyModel.id == reply_id))
+            reply_obj = reply.scalar_one_or_none()
+            if reply_obj:
+                await update_user_echo_points(db, reply_obj.user_id, notify=False)
 
 
 # Helper functions to update vote statistics
