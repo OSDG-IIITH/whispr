@@ -450,6 +450,11 @@ export const courseAPI = {
       `/reviews/?course_id=${courseId}&skip=${skip}&limit=${limit}`
     );
   },
+
+  // Add this function to get fresh course data
+  refreshCourse: async (courseId: string) => {
+    return apiCall<Course>(`/courses/${courseId}?refresh=true`);
+  }
 };
 
 // Professor API
@@ -467,6 +472,11 @@ export const professorAPI = {
       `/professors/${professorId}/reviews?skip=${skip}&limit=${limit}`
     );
   },
+
+  // Add this function to get fresh professor data
+  refreshProfessor: async (professorId: string) => {
+    return apiCall<Professor>(`/professors/${professorId}?refresh=true`);
+  }
 };
 
 // Verification API

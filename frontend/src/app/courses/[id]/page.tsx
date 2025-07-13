@@ -331,29 +331,60 @@ export default function CoursePage() {
     }
   };
 
-  // Add review edit and delete handlers
+  // Refresh course data function
+  const refreshCourseData = async () => {
+    if (!course?.id) return;
+
+    try {
+      const refreshedCourse = await courseAPI.refreshCourse(course.id);
+      setCourse(refreshedCourse);
+    } catch (error) {
+      console.error("Failed to refresh course data:", error);
+    }
+  };
+
+  // Update handleEdit to refresh course data
   const handleEdit = async (
     reviewId: string,
     data?: { content?: string; rating?: number }
   ) => {
     try {
-      await reviewAPI.updateReview(reviewId, data || {});
-      await fetchReviewsAndReplies();
+      await reviewAPI.updateReview(reviewId, data);
+
+      // Update the specific review in local state
+      setReviews((prevReviews) =>
+        prevReviews.map((review) =>
+          review.id === reviewId ? { ...review, ...data, is_edited: true } : review
+        )
+      );
+
+      // Refresh the course data to update rating
+      await refreshCourseData();
+
       showSuccess("Review updated successfully!");
     } catch (error: any) {
       console.error("Failed to edit review:", error);
-      showError(error?.message || "Failed to edit review. Please try again.");
+      showError(error.message || "Failed to edit review. Please try again.");
     }
   };
 
+  // Update handleDelete to refresh course data
   const handleDelete = async (reviewId: string) => {
-    try {
-      await reviewAPI.deleteReview(reviewId);
-      await fetchReviewsAndReplies();
-      showSuccess("Review deleted successfully!");
-    } catch (error: any) {
-      console.error("Failed to delete review:", error);
-      showError(error?.message || "Failed to delete review. Please try again.");
+    if (confirm("Are you sure you want to delete this review?")) {
+      try {
+        await reviewAPI.deleteReview(reviewId);
+
+        // Remove from local state
+        setReviews(reviews.filter((review) => review.id !== reviewId));
+
+        // Refresh the course data to update rating
+        await refreshCourseData();
+
+        showSuccess("Review deleted successfully!");
+      } catch (error) {
+        console.error("Failed to delete review:", error);
+        showError("Failed to delete review. Please try again.");
+      }
     }
   };
 
