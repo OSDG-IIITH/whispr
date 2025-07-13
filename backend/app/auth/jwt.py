@@ -175,7 +175,7 @@ async def get_current_unmuffled_user(
     if current_user.is_muffled:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User is muffled. Please verify your email to post content."
+            detail="You are muffled. Please verify your email to post content."
         )
     return current_user
 

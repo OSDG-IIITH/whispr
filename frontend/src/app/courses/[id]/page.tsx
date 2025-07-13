@@ -138,6 +138,13 @@ export default function CoursePage() {
     return userVote.vote_type ? "up" : "down";
   };
 
+  // Helper: get user's vote for a specific reply
+  const getUserVoteForReply = (replyId: string): "up" | "down" | null => {
+    const userVote = userVotes.find((vote) => vote.reply_id === replyId);
+    if (!userVote) return null;
+    return userVote.vote_type ? "up" : "down";
+  };
+
   const handleVote = async (reviewId: string, type: "up" | "down") => {
     if (!user) {
       showError("Please log in to vote");
@@ -154,6 +161,31 @@ export default function CoursePage() {
       await fetchReviewsAndReplies();
     } catch (err: any) {
       console.error("Error voting on review:", err);
+      showError(err.message || "Failed to vote. Please try again.");
+    }
+  };
+
+  // Voting for replies
+  const handleReplyVote = async (replyId: string, type: "up" | "down") => {
+    if (!user) {
+      showError("Please log in to vote");
+      return;
+    }
+    if (user.is_muffled) {
+      showError("Muffled users cannot vote");
+      return;
+    }
+    try {
+      await voteAPI.createVote({
+        reply_id: replyId,
+        vote_type: type === "up",
+      });
+      // Refresh votes and replies
+      const votes = await voteAPI.getMyVotes();
+      setUserVotes(votes);
+      await fetchReviewsAndReplies();
+    } catch (err: any) {
+      console.error("Error voting on reply:", err);
       showError(err.message || "Failed to vote. Please try again.");
     }
   };
@@ -235,6 +267,55 @@ export default function CoursePage() {
       showError(errorMessage);
     } finally {
       setSubmittingReview(false);
+    }
+  };
+
+  // Add review edit and delete handlers
+  const handleEdit = async (
+    reviewId: string,
+    data?: { content?: string; rating?: number }
+  ) => {
+    try {
+      await reviewAPI.updateReview(reviewId, data || {});
+      await fetchReviewsAndReplies();
+      showSuccess("Review updated successfully!");
+    } catch (error: any) {
+      console.error("Failed to edit review:", error);
+      showError(error?.message || "Failed to edit review. Please try again.");
+    }
+  };
+
+  const handleDelete = async (reviewId: string) => {
+    try {
+      await reviewAPI.deleteReview(reviewId);
+      await fetchReviewsAndReplies();
+      showSuccess("Review deleted successfully!");
+    } catch (error: any) {
+      console.error("Failed to delete review:", error);
+      showError(error?.message || "Failed to delete review. Please try again.");
+    }
+  };
+
+  // Add reply edit and delete handlers
+  const handleReplyEdit = async (replyId: string, content: string) => {
+    try {
+      await replyAPI.updateReply(replyId, { content });
+      await fetchReviewsAndReplies();
+      showSuccess("Reply updated successfully!");
+    } catch (error: any) {
+      console.error("Failed to edit reply:", error);
+      showError(error?.message || "Failed to edit reply. Please try again.");
+    }
+  };
+
+  const handleReplyDelete = async (replyId: string) => {
+    try {
+      await replyAPI.deleteReply(replyId);
+      await fetchReviewsAndReplies();
+      showSuccess("Reply deleted successfully!");
+    } catch (error: any) {
+      console.error("Failed to delete reply:", error);
+      showError(error?.message || "Failed to delete reply. Please try again.");
     }
   };
 
@@ -412,11 +493,15 @@ export default function CoursePage() {
           {/* Actions */}
           <div className="flex gap-4">
             <button
-              onClick={() =>
-                user
-                  ? setShowReviewForm(true)
-                  : showError("Please log in to submit a review")
-              }
+              onClick={() => {
+                if (!user) {
+                  showError("Please log in to submit a review");
+                } else if (user.is_muffled) {
+                  showError("Please verify your account to rate and review.");
+                } else {
+                  setShowReviewForm(true);
+                }
+              }}
               className="btn btn-primary px-6 py-3 flex items-center gap-2"
               disabled={submittingReview}
             >
@@ -496,6 +581,8 @@ export default function CoursePage() {
             }))}
             onVote={handleVote}
             onReply={(reviewId) => handleReply(reviewId)}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
             emptyMessage={`No reviews yet for ${course.name}. Be the first to share your experience!`}
             renderExtra={(review) => (
               <>
@@ -514,10 +601,15 @@ export default function CoursePage() {
                   </motion.div>
                 )}
                 <ReplyList
-                  replies={repliesByReview[review.id] || []}
+                  replies={(repliesByReview[review.id] || []).map((reply) => ({
+                    ...reply,
+                    userVote: getUserVoteForReply(reply.id),
+                  }))}
                   reviewId={review.id}
-                  onVote={() => { }}
+                  onVote={handleReplyVote}
                   onSubmitReply={async (reviewId, content) => await handleReply(reviewId, content)}
+                  onEdit={handleReplyEdit}
+                  onDelete={handleReplyDelete}
                 />
               </>
             )}

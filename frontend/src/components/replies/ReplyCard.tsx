@@ -11,6 +11,8 @@ import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
 import { FrontendReply } from "@/types/frontend-models";
 import { MentionText } from "@/components/common/MentionText";
+import { ReplyForm } from "./ReplyForm";
+import { useToast } from "@/providers/ToastProvider";
 
 interface ReplyCardProps {
   reply: FrontendReply;
@@ -33,6 +35,9 @@ export function ReplyCard({
 }: ReplyCardProps) {
   const [showActions, setShowActions] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { showError } = useToast ? useToast() : { showError: () => { } };
 
   const handleVote = (type: "up" | "down") => {
     onVote(reply.id, type);
@@ -41,6 +46,17 @@ export function ReplyCard({
   const handleReport = async (reportType: string, reason: string) => {
     if (onReport) {
       await onReport(reply.id, reportType, reason);
+    }
+  };
+
+  // Inline edit submit handler
+  const handleEditSubmit = async (content: string) => {
+    if (!onEdit) return;
+    try {
+      await onEdit(reply.id, content);
+      setIsEditing(false);
+    } catch (e: any) {
+      showError?.(e?.message || "Failed to update reply");
     }
   };
 
@@ -106,51 +122,61 @@ export function ReplyCard({
             </div>
 
             {/* Action Buttons */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: showActions ? 1 : 0 }}
-              className="flex items-center gap-1"
-            >
-              {reply.isOwn ? (
-                <>
-                  {onEdit && (
+            {!isEditing && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showActions ? 1 : 0 }}
+                className="flex items-center gap-1"
+              >
+                {reply.isOwn ? (
+                  <>
+                    {onEdit && (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                        title="Edit reply"
+                      >
+                        <Edit className="w-3 h-3" />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                        title="Delete reply"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  onReport && (
                     <button
-                      onClick={() => onEdit(reply.id, reply.content)}
-                      className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                      title="Edit reply"
+                      onClick={() => setShowReportModal(true)}
+                      className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
+                      title="Report reply"
                     >
-                      <Edit className="w-3 h-3" />
+                      <Flag className="w-3 h-3" />
                     </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      onClick={() => onDelete(reply.id)}
-                      className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                      title="Delete reply"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  )}
-                </>
-              ) : (
-                onReport && (
-                  <button
-                    onClick={() => setShowReportModal(true)}
-                    className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
-                    title="Report reply"
-                  >
-                    <Flag className="w-3 h-3" />
-                  </button>
-                )
-              )}
-            </motion.div>
+                  )
+                )}
+              </motion.div>
+            )}
           </div>
 
-          {/* Content */}
+          {/* Content or Edit Form */}
           <div className="prose prose-invert prose-sm max-w-none">
-            <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm">
-              <MentionText content={reply.content} />
-            </p>
+            {isEditing ? (
+              <ReplyForm
+                initialContent={reply.content}
+                onSubmit={handleEditSubmit}
+                onCancel={() => setIsEditing(false)}
+              />
+            ) : (
+              <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm">
+                <MentionText content={reply.content} />
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -163,6 +189,33 @@ export function ReplyCard({
         targetType="reply"
         targetId={reply.id}
       />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full">
+            <h3 className="font-semibold mb-4">Delete Reply</h3>
+            <p className="mb-6 text-secondary">Are you sure you want to delete this reply? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-secondary hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setShowDeleteConfirm(false);
+                  await onDelete?.(reply.id);
+                }}
+                className="btn btn-danger px-6 py-2"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

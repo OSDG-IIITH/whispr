@@ -11,12 +11,14 @@ import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
 import { FrontendReview } from "@/types/frontend-models";
 import { MentionText } from "@/components/common/MentionText";
+import { ReviewForm } from "./ReviewForm";
+import { useToast } from "@/providers/ToastProvider";
 
 interface ReviewCardProps {
   review: FrontendReview;
   onVote: (reviewId: string, type: "up" | "down") => Promise<void> | void;
   onReply: (reviewId: string) => Promise<void> | void;
-  onEdit?: (reviewId: string) => Promise<void> | void;
+  onEdit?: (reviewId: string, data: { content: string; rating: number }) => Promise<void> | void;
   onDelete?: (reviewId: string) => Promise<void> | void;
   onReport?: (
     reviewId: string,
@@ -37,6 +39,9 @@ export function ReviewCard({
 }: ReviewCardProps) {
   const [showActions, setShowActions] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { showError } = useToast ? useToast() : { showError: () => { } };
 
   const handleVote = (type: "up" | "down") => {
     onVote(review.id, type);
@@ -45,6 +50,17 @@ export function ReviewCard({
   const handleReport = async (reportType: string, reason: string) => {
     if (onReport) {
       await onReport(review.id, reportType, reason);
+    }
+  };
+
+  // Inline edit submit handler
+  const handleEditSubmit = async (data: { content: string; rating: number }) => {
+    if (!onEdit) return;
+    try {
+      await onEdit(review.id, data);
+      setIsEditing(false);
+    } catch (e: any) {
+      showError?.(e?.message || "Failed to update review");
     }
   };
 
@@ -125,17 +141,28 @@ export function ReviewCard({
             </div>
           </div>
 
-          {/* Content */}
+          {/* Content or Edit Form */}
           <div className="prose prose-invert prose-sm max-w-none mb-3">
-            <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-              {review.content ? <MentionText content={review.content} /> : null}
-            </p>
+            {isEditing ? (
+              <ReviewForm
+                initialContent={review.content}
+                initialRating={review.rating}
+                submitText="Save Changes"
+                title="Edit Review"
+                onSubmit={handleEditSubmit}
+                onCancel={() => setIsEditing(false)}
+              />
+            ) : (
+              <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                {review.content ? <MentionText content={review.content} /> : null}
+              </p>
+            )}
           </div>
 
           {/* Actions */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              {showReplies && (
+              {showReplies && !isEditing && (
                 <button
                   onClick={() => onReply(review.id)}
                   className="flex items-center gap-1.5 text-sm text-secondary hover:text-primary transition-colors"
@@ -149,44 +176,46 @@ export function ReviewCard({
             </div>
 
             {/* Action Buttons */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: showActions ? 1 : 0 }}
-              className="flex items-center gap-2"
-            >
-              {review.isOwn ? (
-                <>
-                  {onEdit && (
+            {!isEditing && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showActions ? 1 : 0 }}
+                className="flex items-center gap-2"
+              >
+                {review.isOwn ? (
+                  <>
+                    {onEdit && (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                        title="Edit review"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                        title="Delete review"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  onReport && (
                     <button
-                      onClick={() => onEdit(review.id)}
-                      className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                      title="Edit review"
+                      onClick={() => setShowReportModal(true)}
+                      className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
+                      title="Report review"
                     >
-                      <Edit className="w-4 h-4" />
+                      <Flag className="w-4 h-4" />
                     </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      onClick={() => onDelete(review.id)}
-                      className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                      title="Delete review"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </>
-              ) : (
-                onReport && (
-                  <button
-                    onClick={() => setShowReportModal(true)}
-                    className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
-                    title="Report review"
-                  >
-                    <Flag className="w-4 h-4" />
-                  </button>
-                )
-              )}
-            </motion.div>
+                  )
+                )}
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
@@ -199,6 +228,33 @@ export function ReviewCard({
         targetType="review"
         targetId={review.id}
       />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full">
+            <h3 className="font-semibold mb-4">Delete Review</h3>
+            <p className="mb-6 text-secondary">Are you sure you want to delete this review? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-secondary hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setShowDeleteConfirm(false);
+                  await onDelete?.(review.id);
+                }}
+                className="btn btn-danger px-6 py-2"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

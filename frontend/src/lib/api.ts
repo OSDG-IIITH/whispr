@@ -367,11 +367,11 @@ export const reportAPI = {
     reply_id?: string;
     reported_user_id?: string;
     report_type:
-      | "spam"
-      | "harassment"
-      | "inappropriate"
-      | "misinformation"
-      | "other";
+    | "spam"
+    | "harassment"
+    | "inappropriate"
+    | "misinformation"
+    | "other";
     reason: string;
   }) => {
     return apiCall<Report>("/reports", {

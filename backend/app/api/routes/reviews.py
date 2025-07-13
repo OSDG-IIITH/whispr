@@ -156,7 +156,7 @@ or course_instructor_id must be provided"
     if existing_review:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have already reviewed this target"
+            detail="You have already reviewed"
         )
 
     # Remove transaction context, just use db directly

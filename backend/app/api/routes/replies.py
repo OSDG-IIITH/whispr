@@ -98,18 +98,18 @@ async def create_reply(
     result = await db.execute(stmt)
     reply = result.fetchone()
 
-        # Create notification for the review author
-        await notify_on_reply(db, reply_in.review_id, reply.id, current_user.username)
-        
-        # Check for mentions in the reply content and send notifications
-        if reply_in.content:
-            await notify_on_mention(
-                db=db,
-                content=reply_in.content,
-                content_id=reply.id,
-                content_type="reply",
-                author_username=current_user.username
-            )
+    # Create notification for the review author
+    await notify_on_reply(db, reply_in.review_id, reply.id, current_user.username)
+    
+    # Check for mentions in the reply content and send notifications
+    if reply_in.content:
+        await notify_on_mention(
+            db=db,
+            content=reply_in.content,
+            content_id=reply.id,
+            content_type="reply",
+            author_username=current_user.username
+        )
 
     await db.commit()
     return reply
