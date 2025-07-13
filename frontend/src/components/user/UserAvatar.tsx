@@ -58,6 +58,7 @@ export function UserAvatar({ username, echoes = 0, size = "md", className = "", 
   if (avatarUrl) {
     return (
       <div className={`${sizeClasses[size]} relative ${className}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={avatarUrl}
           alt={`${username}'s avatar`}

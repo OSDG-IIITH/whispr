@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Shield, CheckCircle, XCircle, AlertCircle, ExternalLink } from "lucide-react";
@@ -254,18 +254,20 @@ export default function VerifyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-black via-primary/5 to-black" />
+    <Suspense>
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-primary/5 to-black" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-2xl"
-      >
-        <div className="card p-8 bg-card/50 backdrop-blur-xl border-primary/20">
-          {renderContent()}
-        </div>
-      </motion.div>
-    </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 w-full max-w-2xl"
+        >
+          <div className="card p-8 bg-card/50 backdrop-blur-xl border-primary/20">
+            {renderContent()}
+          </div>
+        </motion.div>
+      </div>
+    </Suspense>
   );
 }
