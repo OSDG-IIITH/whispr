@@ -87,6 +87,12 @@ async function apiCall<T>(
       );
     }
 
+    // Return null for 204 No Content responses
+    if (response.status === 204) {
+      return null as T;
+    }
+
+    // Otherwise parse the JSON response
     return response.json();
   } catch (error) {
     if (error instanceof TypeError && error.message.includes("fetch")) {

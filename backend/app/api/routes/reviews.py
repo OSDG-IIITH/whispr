@@ -201,6 +201,7 @@ async def update_review(
     """
     Update a review.
     """
+    # First check if the review exists outside of any transaction
     stmt = select(ReviewModel).where(ReviewModel.id == review_id)
     result = await db.execute(stmt)
     review = result.scalar_one_or_none()
@@ -227,26 +228,31 @@ async def update_review(
     if "content" in update_data or "rating" in update_data:
         update_data["is_edited"] = True
 
-    async with db.begin():
-        stmt = update(ReviewModel).where(
-            ReviewModel.id == review_id
-        ).values(**update_data).returning(*ReviewModel.__table__.c)
-        result = await db.execute(stmt)
-        updated_review = result.fetchone()
+    # Get the values we'll need for stats updates
+    course_id = getattr(review, "course_id", None)
+    professor_id = getattr(review, "professor_id", None)
+    course_instructor_id = getattr(review, "course_instructor_id", None)
+    rating_changed = "rating" in update_data
 
-        # Update target's review stats if rating changed
-        if "rating" in update_data:
-            course_id = getattr(review, "course_id", None)
-            professor_id = getattr(review, "professor_id", None)
-            course_instructor_id = getattr(
-                review, "course_instructor_id", None)
-            if course_id is not None:
-                await _update_course_stats(db, course_id)
-            if professor_id is not None:
-                await _update_professor_stats(db, professor_id)
-            if course_instructor_id is not None:
-                await _update_course_instructor_stats(db, course_instructor_id)
+    # Perform the update without explicitly starting a new transaction
+    stmt = update(ReviewModel).where(
+        ReviewModel.id == review_id
+    ).values(**update_data).returning(*ReviewModel.__table__.c)
+    result = await db.execute(stmt)
+    updated_review = result.fetchone()
 
+    # Update target's review stats if rating changed
+    if rating_changed:
+        if course_id is not None:
+            await _update_course_stats(db, course_id)
+        if professor_id is not None:
+            await _update_professor_stats(db, professor_id)
+        if course_instructor_id is not None:
+            await _update_course_instructor_stats(db, course_instructor_id)
+
+    # Commit the transaction
+    await db.commit()
+    
     return updated_review
 
 
@@ -259,6 +265,7 @@ async def delete_review(
     """
     Delete a review.
     """
+    # Get the review
     stmt = select(ReviewModel).where(ReviewModel.id == review_id)
     result = await db.execute(stmt)
     review = result.scalar_one_or_none()
@@ -279,11 +286,13 @@ async def delete_review(
             detail="Not enough permissions"
         )
 
+    # Store IDs for stats updates
     course_id = getattr(review, "course_id", None)
     professor_id = getattr(review, "professor_id", None)
     course_instructor_id = getattr(review, "course_instructor_id", None)
 
-    async with db.begin():
+    try:
+        # Delete the review
         stmt = delete(ReviewModel).where(ReviewModel.id == review_id)
         await db.execute(stmt)
 
@@ -294,6 +303,19 @@ async def delete_review(
             await _update_professor_stats(db, professor_id)
         if course_instructor_id is not None:
             await _update_course_instructor_stats(db, course_instructor_id)
+        
+        # Commit the transaction
+        await db.commit()
+        
+        return None
+    
+    except Exception as e:
+        # Roll back in case of any error
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting review: {str(e)}"
+        )
 
 
 # Helper functions to update review statistics
