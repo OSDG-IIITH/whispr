@@ -53,21 +53,27 @@ export function MentionInput({
     const textBeforeCursor = newValue.slice(0, position);
     const lastAtIndex = textBeforeCursor.lastIndexOf("@");
 
+    console.log('⌨️ Input changed:', { newValue, position, textBeforeCursor, lastAtIndex });
+
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
+      console.log('📍 Found @ at position', lastAtIndex, 'text after @:', textAfterAt);
 
       // Check if we're still in the mention (no spaces after @)
       if (!textAfterAt.includes(" ") && textAfterAt.length <= 20) {
+        console.log('✅ Valid mention, opening dropdown');
         setMentionPosition({ start: lastAtIndex, end: position });
         updateQuery(textAfterAt);
         if (!isOpen) {
           openMention(textAfterAt);
         }
       } else {
+        console.log('❌ Invalid mention (space found or too long), closing');
         closeMention();
         setMentionPosition(null);
       }
     } else {
+      console.log('🚫 No @ found, closing mention');
       closeMention();
       setMentionPosition(null);
     }
@@ -160,14 +166,14 @@ export function MentionInput({
       />
 
       {/* Mention Dropdown */}
+      {console.log('🎭 Dropdown render check:', { isOpen, mentionUsersLength: mentionUsers.length, mentionUsers })}
       <AnimatePresence>
         {isOpen && mentionUsers.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute z-50 mt-1 w-72 bg-card border border-primary/20 rounded-lg shadow-2xl overflow-hidden"
-            style={getMentionDropdownPosition()}
+            className="absolute z-50 top-full mt-1 left-0 w-72 bg-card border border-primary/20 rounded-lg shadow-2xl overflow-hidden"
           >
             {mentionUsers.map((user, index) => (
               <button

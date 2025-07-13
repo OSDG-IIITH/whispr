@@ -1,3 +1,4 @@
+import React from "react";
 import { RANKS, type Rank, type RankKey } from "./constants";
 
 /**
@@ -95,6 +96,33 @@ export function isValidEmail(email: string): boolean {
  */
 export function isIIITHEmail(email: string): boolean {
     return email.endsWith("@iiit.ac.in") || email.endsWith("@students.iiit.ac.in");
+}
+
+/**
+ * Parse content and highlight mentions (deprecated - use MentionText component instead)
+ */
+export function highlightMentions(content: string): React.ReactNode {
+    const mentionRegex = /@(\w+)/g;
+    const parts = content.split(mentionRegex);
+    
+    return parts.map((part, index) => {
+        // Every odd index is a username (captured group)
+        if (index % 2 === 1) {
+            return React.createElement(
+                'span',
+                {
+                    key: index,
+                    className: "text-primary font-medium hover:underline cursor-pointer",
+                    onClick: () => {
+                        // Navigate to user profile
+                        window.location.href = `/profile/${part}`;
+                    }
+                },
+                `@${part}`
+            );
+        }
+        return part;
+    });
 }
 
 /**

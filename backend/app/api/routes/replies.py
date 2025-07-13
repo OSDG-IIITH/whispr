@@ -16,7 +16,7 @@ from app.models.review import Review as ReviewModel
 from app.schemas.reply import Reply, ReplyCreate, ReplyUpdate, ReplyWithUser
 from app.auth.jwt import get_current_unmuffled_user
 from app.models.user import User as UserModel
-from app.core.notifications import notify_on_reply
+from app.core.notifications import notify_on_reply, notify_on_mention
 
 router = APIRouter()
 
@@ -101,6 +101,16 @@ async def create_reply(
 
         # Create notification for the review author
         await notify_on_reply(db, reply_in.review_id, reply.id, current_user.username)
+        
+        # Check for mentions in the reply content and send notifications
+        if reply_in.content:
+            await notify_on_mention(
+                db=db,
+                content=reply_in.content,
+                content_id=reply.id,
+                content_type="reply",
+                author_username=current_user.username
+            )
 
     return reply
 

@@ -76,6 +76,12 @@ async function apiCall<T>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('API Error:', {
+        url: url,
+        status: response.status,
+        statusText: response.statusText,
+        errorData
+      });
       throw new Error(
         errorData.detail || `HTTP ${response.status}: ${response.statusText}`
       );

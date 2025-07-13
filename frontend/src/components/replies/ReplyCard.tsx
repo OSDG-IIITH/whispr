@@ -10,6 +10,7 @@ import { VoteButtons } from "@/components/reviews/VoteButtons";
 import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
 import { FrontendReply } from "@/types/frontend-models";
+import { MentionText } from "@/components/common/MentionText";
 
 interface ReplyCardProps {
   reply: FrontendReply;
@@ -148,7 +149,7 @@ export function ReplyCard({
           {/* Content */}
           <div className="prose prose-invert prose-sm max-w-none">
             <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm">
-              {reply.content}
+              <MentionText content={reply.content} />
             </p>
           </div>
         </div>

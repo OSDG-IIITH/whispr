@@ -16,16 +16,26 @@ export function useMentions() {
     }
 
     try {
+      console.log('🔍 Searching users for:', searchQuery);
       const users = await userSearchAPI.searchUsers(searchQuery);
+      console.log('📋 Search results:', users);
       setMentionUsers(users.slice(0, 5)); // Limit to 5 results
       setSelectedIndex(0);
+      console.log('✅ Set mentionUsers to:', users.slice(0, 5));
     } catch (error) {
-      console.error("Failed to search users:", error);
+      console.error("❌ Failed to search users:", error);
+      // In case of error, still show empty results instead of breaking
       setMentionUsers([]);
+      
+      // Check if it's an authentication error
+      if (error instanceof Error && error.message.includes('401')) {
+        console.warn("🔐 User search requires authentication. User mentions may not work properly.");
+      }
     }
   }, []);
 
   const openMention = useCallback((searchQuery: string = "") => {
+    console.log('🚀 openMention called with:', searchQuery);
     setIsOpen(true);
     setQuery(searchQuery);
     searchUsers(searchQuery);

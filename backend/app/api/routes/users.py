@@ -34,6 +34,37 @@ async def read_users(
     return users
 
 
+@router.get("/search", response_model=List[User])
+async def search_users(
+    q: str = "",
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+) -> Any:
+    """
+    Search users by username for mentions.
+    """
+    try:
+        # Return empty if query is too short
+        if not q or len(q.strip()) < 1:
+            return []
+        
+        query_clean = q.strip()
+        
+        # Search for users whose username starts with the query (case insensitive)
+        stmt = select(UserModel).where(
+            UserModel.username.ilike(f"{query_clean}%")
+        ).limit(min(limit, 20))  # Cap at 20 results
+        result = await db.execute(stmt)
+        users = result.scalars().all()
+        return users
+        
+    except Exception as e:
+        # Log the error but return empty list to not break the UI
+        print(f"Error in user search: {e}")
+        return []
+
+
 @router.get("/{user_id}", response_model=User)
 async def read_user(
     user_id: UUID,
@@ -74,6 +105,7 @@ async def read_user_by_username(
         )
 
     return user
+
 
 
 @router.put("/me", response_model=User)

@@ -20,6 +20,7 @@ from app.schemas.review import (
     Review, ReviewCreate, ReviewUpdate, ReviewWithUser)
 from app.auth.jwt import get_current_unmuffled_user
 from app.models.user import User as UserModel
+from app.core.notifications import notify_on_mention
 
 router = APIRouter()
 
@@ -174,6 +175,16 @@ or course_instructor_id must be provided"
     if review_in.course_instructor_id:
         await _update_course_instructor_stats(
             db, review_in.course_instructor_id
+        )
+
+    # Check for mentions in the review content and send notifications
+    if review_in.content:
+        await notify_on_mention(
+            db=db,
+            content=review_in.content,
+            content_id=review.id,
+            content_type="review",
+            author_username=current_user.username
         )
 
     await db.commit()

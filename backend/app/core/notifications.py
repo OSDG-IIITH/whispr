@@ -183,3 +183,36 @@ async def notify_on_rank_change(
                     source_type="user",
                     actor_username=None
                 )
+
+
+async def notify_on_mention(
+    db: AsyncSession,
+    content: str,
+    content_id: UUID,
+    content_type: str,
+    author_username: str
+) -> None:
+    """
+    Create notifications for users mentioned in content (reviews, replies).
+    """
+    import re
+    
+    # Find all mentions in the content (@username)
+    mentions = re.findall(r'@(\w+)', content)
+    
+    for mentioned_username in mentions:
+        # Check if the mentioned user exists
+        stmt = select(UserModel).where(UserModel.username == mentioned_username)
+        result = await db.execute(stmt)
+        mentioned_user = result.scalar_one_or_none()
+        
+        if mentioned_user:
+            await create_notification(
+                db=db,
+                username=mentioned_username,
+                notification_type="MENTION",
+                content=f"{author_username} mentioned you in a {content_type}",
+                source_id=content_id,
+                source_type=content_type,
+                actor_username=author_username
+            )

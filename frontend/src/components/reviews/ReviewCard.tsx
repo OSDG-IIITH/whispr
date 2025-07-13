@@ -10,6 +10,7 @@ import { VoteButtons } from "./VoteButtons";
 import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
 import { FrontendReview } from "@/types/frontend-models";
+import { MentionText } from "@/components/common/MentionText";
 
 interface ReviewCardProps {
   review: FrontendReview;
@@ -128,7 +129,7 @@ export function ReviewCard({
           {/* Content */}
           <div className="prose prose-invert prose-sm max-w-none mb-3">
             <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-              {review.content}
+              {review.content ? <MentionText content={review.content} /> : null}
             </p>
           </div>
 

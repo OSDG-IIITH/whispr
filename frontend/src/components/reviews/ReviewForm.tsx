@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Star, Send, X } from "lucide-react";
 import { ReviewFormProps } from "@/types/frontend-models";
+import { MentionInput } from "@/components/common/MentionInput";
 
 export function ReviewForm({
   onSubmit,
@@ -105,9 +106,9 @@ export function ReviewForm({
           <label className="block text-sm font-medium mb-2">
             Review <span className="text-secondary">(optional)</span>
           </label>
-          <textarea
+          <MentionInput
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={setContent}
             placeholder={placeholder}
             rows={4}
             className="w-full bg-input border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent transition-colors resize-none"

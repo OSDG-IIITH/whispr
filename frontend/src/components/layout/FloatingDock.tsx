@@ -8,6 +8,7 @@ import Link from "next/link";
 import { SearchBar } from "./SearchBar";
 import { ProfileMenu } from "./ProfileMenu";
 import { NotificationPanel } from "./NotificationPanel";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export function FloatingDock() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export function FloatingDock() {
   const [showSearch, setShowSearch] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const { unreadCount } = useNotifications();
 
   // Hide dock on auth pages
   if (pathname?.startsWith('/auth') || pathname === '/') {
@@ -98,9 +100,11 @@ export function FloatingDock() {
             >
               <Bell className="w-5 h-5" />
               {/* Notification badge */}
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
-                3
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[12px] h-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white px-1">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </motion.button>
 
             {/* Profile */}
