@@ -56,7 +56,7 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 backdrop-blur-xl border-b border-yellow-600/50"
         >
-          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="max-w-4xl mx-auto px-2 sm:px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
             <div className="flex items-center gap-3">
               <Shield className="w-5 h-5 text-yellow-500" />
               <div>
@@ -68,7 +68,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={() => (window.location.href = "/verify")}
-              className="btn btn-primary px-4 py-2 text-sm"
+              className="btn btn-primary px-4 py-2 text-sm mt-2 sm:mt-0"
             >
               Verify Now
             </button>
@@ -77,10 +77,10 @@ export default function DashboardPage() {
       )}
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-4 gap-8">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-2 lg:order-1">
             <div className="sticky top-8 space-y-6">
               {/* User Profile Card */}
               <motion.div
@@ -159,7 +159,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-8">
+          <div className="lg:col-span-3 order-1 lg:order-2 space-y-8">
             {/* Welcome Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -167,15 +167,15 @@ export default function DashboardPage() {
               transition={{ delay: 0.2 }}
               className="bg-card border border-primary/20 rounded-xl p-6"
             >
-              <h1 className="text-2xl font-bold mb-4">
+              <h1 className="text-xl sm:text-2xl font-bold mb-4">
                 Welcome back, {user.username}!
               </h1>
-              <p className="text-secondary mb-6">
+              <p className="text-secondary mb-6 text-sm sm:text-base">
                 Ready to share your thoughts on courses and professors? Your
                 voice matters in helping others make informed decisions.
               </p>
 
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-primary/10 rounded-lg p-4 text-center">
                   <Star className="w-8 h-8 text-primary mx-auto mb-2" />
                   <div className="text-2xl font-bold">0</div>
@@ -201,7 +201,7 @@ export default function DashboardPage() {
               transition={{ delay: 0.3 }}
               className="bg-card border border-primary/20 rounded-xl p-6"
             >
-              <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
+              <h2 className="text-lg sm:text-xl font-bold mb-4">Recent Activity</h2>
               <div className="text-center py-8">
                 <div className="text-secondary mb-2">No recent activity</div>
                 <p className="text-sm text-secondary">

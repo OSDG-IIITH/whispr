@@ -126,15 +126,15 @@ export default function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-black pb-24">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 py-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold mb-2">Courses</h1>
-          <p className="text-secondary">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-2">Courses</h1>
+          <p className="text-secondary text-sm sm:text-base">
             Discover and review courses at IIITH
           </p>
         </motion.div>
@@ -144,9 +144,9 @@ export default function CoursesPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-card border border-primary/20 rounded-xl p-6 mb-8"
+          className="bg-card border border-primary/20 rounded-xl p-4 sm:p-6 mb-8"
         >
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
@@ -155,16 +155,16 @@ export default function CoursesPage() {
                   placeholder="Search courses..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                  className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm sm:text-base"
                 />
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <select
                 value={selectedSemester}
                 onChange={(e) => setSelectedSemester(e.target.value)}
-                className="flex-1 py-3 px-3 bg-input border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                className="flex-1 py-3 px-3 bg-input border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm sm:text-base"
               >
                 <option value="ALL">All Semesters</option>
                 <option value="SPRING">Spring</option>
@@ -174,7 +174,7 @@ export default function CoursesPage() {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="flex-1 py-3 px-3 bg-input border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                className="flex-1 py-3 px-3 bg-input border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm sm:text-base"
               >
                 <option value="ALL">All Years</option>
                 <option value="2024">2024</option>
@@ -190,15 +190,15 @@ export default function CoursesPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="flex items-center justify-between mb-6"
+          className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-2 sm:gap-0"
         >
-          <div className="flex items-center gap-4">
-            <span className="text-secondary">Sort by:</span>
-            {["rating", "reviews", "name"].map((option) => (
+          <div className="flex items-center gap-2 sm:gap-4">
+            <span className="text-secondary text-sm sm:text-base">Sort by:</span>
+            {['rating', 'reviews', 'name'].map((option) => (
               <button
                 key={option}
                 onClick={() => setSortBy(option)}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${sortBy === option
+                className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${sortBy === option
                   ? 'bg-primary text-black'
                   : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
                   }`}
@@ -208,13 +208,13 @@ export default function CoursesPage() {
             ))}
           </div>
 
-          <div className="text-secondary">
+          <div className="text-secondary text-xs sm:text-base">
             {sortedCourses.length} courses found
           </div>
         </motion.div>
 
         {/* Courses Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedCourses.map((course, index) => {
             const timeInfo = formatTimeInfo(course);
             const professors = getProfessors(course);
@@ -227,34 +227,34 @@ export default function CoursesPage() {
                 transition={{ delay: 0.1 * index }}
               >
                 <Link href={`/courses/${course.code}`}>
-                  <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">
+                  <div className="bg-card border border-border rounded-xl p-4 sm:p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">
                     {/* Time Info - More Prominent */}
                     {timeInfo && (
                       <div className="flex items-center gap-2 mb-3">
                         <Calendar className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-semibold text-primary">{timeInfo}</span>
+                        <span className="text-xs sm:text-sm font-semibold text-primary">{timeInfo}</span>
                       </div>
                     )}
 
                     {/* Course Code and Credits */}
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="font-bold text-lg text-primary">{course.code}</h3>
+                        <h3 className="font-bold text-base sm:text-lg text-primary">{course.code}</h3>
                       </div>
-                      <div className="text-sm text-secondary">
+                      <div className="text-xs sm:text-sm text-secondary">
                         {course.credits} credits
                       </div>
                     </div>
 
                     {/* Course Name */}
-                    <h4 className="font-semibold mb-3 text-lg">{course.name}</h4>
+                    <h4 className="font-semibold mb-3 text-base sm:text-lg">{course.name}</h4>
 
                     {/* Professors */}
                     {professors.length > 0 && (
                       <div className="mb-4">
                         <div className="flex items-center gap-2 mb-2">
                           <GraduationCap className="w-4 h-4 text-secondary" />
-                          <span className="text-sm font-medium text-secondary">Professors</span>
+                          <span className="text-xs sm:text-sm font-medium text-secondary">Professors</span>
                         </div>
                         <div className="flex flex-wrap gap-1">
                           {professors.slice(0, 3).map((professor, i) => (
@@ -271,7 +271,7 @@ export default function CoursesPage() {
                       </div>
                     )}
 
-                    <p className="text-secondary text-sm mb-4 line-clamp-3">
+                    <p className="text-secondary text-xs sm:text-sm mb-4 line-clamp-3">
                       {course.description || "No description available"}
                     </p>
 
@@ -280,12 +280,12 @@ export default function CoursesPage() {
                         <div className="flex items-center gap-1">
                           {renderStars(parseFloat(course.average_rating) || 0)}
                         </div>
-                        <span className="text-sm font-medium">
+                        <span className="text-xs sm:text-sm font-medium">
                           {(parseFloat(course.average_rating) || 0).toFixed(1)}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1 text-sm text-secondary">
+                      <div className="flex items-center gap-1 text-xs sm:text-sm text-secondary">
                         <Users className="w-4 h-4" />
                         <span>{course.review_count || 0}</span>
                       </div>
@@ -317,7 +317,7 @@ export default function CoursesPage() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.5 }}
-          className="fixed bottom-32 right-6 bg-primary text-black p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors"
+          className="fixed bottom-24 right-4 sm:bottom-32 sm:right-6 bg-primary text-black p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-6 h-6" />
         </motion.button>

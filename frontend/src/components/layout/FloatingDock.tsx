@@ -46,20 +46,19 @@ export function FloatingDock() {
       <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50"
+        className="fixed bottom-2 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
       >
-        <div className="bg-card/80 backdrop-blur-xl border border-primary/20 rounded-2xl px-4 py-3 shadow-2xl">
+        <div className="bg-card/80 backdrop-blur-xl border border-primary/20 rounded-2xl px-2 py-2 sm:px-4 sm:py-3 shadow-2xl max-w-xs sm:max-w-md w-full pointer-events-auto flex justify-center">
           <div className="flex items-center gap-4">
             {/* Logo/Home */}
             <Link href="/dashboard">
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                className={`p-3 rounded-xl transition-colors ${
-                  pathname === '/dashboard' 
-                    ? 'bg-primary text-black' 
-                    : 'text-primary hover:bg-primary/10'
-                }`}
+                className={`p-3 rounded-xl transition-colors ${pathname === '/dashboard'
+                  ? 'bg-primary text-black'
+                  : 'text-primary hover:bg-primary/10'
+                  }`}
               >
                 <Home className="w-5 h-5" />
               </motion.button>
@@ -74,11 +73,10 @@ export function FloatingDock() {
                 setShowNotifications(false);
                 setShowProfile(false);
               }}
-              className={`p-3 rounded-xl transition-colors ${
-                showSearch 
-                  ? 'bg-primary text-black' 
-                  : 'text-primary hover:bg-primary/10'
-              }`}
+              className={`p-3 rounded-xl transition-colors ${showSearch
+                ? 'bg-primary text-black'
+                : 'text-primary hover:bg-primary/10'
+                }`}
             >
               <Search className="w-5 h-5" />
             </motion.button>
@@ -92,11 +90,10 @@ export function FloatingDock() {
                 setShowSearch(false);
                 setShowProfile(false);
               }}
-              className={`p-3 rounded-xl transition-colors relative ${
-                showNotifications 
-                  ? 'bg-primary text-black' 
-                  : 'text-primary hover:bg-primary/10'
-              }`}
+              className={`p-3 rounded-xl transition-colors relative ${showNotifications
+                ? 'bg-primary text-black'
+                : 'text-primary hover:bg-primary/10'
+                }`}
             >
               <Bell className="w-5 h-5" />
               {/* Notification badge */}
@@ -116,11 +113,10 @@ export function FloatingDock() {
                 setShowSearch(false);
                 setShowNotifications(false);
               }}
-              className={`p-3 rounded-xl transition-colors ${
-                showProfile 
-                  ? 'bg-primary text-black' 
-                  : 'text-primary hover:bg-primary/10'
-              }`}
+              className={`p-3 rounded-xl transition-colors ${showProfile
+                ? 'bg-primary text-black'
+                : 'text-primary hover:bg-primary/10'
+                }`}
             >
               <User className="w-5 h-5" />
             </motion.button>

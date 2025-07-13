@@ -255,15 +255,15 @@ export default function CoursePage() {
         setCourse((prevCourse: Course | null) =>
           prevCourse
             ? {
-                ...prevCourse,
-                review_count: prevCourse.review_count + 1,
-                average_rating: String(
-                  (parseFloat(prevCourse.average_rating) *
-                    prevCourse.review_count +
-                    data.rating) /
-                    (prevCourse.review_count + 1)
-                ),
-              }
+              ...prevCourse,
+              review_count: prevCourse.review_count + 1,
+              average_rating: String(
+                (parseFloat(prevCourse.average_rating) *
+                  prevCourse.review_count +
+                  data.rating) /
+                (prevCourse.review_count + 1)
+              ),
+            }
             : null
         );
       }
@@ -333,11 +333,10 @@ export default function CoursePage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < Math.floor(rating)
+        className={`w-5 h-5 ${i < Math.floor(rating)
             ? "text-yellow-500 fill-current"
             : "text-secondary"
-        }`}
+          }`}
       />
     ));
   };
@@ -407,13 +406,13 @@ export default function CoursePage() {
 
   return (
     <div className="min-h-screen bg-black pb-24">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-8">
         {/* Back Button */}
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-secondary hover:text-primary transition-colors mb-6"
+          className="flex items-center gap-2 text-secondary hover:text-primary transition-colors mb-6 text-sm sm:text-base"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Courses
@@ -423,29 +422,29 @@ export default function CoursePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card border border-primary/20 rounded-xl p-8 mb-8"
+          className="bg-card border border-primary/20 rounded-xl p-4 sm:p-8 mb-8"
         >
-          <div className="flex items-start justify-between mb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
             <div className="flex-1">
               {/* Time Info - More Prominent */}
               {timeInfo && (
                 <div className="flex items-center gap-2 mb-4">
                   <Calendar className="w-5 h-5 text-primary" />
-                  <span className="text-lg font-semibold text-primary">
+                  <span className="text-base font-semibold text-primary">
                     {timeInfo}
                   </span>
                 </div>
               )}
 
-              <div className="flex items-center gap-4 mb-2">
-                <h1 className="text-3xl font-bold text-primary">
+              <div className="flex items-center gap-4 mb-2 flex-wrap">
+                <h1 className="text-xl sm:text-3xl font-bold text-primary">
                   {course.code}
                 </h1>
-                <span className="px-3 py-1 bg-primary/20 text-primary text-sm rounded-full">
+                <span className="px-3 py-1 bg-primary/20 text-primary text-xs sm:text-sm rounded-full">
                   {course.credits} Credits
                 </span>
               </div>
-              <h2 className="text-2xl font-semibold mb-4">{course.name}</h2>
+              <h2 className="text-lg sm:text-2xl font-semibold mb-4 break-words">{course.name}</h2>
 
               {/* Professors */}
               {professors.length > 0 && (
@@ -457,7 +456,7 @@ export default function CoursePage() {
                     {professors.map((professor, i) => (
                       <span
                         key={i}
-                        className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full"
+                        className="bg-primary/10 text-primary text-xs px-3 py-1 rounded-full"
                       >
                         {professor}
                       </span>
@@ -466,14 +465,14 @@ export default function CoursePage() {
                 </div>
               )}
 
-              <p className="text-secondary leading-relaxed">
+              <p className="text-secondary leading-relaxed text-sm sm:text-base break-words">
                 {course.description || "No description available"}
               </p>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
                 {renderStars(parseFloat(course.average_rating) || 0)}
@@ -481,7 +480,7 @@ export default function CoursePage() {
               <span className="font-semibold">
                 {(parseFloat(course.average_rating) || 0).toFixed(1)}
               </span>
-              <span className="text-secondary">
+              <span className="text-secondary text-xs sm:text-sm">
                 ({course.review_count || 0} reviews)
               </span>
             </div>
@@ -493,7 +492,7 @@ export default function CoursePage() {
                   href={course.official_document_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:text-primary/80 transition-colors"
+                  className="text-primary hover:text-primary/80 transition-colors text-xs sm:text-base"
                 >
                   Course Syllabus
                 </a>
@@ -502,7 +501,7 @@ export default function CoursePage() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <button
               onClick={() => {
                 if (!user) {
@@ -513,17 +512,17 @@ export default function CoursePage() {
                   setShowReviewForm(true);
                 }
               }}
-              className="btn btn-primary px-6 py-3 flex items-center gap-2"
+              className="btn btn-primary px-4 py-3 flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto"
               disabled={submittingReview}
             >
               <Plus className="w-4 h-4" />
               {submittingReview
                 ? "Submitting..."
                 : user
-                ? "Rate & Review"
-                : "Login to Review"}
+                  ? "Rate & Review"
+                  : "Login to Review"}
             </button>
-            <button className="btn btn-secondary px-6 py-3">
+            <button className="btn btn-secondary px-4 py-3 text-sm sm:text-base w-full sm:w-auto">
               View Professors
             </button>
           </div>
@@ -551,20 +550,19 @@ export default function CoursePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold">Reviews ({reviews.length})</h3>
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-2 sm:gap-0">
+            <h3 className="text-lg sm:text-2xl font-bold">Reviews ({reviews.length})</h3>
 
-            <div className="flex items-center gap-2">
-              <span className="text-secondary">Sort:</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-secondary text-xs sm:text-base">Sort:</span>
               {["newest", "oldest", "rating", "helpful"].map((option) => (
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    sortBy === option
+                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${sortBy === option
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

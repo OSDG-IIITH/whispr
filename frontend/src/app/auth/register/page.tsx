@@ -63,31 +63,31 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <div className="min-h-screen bg-black flex items-center justify-center px-2 sm:px-4">
       <div className="absolute inset-0 bg-gradient-to-br from-black via-primary/5 to-black" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-md"
+        className="relative z-10 w-full max-w-sm sm:max-w-md"
       >
-        <div className="card p-8 bg-card/50 backdrop-blur-xl border-primary/20">
+        <div className="card p-4 sm:p-8 bg-card/50 backdrop-blur-xl border-primary/20">
           {/* Header */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-            <p className="text-secondary">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Create Account</h1>
+            <p className="text-secondary text-sm sm:text-base">
               Start your anonymous journey at IIITH
             </p>
           </div>
 
           {/* Privacy Notice */}
-          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-primary mb-2">🔒 Privacy First</h3>
-            <ul className="text-sm text-secondary space-y-1">
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4 mb-6">
+            <h3 className="font-semibold text-primary mb-2 text-sm sm:text-base">🔒 Privacy First</h3>
+            <ul className="text-xs sm:text-sm text-secondary space-y-1">
               <li>• No email required for registration</li>
               <li>• Complete anonymity guaranteed</li>
               <li>• Verify student status later with CAS</li>
@@ -112,7 +112,7 @@ export default function RegisterPage() {
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.username ? 'border-red-500' : 'border-border'
+                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm sm:text-base ${errors.username ? 'border-red-500' : 'border-border'
                     }`}
                   placeholder="Choose a unique username"
                 />
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={`w-full pl-10 pr-12 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.password ? 'border-red-500' : 'border-border'
+                  className={`w-full pl-10 pr-12 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm sm:text-base ${errors.password ? 'border-red-500' : 'border-border'
                     }`}
                   placeholder="At least 8 characters"
                 />
@@ -159,7 +159,7 @@ export default function RegisterPage() {
                   type={showPassword ? "text" : "password"}
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.confirmPassword ? 'border-red-500' : 'border-border'
+                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm sm:text-base ${errors.confirmPassword ? 'border-red-500' : 'border-border'
                     }`}
                   placeholder="Confirm your password"
                 />
@@ -172,14 +172,14 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full btn btn-primary py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full btn btn-primary py-3 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-secondary">
+            <p className="text-secondary text-sm sm:text-base">
               Already have an account?{" "}
               <Link href="/auth/login" className="text-primary hover:text-primary/80">
                 Sign in

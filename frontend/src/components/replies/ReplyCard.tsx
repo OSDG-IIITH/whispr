@@ -64,7 +64,7 @@ export function ReplyCard({
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="bg-muted/30 border border-border rounded-lg p-4 ml-12 hover:border-primary/30 transition-colors"
+      className="bg-muted/30 border border-border rounded-lg p-2 sm:p-4 ml-12 hover:border-primary/30 transition-colors"
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >

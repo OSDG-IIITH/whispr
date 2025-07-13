@@ -54,23 +54,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <div className="min-h-screen bg-black flex items-center justify-center px-2 sm:px-4">
       <div className="absolute inset-0 bg-gradient-to-br from-black via-primary/5 to-black" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-md"
+        className="relative z-10 w-full max-w-sm sm:max-w-md"
       >
-        <div className="card p-8 bg-card/50 backdrop-blur-xl border-primary/20">
+        <div className="card p-4 sm:p-8 bg-card/50 backdrop-blur-xl border-primary/20">
           {/* Header */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center text-primary hover:text-primary/80 mb-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
             </Link>
-            <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-            <p className="text-secondary">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Welcome Back</h1>
+            <p className="text-secondary text-sm sm:text-base">
               Sign in to your anonymous account
             </p>
           </div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.username ? 'border-red-500' : 'border-border'
+                  className={`w-full pl-10 pr-4 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm sm:text-base ${errors.username ? 'border-red-500' : 'border-border'
                     }`}
                   placeholder="Enter your username"
                 />
@@ -113,7 +113,7 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={`w-full pl-10 pr-12 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${errors.password ? 'border-red-500' : 'border-border'
+                  className={`w-full pl-10 pr-12 py-3 bg-input border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm sm:text-base ${errors.password ? 'border-red-500' : 'border-border'
                     }`}
                   placeholder="Enter your password"
                 />
@@ -133,14 +133,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full btn btn-primary py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full btn btn-primary py-3 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Signing In..." : "Sign In"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-secondary">
+            <p className="text-secondary text-sm sm:text-base">
               Don&apos;t have an account?{" "}
               <Link href="/auth/register" className="text-primary hover:text-primary/80">
                 Create one
