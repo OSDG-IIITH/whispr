@@ -21,7 +21,6 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = Column(String(50), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
-    avatar_url = Column(Text, nullable=True)
     bio = Column(Text, nullable=True)
     student_since_year = Column(Integer, nullable=True)
     is_muffled = Column(Boolean, default=True)

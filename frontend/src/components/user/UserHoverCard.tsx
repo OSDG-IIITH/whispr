@@ -15,7 +15,6 @@ interface UserHoverCardProps {
   isVerified?: boolean;
   joinDate?: string;
   reviewCount?: number;
-  avatarUrl?: string;
   children: React.ReactNode;
 }
 
@@ -25,7 +24,6 @@ export function UserHoverCard({
   isVerified = false,
   joinDate = "2024-01-01",
   reviewCount = 0,
-  avatarUrl,
   children
 }: UserHoverCardProps) {
   const router = useRouter();
@@ -51,7 +49,7 @@ export function UserHoverCard({
             <div className="bg-card/95 backdrop-blur-xl border border-primary/20 rounded-xl p-4 shadow-2xl">
               {/* Header */}
               <div className="flex items-center gap-3 mb-3">
-                <UserAvatar username={username} echoes={echoes} size="lg" avatarUrl={avatarUrl} />
+                <UserAvatar username={username} echoes={echoes} size="lg" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-semibold">{username}</h4>

@@ -15,9 +15,7 @@ import {
   Report,
 } from "./backend-models";
 
-export interface FrontendUser extends Omit<User, "avatar_url"> {
-  // Alias with camelCase for frontend consistency
-  avatarUrl?: string; // Alias for avatar_url
+export interface FrontendUser extends User {
   isVerified: boolean; // Derived from is_muffled (inverse of is_muffled)
 }
 
@@ -45,7 +43,6 @@ export interface FrontendReview {
     username: string;
     echoes: number;
     isVerified: boolean;
-    avatarUrl?: string;
   };
   content?: string;
   rating: number;
@@ -58,6 +55,7 @@ export interface FrontendReview {
   isOwn: boolean;
   courseName?: string;
   professorName?: string;
+  isHighlighted?: boolean;
 }
 
 export interface FrontendReply {
@@ -66,7 +64,6 @@ export interface FrontendReply {
     username: string;
     echoes: number;
     isVerified: boolean;
-    avatarUrl?: string;
   };
   content: string;
   upvotes: number;
@@ -75,6 +72,7 @@ export interface FrontendReply {
   isEdited: boolean;
   userVote: "up" | "down" | null;
   isOwn: boolean;
+  isHighlighted?: boolean;
 }
 
 // Component Props Interfaces
@@ -159,7 +157,6 @@ export interface Rank {
 export function convertUserToFrontendUser(user: User): FrontendUser {
   return {
     ...user,
-    avatarUrl: user.avatar_url,
     isVerified: !user.is_muffled,
   };
 }
@@ -185,7 +182,6 @@ export function convertReviewToFrontendReview(
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,
       isVerified: review.user ? !review.user.is_muffled : false,
-      avatarUrl: review.user?.avatar_url,
     },
     content: review.content,
     rating: review.rating,
@@ -212,7 +208,6 @@ export function convertReplyToFrontendReply(
       username: reply.user?.username || "Unknown",
       echoes: reply.user?.echoes || 0,
       isVerified: reply.user ? !reply.user.is_muffled : false,
-      avatarUrl: reply.user?.avatar_url,
     },
     content: reply.content,
     upvotes: reply.upvotes,

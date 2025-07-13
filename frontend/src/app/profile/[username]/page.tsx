@@ -25,6 +25,7 @@ import {
   FrontendReview,
   convertReviewToFrontendReview,
 } from "@/types/frontend-models";
+import Loader from "@/components/common/Loader";
 
 // Helper function to transform backend review to frontend format
 const transformReview = (
@@ -40,7 +41,6 @@ const transformReview = (
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,
       isVerified: review.user ? !review.user.is_muffled : false,
-      avatarUrl: review.user?.avatar_url,
     },
     content: review.content || "",
     rating: review.rating,
@@ -118,7 +118,7 @@ export default function ProfilePage() {
         user_id: profileUser!.id,
       });
       setReviews(userReviews);
-      
+
       // Refresh user data to get updated echo points
       await refresh();
     } catch (error) {
@@ -224,7 +224,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <Loader className="mx-auto mb-4" />
           <p className="text-secondary">Loading profile...</p>
         </div>
       </div>
@@ -306,7 +306,6 @@ export default function ProfilePage() {
               username={profileUser.username}
               echoes={profileUser.echoes}
               size="xl"
-              avatarUrl={profileUser.avatar_url}
             />
 
             <div className="flex-1">

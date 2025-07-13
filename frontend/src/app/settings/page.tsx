@@ -20,8 +20,7 @@ export default function SettingsPage() {
     const [formData, setFormData] = useState({
         bio: "",
         studentSinceYear: new Date().getFullYear(),
-        username: "",
-        avatarUrl: ""
+        username: ""
     });
 
     // Initialize form data when user loads
@@ -31,8 +30,7 @@ export default function SettingsPage() {
                 ...prev,
                 bio: user.bio || "",
                 studentSinceYear: user.student_since_year || new Date().getFullYear(),
-                username: user.username || "",
-                avatarUrl: user.avatar_url || ""
+                username: user.username || ""
             }));
         }
     }, [user]);
@@ -43,8 +41,7 @@ export default function SettingsPage() {
             const updateData: any = {
                 bio: formData.bio,
                 student_since_year: formData.studentSinceYear,
-                username: formData.username,
-                avatar_url: formData.avatarUrl
+                username: formData.username
             };
 
             await userAPI.updateUser(updateData);
@@ -103,7 +100,6 @@ export default function SettingsPage() {
                                     username={user.username}
                                     echoes={user.echoes}
                                     size="lg"
-                                    avatarUrl={user.avatar_url}
                                 />
                                 <div className="flex-1">
                                     <h3 className="font-semibold">{user.username}</h3>
@@ -176,16 +172,6 @@ export default function SettingsPage() {
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">Avatar URL</label>
-                                    <input
-                                        type="url"
-                                        value={formData.avatarUrl}
-                                        onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-                                        placeholder="https://example.com/avatar.jpg"
-                                        className="w-full bg-muted border border-border rounded-lg p-3 text-sm"
-                                    />
-                                </div>
                             </div>
                         </motion.div>
 

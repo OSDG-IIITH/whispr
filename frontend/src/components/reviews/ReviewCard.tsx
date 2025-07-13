@@ -10,7 +10,7 @@ import { VoteButtons } from "./VoteButtons";
 import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
 import { FrontendReview } from "@/types/frontend-models";
-import { MentionText } from "@/components/common/MentionText";
+import { MentionTextWithHover } from "@/components/common/MentionTextWithHover";
 import { ReviewForm } from "./ReviewForm";
 import { useToast } from "@/providers/ToastProvider";
 
@@ -101,14 +101,12 @@ export function ReviewCard({
               username={review.author.username}
               echoes={review.author.echoes}
               isVerified={review.author.isVerified}
-              avatarUrl={review.author.avatarUrl}
             >
               <UserAvatar
                 username={review.author.username}
                 echoes={review.author.echoes}
                 size="sm"
-                avatarUrl={review.author.avatarUrl}
-              />
+                />
             </UserHoverCard>
 
             <div className="flex-1">
@@ -117,8 +115,7 @@ export function ReviewCard({
                   username={review.author.username}
                   echoes={review.author.echoes}
                   isVerified={review.author.isVerified}
-                  avatarUrl={review.author.avatarUrl}
-                >
+                    >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {review.author.username}
                   </span>
@@ -155,7 +152,7 @@ export function ReviewCard({
               />
             ) : (
               <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-                {review.content ? <MentionText content={review.content} /> : null}
+                {review.content ? <MentionTextWithHover content={review.content} /> : null}
               </p>
             )}
           </div>

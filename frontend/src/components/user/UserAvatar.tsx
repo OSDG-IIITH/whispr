@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import Image from "next/image";
 import { getRank } from "@/lib/utils";
 
 interface UserAvatarProps {
@@ -8,14 +9,19 @@ interface UserAvatarProps {
   echoes?: number;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
-  avatarUrl?: string;
+  avatarUrl?: string; // Deprecated - will be ignored in favor of generated avatar
 }
 
-export function UserAvatar({ username, echoes = 0, size = "md", className = "", avatarUrl }: UserAvatarProps) {
+export function UserAvatar({ username, echoes = 0, size = "md", className = "" }: UserAvatarProps) {
   const rank = getRank(echoes);
 
-  // Generate deterministic avatar from username
-  const avatar = useMemo(() => {
+  // Generate DiceBear avatar URL
+  const avatarUrl = useMemo(() => {
+    return `https://api.dicebear.com/9.x/adventurer-neutral/svg?seed=${encodeURIComponent(username)}`;
+  }, [username]);
+
+  // Generate fallback initials and color in case DiceBear fails
+  const fallbackAvatar = useMemo(() => {
     // Simple hash function to generate consistent colors from username
     let hash = 0;
     for (let i = 0; i < username.length; i++) {
@@ -54,66 +60,41 @@ export function UserAvatar({ username, echoes = 0, size = "md", className = "", 
     xl: "w-16 h-16 text-lg"
   };
 
-  // If avatar URL is provided, show image
-  if (avatarUrl) {
-    return (
-      <div className={`${sizeClasses[size]} relative ${className}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={avatarUrl}
-          alt={`${username}'s avatar`}
-          width={100}
-          height={100}
-          className="w-full h-full rounded-full object-cover shadow-lg"
-          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-            // Fallback to generated avatar if image fails to load
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            target.nextElementSibling?.classList.remove('hidden');
-          }}
-        />
-        {/* Fallback generated avatar (hidden by default) */}
-        <div
-          className={`
-            ${sizeClasses[size]} 
-            rounded-full 
-            flex items-center justify-center 
-            font-semibold text-white
-            shadow-lg
-            absolute inset-0
-            hidden
-            ${className}
-          `}
-          style={{ backgroundColor: avatar.backgroundColor }}
-        >
-          {avatar.initials}
-        </div>
-
-        {/* Rank indicator for higher ranks */}
-        {echoes >= 1000 && (
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-xs">
-            {rank.icon}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Default generated avatar
   return (
-    <div
-      className={`
-        ${sizeClasses[size]} 
-        rounded-full 
-        flex items-center justify-center 
-        font-semibold text-white
-        shadow-lg
-        relative
-        ${className}
-      `}
-      style={{ backgroundColor: avatar.backgroundColor }}
-    >
-      {avatar.initials}
+    <div className={`${sizeClasses[size]} relative ${className}`}>
+      <Image
+        src={avatarUrl}
+        alt={`${username}'s avatar`}
+        width={64}
+        height={64}
+        className="w-full h-full rounded-full object-cover shadow-lg"
+        onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+          // Fallback to generated avatar if DiceBear fails to load
+          const target = e.target as HTMLImageElement;
+          target.style.display = 'none';
+          const fallback = target.nextElementSibling as HTMLElement;
+          if (fallback) {
+            fallback.classList.remove('hidden');
+          }
+        }}
+        unoptimized
+      />
+      {/* Fallback generated avatar (hidden by default) */}
+      <div
+        className={`
+          ${sizeClasses[size]} 
+          rounded-full 
+          flex items-center justify-center 
+          font-semibold text-white
+          shadow-lg
+          absolute inset-0
+          hidden
+          ${className}
+        `}
+        style={{ backgroundColor: fallbackAvatar.backgroundColor }}
+      >
+        {fallbackAvatar.initials}
+      </div>
 
       {/* Rank indicator for higher ranks */}
       {echoes >= 1000 && (

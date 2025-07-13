@@ -6,7 +6,6 @@
 export interface User {
   id: string;
   username: string;
-  avatar_url?: string;
   bio?: string;
   student_since_year?: number;
   is_muffled: boolean;

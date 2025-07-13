@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Star, Send, X } from "lucide-react";
 import { ReviewFormProps } from "@/types/frontend-models";
 import { MentionInput } from "@/components/common/MentionInput";
+import Loader from "@/components/common/Loader";
 
 export function ReviewForm({
   onSubmit,
@@ -143,7 +144,7 @@ export function ReviewForm({
             className="btn btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting ? (
-              <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin" />
+              <Loader size="sm" className="!w-4 !h-4" />
             ) : (
               <Send className="w-4 h-4" />
             )}

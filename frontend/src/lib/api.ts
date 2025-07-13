@@ -29,7 +29,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export interface UserUpdate {
   username?: string;
-  avatar_url?: string;
   bio?: string;
   student_since_year?: number;
   password?: string;

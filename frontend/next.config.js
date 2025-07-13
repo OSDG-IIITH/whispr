@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["localhost"],
+    domains: ["localhost", "api.dicebear.com"],
   },
   // Enable standalone output for production Docker builds
   output: "standalone",

@@ -9,10 +9,9 @@ import {
   Calendar,
   Plus,
   ArrowLeft,
-  Loader2,
   GraduationCap,
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { ReplyForm } from "@/components/replies/ReplyForm";
@@ -29,10 +28,12 @@ import {
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import { convertReplyToFrontendReply } from "@/types/frontend-models";
+import Loader from "@/components/common/Loader";
 
 export default function CoursePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { showSuccess, showError } = useToast();
   const { user, refresh } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
@@ -49,6 +50,12 @@ export default function CoursePage() {
   const [replySubmitting, setReplySubmitting] = useState(false);
   const [repliesByReview, setRepliesByReview] = useState<Record<string, any[]>>(
     {}
+  );
+  const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(
+    null
+  );
+  const [highlightedReplyId, setHighlightedReplyId] = useState<string | null>(
+    null
   );
 
   const courseCode = params.id as string;
@@ -136,6 +143,50 @@ export default function CoursePage() {
       fetchReviewsAndReplies();
     }
   }, [course, fetchReviewsAndReplies]);
+
+  // Handle query parameters for highlighting and scrolling to specific reviews/replies
+  useEffect(() => {
+    if (reviews.length > 0) {
+      const reviewId = searchParams.get("reviewId");
+      const replyId = searchParams.get("replyId");
+
+      if (reviewId) {
+        setHighlightedReviewId(reviewId);
+
+        // Scroll to the review after a short delay to ensure it's rendered
+        setTimeout(() => {
+          const reviewElement = document.getElementById(`review-${reviewId}`);
+          if (reviewElement) {
+            reviewElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+
+            // Flash highlight effect
+            setTimeout(() => setHighlightedReviewId(null), 3000);
+          }
+        }, 500);
+      }
+
+      if (replyId) {
+        setHighlightedReplyId(replyId);
+
+        // Scroll to the reply after a short delay
+        setTimeout(() => {
+          const replyElement = document.getElementById(`reply-${replyId}`);
+          if (replyElement) {
+            replyElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+
+            // Flash highlight effect
+            setTimeout(() => setHighlightedReplyId(null), 3000);
+          }
+        }, 500);
+      }
+    }
+  }, [reviews, repliesByReview, searchParams]);
 
   // Helper function to get user's vote for a specific review
   const getUserVoteForReview = (reviewId: string): "up" | "down" | null => {
@@ -377,7 +428,7 @@ export default function CoursePage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <Loader className="mx-auto mb-4" />
           <p className="text-secondary">Loading course...</p>
         </div>
       </div>
@@ -577,7 +628,6 @@ export default function CoursePage() {
                 username: review.user?.username || "Anonymous",
                 echoes: review.user?.echoes || 0,
                 isVerified: !review.user?.is_muffled,
-                avatarUrl: review.user?.avatar_url,
               },
               content: review.content || "",
               rating: review.rating,
@@ -588,6 +638,7 @@ export default function CoursePage() {
               isEdited: review.is_edited,
               userVote: getUserVoteForReview(review.id),
               isOwn: user ? review.user_id === user.id : false,
+              isHighlighted: highlightedReviewId === review.id,
             }))}
             onVote={handleVote}
             onReply={(reviewId) => handleReply(reviewId)}
@@ -616,6 +667,7 @@ export default function CoursePage() {
                   replies={(repliesByReview[review.id] || []).map((reply) => ({
                     ...reply,
                     userVote: getUserVoteForReply(reply.id),
+                    isHighlighted: highlightedReplyId === reply.id,
                   }))}
                   reviewId={review.id}
                   onVote={handleReplyVote}

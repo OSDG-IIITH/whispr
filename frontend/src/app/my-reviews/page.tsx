@@ -25,7 +25,6 @@ const transformReview = (review: Review, userVotes: Vote[]) => {
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,
       isVerified: !review.user?.is_muffled,
-      avatarUrl: review.user?.avatar_url,
     },
     content: review.content || "",
     rating: review.rating,

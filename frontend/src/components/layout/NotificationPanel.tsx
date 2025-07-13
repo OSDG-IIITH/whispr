@@ -5,6 +5,7 @@ import { X, MessageSquare, Heart, Users, Shield } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { FrontendNotification } from "@/types/frontend-models";
+import Loader from "@/components/common/Loader";
 
 interface NotificationPanelProps {
   onClose: () => void;
@@ -28,7 +29,8 @@ const getNotificationIcon = (type: string) => {
 };
 
 export function NotificationPanel({ onClose }: NotificationPanelProps) {
-  const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, loading, unreadCount, markAsRead, markAllAsRead } =
+    useNotifications();
 
   return (
     <div className="bg-card/90 backdrop-blur-xl border border-primary/20 rounded-xl shadow-2xl max-h-96 overflow-hidden">
@@ -54,7 +56,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
       <div className="max-h-80 overflow-y-auto">
         {loading ? (
           <div className="p-6 text-center text-secondary">
-            <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+            <Loader size="sm" className="mx-auto mb-2" />
             <p className="text-sm">Loading notifications...</p>
           </div>
         ) : notifications.length === 0 ? (
@@ -71,24 +73,33 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className={`p-4 hover:bg-primary/5 transition-colors cursor-pointer ${
-                  !notification.read ? 'bg-primary/10' : ''
+                  !notification.read ? "bg-primary/10" : ""
                 }`}
                 onClick={async () => {
                   // Mark as read when clicked
                   if (!notification.read) {
                     await markAsRead(notification.id);
                   }
-                  
+
                   // Navigate based on notification type and source
-                  let actionUrl = '';
-                  if (notification.source_type === 'review' && notification.source_id) {
+                  let actionUrl = "";
+                  if (
+                    notification.source_type === "review" &&
+                    notification.source_id
+                  ) {
                     actionUrl = `/reviews/${notification.source_id}`;
-                  } else if (notification.source_type === 'reply' && notification.source_id) {
+                  } else if (
+                    notification.source_type === "reply" &&
+                    notification.source_id
+                  ) {
                     actionUrl = `/replies/${notification.source_id}`;
-                  } else if (notification.source_type === 'user' && notification.actor_username) {
+                  } else if (
+                    notification.source_type === "user" &&
+                    notification.actor_username
+                  ) {
                     actionUrl = `/profile/${notification.actor_username}`;
                   }
-                  
+
                   if (actionUrl) {
                     window.location.href = actionUrl;
                   }

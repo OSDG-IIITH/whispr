@@ -10,7 +10,7 @@ import { VoteButtons } from "@/components/reviews/VoteButtons";
 import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
 import { FrontendReply } from "@/types/frontend-models";
-import { MentionText } from "@/components/common/MentionText";
+import { MentionTextWithHover } from "@/components/common/MentionTextWithHover";
 import { ReplyForm } from "./ReplyForm";
 import { useToast } from "@/providers/ToastProvider";
 
@@ -87,14 +87,12 @@ export function ReplyCard({
               username={reply.author.username}
               echoes={reply.author.echoes}
               isVerified={reply.author.isVerified}
-              avatarUrl={reply.author.avatarUrl}
             >
               <UserAvatar
                 username={reply.author.username}
                 echoes={reply.author.echoes}
                 size="sm"
-                avatarUrl={reply.author.avatarUrl}
-              />
+                />
             </UserHoverCard>
 
             <div className="flex-1">
@@ -103,8 +101,7 @@ export function ReplyCard({
                   username={reply.author.username}
                   echoes={reply.author.echoes}
                   isVerified={reply.author.isVerified}
-                  avatarUrl={reply.author.avatarUrl}
-                >
+                    >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {reply.author.username}
                   </span>
@@ -174,7 +171,7 @@ export function ReplyCard({
               />
             ) : (
               <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm">
-                <MentionText content={reply.content} />
+                <MentionTextWithHover content={reply.content} />
               </p>
             )}
           </div>

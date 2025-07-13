@@ -26,8 +26,9 @@ export function SearchBar({ onClose }: SearchBarProps) {
     if (query.trim()) {
       const params = new URLSearchParams({
         q: query.trim(),
-        filter,
-        sort
+        entity_types: filter === 'all' ? '' : filter === 'professors' ? 'professor' : filter === 'courses' ? 'course' : filter,
+        sort_by: sort === 'newest' ? 'created_at' : sort === 'oldest' ? 'created_at' : sort === 'rating' ? 'rating' : 'relevance',
+        sort_order: sort === 'oldest' ? 'asc' : 'desc'
       });
       router.push(`/search?${params.toString()}`);
       onClose();
@@ -38,7 +39,8 @@ export function SearchBar({ onClose }: SearchBarProps) {
     { id: "all", label: "All" },
     { id: "courses", label: "Courses" },
     { id: "professors", label: "Professors" },
-    { id: "reviews", label: "Reviews" }
+    { id: "reviews", label: "Reviews" },
+    { id: "course_instructors", label: "Course Offerings" }
   ];
 
   const sortOptions = [

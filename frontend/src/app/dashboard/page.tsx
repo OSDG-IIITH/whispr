@@ -6,6 +6,8 @@ import { Shield, Star, MessageSquare, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getRankWithProgress } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
+import { UserAvatar } from "@/components/user/UserAvatar";
+import Loader from "@/components/common/Loader";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -23,7 +25,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <Loader className="mx-auto mb-4" />
           <p className="text-secondary">Loading...</p>
         </div>
       </div>
@@ -89,8 +91,12 @@ export default function DashboardPage() {
                 className="bg-card border border-primary/20 rounded-xl p-6"
               >
                 <div className="text-center mb-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center text-2xl font-bold mb-4 mx-auto">
-                    {user.username.charAt(0).toUpperCase()}
+                  <div className="mb-4 flex justify-center">
+                    <UserAvatar
+                      username={user.username}
+                      echoes={user.echoes}
+                      size="xl"
+                    />
                   </div>
                   <h2 className="text-xl font-bold mb-2">{user.username}</h2>
                   <div className="flex items-center justify-center gap-2 mb-4">

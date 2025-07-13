@@ -2,9 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Plus, Star, Users, BookOpen, Loader2, GraduationCap, Calendar } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Plus,
+  Star,
+  Users,
+  BookOpen,
+  GraduationCap,
+  Calendar,
+} from "lucide-react";
 import Link from "next/link";
 import { courseAPI, Course } from "@/lib/api";
+import Loader from "@/components/common/Loader";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -33,8 +43,9 @@ export default function CoursesPage() {
     }
   };
 
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredCourses = courses.filter((course) => {
+    const matchesSearch =
+      course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.code.toLowerCase().includes(searchQuery.toLowerCase());
     // Note: We don't have semester/year in the current course model, so we'll skip those filters for now
     return matchesSearch;
@@ -57,8 +68,11 @@ export default function CoursesPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-secondary'
-          }`}
+        className={`w-4 h-4 ${
+          i < Math.floor(rating)
+            ? "text-yellow-500 fill-current"
+            : "text-secondary"
+        }`}
       />
     ));
   };
@@ -70,7 +84,7 @@ export default function CoursesPage() {
 
     // Get unique semester/year combinations
     const timeSlots = new Set<string>();
-    course.course_instructors.forEach(instructor => {
+    course.course_instructors.forEach((instructor) => {
       if (instructor.semester && instructor.year) {
         timeSlots.add(`${instructor.semester} ${instructor.year}`);
       }
@@ -86,7 +100,7 @@ export default function CoursesPage() {
 
     // Get unique professors
     const professors = new Map<string, string>();
-    course.course_instructors.forEach(instructor => {
+    course.course_instructors.forEach((instructor) => {
       if (instructor.professor) {
         professors.set(instructor.professor.id, instructor.professor.name);
       }
@@ -99,7 +113,7 @@ export default function CoursesPage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <Loader className="mx-auto mb-4" />
           <p className="text-secondary">Loading courses...</p>
         </div>
       </div>
@@ -113,10 +127,7 @@ export default function CoursesPage() {
           <BookOpen className="w-16 h-16 text-secondary mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">Error Loading Courses</h3>
           <p className="text-secondary mb-4">{error}</p>
-          <button
-            onClick={fetchCourses}
-            className="btn btn-primary h-10 w-24"
-          >
+          <button onClick={fetchCourses} className="btn btn-primary h-10 w-24">
             Try Again
           </button>
         </div>
@@ -258,7 +269,10 @@ export default function CoursesPage() {
                         </div>
                         <div className="flex flex-wrap gap-1">
                           {professors.slice(0, 3).map((professor, i) => (
-                            <span key={i} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded">
+                            <span
+                              key={i}
+                              className="bg-primary/10 text-primary text-xs px-2 py-1 rounded"
+                            >
                               {professor}
                             </span>
                           ))}

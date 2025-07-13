@@ -21,7 +21,6 @@ class UserBase(BaseModel):
     Base user schema with common fields.
     """
     username: str
-    avatar_url: Optional[str] = None
     bio: Optional[str] = None
     student_since_year: Optional[int] = None
 
@@ -32,7 +31,6 @@ class UserCreate(BaseModel):
     """
     username: str
     password: str = Field(..., min_length=settings.MIN_PASSWORD_LENGTH)
-    avatar_url: Optional[str] = None
     bio: Optional[str] = None
     student_since_year: Optional[int] = None
 
@@ -48,7 +46,6 @@ class UserUpdate(BaseModel):
     Schema for updating a user.
     """
     username: Optional[str] = None
-    avatar_url: Optional[str] = None
     bio: Optional[str] = None
     student_since_year: Optional[int] = None
     password: Optional[str] = Field(

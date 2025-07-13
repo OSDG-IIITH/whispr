@@ -90,7 +90,6 @@ async def register_user(
     stmt_user = insert(UserModel).values(
         username=user_in.username,
         hashed_password=hashed_password,
-        avatar_url=user_in.avatar_url,
         bio=user_in.bio,
         student_since_year=user_in.student_since_year,
         is_muffled=True,  # Default to muffled until email verification

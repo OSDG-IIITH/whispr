@@ -191,7 +191,6 @@ export function MentionInput({
                   username={user.username}
                   echoes={user.echoes}
                   size="sm"
-                  avatarUrl={user.avatar_url}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

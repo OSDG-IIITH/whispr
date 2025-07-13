@@ -46,7 +46,6 @@ export function MentionLink({ username }: MentionLinkProps) {
         isVerified={!user.is_muffled}
         joinDate={user.created_at}
         reviewCount={0} // TODO: Add review count to user data
-        avatarUrl={user.avatar_url}
       >
         <span
           className="text-primary font-medium hover:underline cursor-pointer"

@@ -68,7 +68,7 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
       {/* User Info */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3 mb-3">
-          <UserAvatar username={user.username} echoes={user.echoes} size="lg" avatarUrl={user.avatar_url} />
+          <UserAvatar username={user.username} echoes={user.echoes} size="lg" />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-semibold">{user.username}</h4>

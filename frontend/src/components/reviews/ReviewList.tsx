@@ -96,19 +96,27 @@ export function ReviewList({
         {reviews.map((review, index) => (
           <motion.div
             key={review.id}
+            id={`review-${review.id}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ delay: index * 0.05 }}
+            className={review.isHighlighted ? 'animate-pulse' : ''}
           >
-            <ReviewCard
-              review={review}
-              onVote={onVote}
-              onReply={onReply}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onReport={onReport}
-            />
+            <div className={`transition-all duration-300 ${
+              review.isHighlighted 
+                ? 'ring-2 ring-primary ring-opacity-50 bg-primary/5 rounded-xl' 
+                : ''
+            }`}>
+              <ReviewCard
+                review={review}
+                onVote={onVote}
+                onReply={onReply}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onReport={onReport}
+              />
+            </div>
             {renderExtra && renderExtra(review)}
           </motion.div>
         ))}

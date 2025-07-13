@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Send, X } from "lucide-react";
 import { MentionInput } from "@/components/common/MentionInput";
+import Loader from "@/components/common/Loader";
 
 interface ReplyFormProps {
   onSubmit: (content: string) => void;
@@ -13,12 +14,12 @@ interface ReplyFormProps {
   disabled?: boolean;
 }
 
-export function ReplyForm({ 
-  onSubmit, 
-  onCancel, 
+export function ReplyForm({
+  onSubmit,
+  onCancel,
   placeholder = "Write a thoughtful reply...",
   initialContent = "",
-  disabled = false
+  disabled = false,
 }: ReplyFormProps) {
   const [content, setContent] = useState(initialContent);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,12 +52,12 @@ export function ReplyForm({
           rows={3}
           disabled={disabled || isSubmitting}
         />
-        
+
         <div className="flex justify-between items-center">
           <span className="text-xs text-secondary">
             {content.length}/500 characters
           </span>
-          
+
           <div className="flex items-center gap-2">
             {onCancel && (
               <button
@@ -73,7 +74,7 @@ export function ReplyForm({
               className="btn btn-primary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isSubmitting ? (
-                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                <Loader size="sm" className="!w-3 !h-3" />
               ) : (
                 <Send className="w-3 h-3" />
               )}

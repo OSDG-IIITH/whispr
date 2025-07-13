@@ -3,67 +3,80 @@
 import { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Shield, CheckCircle, XCircle, AlertCircle, ExternalLink } from "lucide-react";
+import {
+  Shield,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  ExternalLink,
+} from "lucide-react";
 import { verificationAPI } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
+import Loader from "@/components/common/Loader";
 
 export default function VerifyPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { refresh } = useAuth();
-  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'initiate'>('loading');
-  const [message, setMessage] = useState('');
-  const [step, setStep] = useState<'disclaimer' | 'redirect'>('disclaimer');
+  const [status, setStatus] = useState<
+    "loading" | "success" | "error" | "initiate"
+  >("loading");
+  const [message, setMessage] = useState("");
+  const [step, setStep] = useState<"disclaimer" | "redirect">("disclaimer");
   const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
-    const success = searchParams.get('success');
-    const error = searchParams.get('error');
+    const success = searchParams.get("success");
+    const error = searchParams.get("error");
 
-    if (success === 'true') {
-      setStatus('success');
-      setMessage('Your account has been successfully verified! You can now post reviews and vote.');
+    if (success === "true") {
+      setStatus("success");
+      setMessage(
+        "Your account has been successfully verified! You can now post reviews and vote."
+      );
 
       // Refresh user data to get updated verification status
       refresh();
 
       // Redirect to dashboard after 3 seconds
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push("/dashboard");
       }, 3000);
     } else if (error) {
-      setStatus('error');
+      setStatus("error");
       switch (error) {
-        case 'invalid_session':
-          setMessage('Invalid verification session. Please try again.');
+        case "invalid_session":
+          setMessage("Invalid verification session. Please try again.");
           break;
-        case 'session_expired':
-          setMessage('Verification session expired. Please try again.');
+        case "session_expired":
+          setMessage("Verification session expired. Please try again.");
           break;
-        case 'cas_validation_failed':
-          setMessage('CAS validation failed. Please try again.');
+        case "cas_validation_failed":
+          setMessage("CAS validation failed. Please try again.");
           break;
-        case 'email_already_used':
-          setMessage('This email has already been used to verify another account.');
+        case "email_already_used":
+          setMessage(
+            "This email has already been used to verify another account."
+          );
           break;
-        case 'internal_error':
-          setMessage('An internal error occurred. Please try again later.');
+        case "internal_error":
+          setMessage("An internal error occurred. Please try again later.");
           break;
         default:
-          setMessage('Verification failed. Please try again.');
+          setMessage("Verification failed. Please try again.");
       }
     } else {
-      setStatus('initiate');
+      setStatus("initiate");
     }
   }, [searchParams, router, refresh]);
 
   const handleInitiateVerification = async () => {
-    if (step === 'disclaimer' && agreed) {
-      setStep('redirect');
-    } else if (step === 'redirect') {
+    if (step === "disclaimer" && agreed) {
+      setStep("redirect");
+    } else if (step === "redirect") {
       try {
-        setStatus('loading');
-        setMessage('Initiating verification...');
+        setStatus("loading");
+        setMessage("Initiating verification...");
 
         // Call backend API to initiate verification
         const response = await verificationAPI.initiate();
@@ -72,16 +85,18 @@ export default function VerifyPage() {
         // Redirect to CAS login
         window.location.href = cas_url;
       } catch (error: any) {
-        console.error('Verification initiation failed:', error);
-        setStatus('error');
-        setMessage(error.message || 'Failed to initiate verification. Please try again.');
+        console.error("Verification initiation failed:", error);
+        setStatus("error");
+        setMessage(
+          error.message || "Failed to initiate verification. Please try again."
+        );
       }
     }
   };
 
   const renderContent = () => {
     switch (status) {
-      case 'success':
+      case "success":
         return (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -91,7 +106,9 @@ export default function VerifyPage() {
             <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-green-500" />
             </div>
-            <h1 className="text-3xl font-bold mb-4">Verification Successful!</h1>
+            <h1 className="text-3xl font-bold mb-4">
+              Verification Successful!
+            </h1>
             <p className="text-secondary mb-6">{message}</p>
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
               <p className="text-sm text-primary">
@@ -101,7 +118,7 @@ export default function VerifyPage() {
           </motion.div>
         );
 
-      case 'error':
+      case "error":
         return (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -115,8 +132,8 @@ export default function VerifyPage() {
             <p className="text-secondary mb-6">{message}</p>
             <button
               onClick={() => {
-                setStatus('initiate');
-                setStep('disclaimer');
+                setStatus("initiate");
+                setStep("disclaimer");
                 setAgreed(false);
               }}
               className="btn btn-primary px-6 py-3"
@@ -126,7 +143,7 @@ export default function VerifyPage() {
           </motion.div>
         );
 
-      case 'initiate':
+      case "initiate":
         return (
           <div className="max-w-lg mx-auto">
             <div className="text-center mb-8">
@@ -140,7 +157,7 @@ export default function VerifyPage() {
             </div>
 
             <AnimatePresence mode="wait">
-              {step === 'disclaimer' && (
+              {step === "disclaimer" && (
                 <motion.div
                   key="disclaimer"
                   initial={{ opacity: 0, x: 20 }}
@@ -156,11 +173,16 @@ export default function VerifyPage() {
                     <ul className="space-y-3 text-sm text-secondary">
                       <li className="flex items-start gap-3">
                         <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                        <span>We use CAS only to verify you&apos;re a real IIITH student</span>
+                        <span>
+                          We use CAS only to verify you&apos;re a real IIITH
+                          student
+                        </span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                        <span>Your email is NEVER linked to your Whispr account</span>
+                        <span>
+                          Your email is NEVER linked to your Whispr account
+                        </span>
                       </li>
                       <li className="flex items-start gap-3">
                         <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -187,7 +209,7 @@ export default function VerifyPage() {
 
                   <div className="flex justify-end gap-3">
                     <button
-                      onClick={() => router.push('/dashboard')}
+                      onClick={() => router.push("/dashboard")}
                       className="btn btn-secondary px-6 py-3"
                     >
                       Cancel
@@ -203,7 +225,7 @@ export default function VerifyPage() {
                 </motion.div>
               )}
 
-              {step === 'redirect' && (
+              {step === "redirect" && (
                 <motion.div
                   key="redirect"
                   initial={{ opacity: 0, x: 20 }}
@@ -225,7 +247,7 @@ export default function VerifyPage() {
 
                   <div className="flex justify-end gap-3">
                     <button
-                      onClick={() => setStep('disclaimer')}
+                      onClick={() => setStep("disclaimer")}
                       className="btn btn-secondary px-6 py-3"
                     >
                       Back
@@ -246,7 +268,7 @@ export default function VerifyPage() {
       default:
         return (
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <Loader className="mx-auto mb-4" />
             <p className="text-secondary">Loading...</p>
           </div>
         );

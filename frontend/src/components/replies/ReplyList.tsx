@@ -83,17 +83,25 @@ export function ReplyList({
             {replies.map((reply, index) => (
               <motion.div
                 key={reply.id}
+                id={`reply-${reply.id}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
+                className={reply.isHighlighted ? 'animate-pulse' : ''}
               >
-                <ReplyCard
-                  reply={reply}
-                  onVote={onVote}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onReport={onReport}
-                />
+                <div className={`transition-all duration-300 ${
+                  reply.isHighlighted 
+                    ? 'ring-2 ring-primary ring-opacity-50 bg-primary/5 rounded-xl p-2' 
+                    : ''
+                }`}>
+                  <ReplyCard
+                    reply={reply}
+                    onVote={onVote}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onReport={onReport}
+                  />
+                </div>
               </motion.div>
             ))}
 

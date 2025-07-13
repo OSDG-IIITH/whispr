@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Trash2, X } from "lucide-react";
+import Loader from "./Loader";
 
 interface KillSwitchProps {
   onConfirm: () => void;
@@ -17,7 +18,7 @@ export function KillSwitch({ onConfirm, isOpen, onClose }: KillSwitchProps) {
 
   const handleConfirm = async () => {
     if (confirmText !== "DELETE" || !switchPosition) return;
-    
+
     setIsDeleting(true);
     try {
       await onConfirm();
@@ -91,17 +92,17 @@ export function KillSwitch({ onConfirm, isOpen, onClose }: KillSwitchProps) {
                 <label className="block text-sm font-medium mb-3">
                   Activate Kill Switch
                 </label>
-                <div 
+                <div
                   className={`
                     relative w-16 h-8 rounded-full cursor-pointer transition-colors
-                    ${switchPosition ? 'bg-red-500' : 'bg-muted'}
+                    ${switchPosition ? "bg-red-500" : "bg-muted"}
                   `}
                   onClick={() => setSwitchPosition(!switchPosition)}
                 >
                   <motion.div
                     className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg"
                     animate={{
-                      x: switchPosition ? 36 : 4
+                      x: switchPosition ? 36 : 4,
                     }}
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
@@ -137,7 +138,7 @@ export function KillSwitch({ onConfirm, isOpen, onClose }: KillSwitchProps) {
                 >
                   {isDeleting ? (
                     <>
-                      <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin" />
+                      <Loader size="sm" className="!w-4 !h-4" />
                       Deleting...
                     </>
                   ) : (
