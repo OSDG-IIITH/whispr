@@ -3,16 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Star, Send, X } from "lucide-react";
-
-interface ReviewFormProps {
-  onSubmit: (data: { content: string; rating: number }) => void;
-  onCancel?: () => void;
-  initialContent?: string;
-  initialRating?: number;
-  placeholder?: string;
-  submitText?: string;
-  title?: string;
-}
+import { ReviewFormProps } from "@/types/frontend-models";
 
 export function ReviewForm({
   onSubmit,
@@ -21,8 +12,15 @@ export function ReviewForm({
   initialRating = 0,
   placeholder = "Share your honest thoughts about this course/professor...",
   submitText = "Submit Rating",
-  title = "Rate & Review"
-}: ReviewFormProps) {
+  title = "Rate & Review",
+  disabled = false,
+}: ReviewFormProps & {
+  initialContent?: string;
+  initialRating?: number;
+  submitText?: string;
+  title?: string;
+  onCancel?: () => void;
+}) {
   const [content, setContent] = useState(initialContent);
   const [rating, setRating] = useState(initialRating);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -56,10 +54,13 @@ export function ReviewForm({
           onClick={() => setRating(starValue)}
           onMouseEnter={() => setHoveredRating(starValue)}
           onMouseLeave={() => setHoveredRating(0)}
-          className={`p-1 transition-colors ${isFilled ? 'text-yellow-500' : 'text-secondary hover:text-yellow-400'
-            }`}
+          className={`p-1 transition-colors ${
+            isFilled
+              ? "text-yellow-500"
+              : "text-secondary hover:text-yellow-400"
+          }`}
         >
-          <Star className={`w-6 h-6 ${isFilled ? 'fill-current' : ''}`} />
+          <Star className={`w-6 h-6 ${isFilled ? "fill-current" : ""}`} />
         </motion.button>
       );
     });
@@ -93,7 +94,7 @@ export function ReviewForm({
             {renderStars()}
             {rating > 0 && (
               <span className="ml-2 text-sm text-secondary">
-                {rating} star{rating !== 1 ? 's' : ''}
+                {rating} star{rating !== 1 ? "s" : ""}
               </span>
             )}
           </div>
@@ -137,7 +138,7 @@ export function ReviewForm({
           )}
           <button
             type="submit"
-            disabled={rating === 0 || isSubmitting}
+            disabled={rating === 0 || isSubmitting || disabled}
             className="btn btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting ? (

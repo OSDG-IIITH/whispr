@@ -21,11 +21,14 @@ export function MentionInput({
   placeholder = "Type @ to mention someone...",
   className = "",
   maxLength,
-  rows = 3
+  rows = 3,
 }: MentionInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState(0);
-  const [mentionPosition, setMentionPosition] = useState<{ start: number; end: number } | null>(null);
+  const [mentionPosition, setMentionPosition] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
 
   const {
     isOpen,
@@ -36,7 +39,7 @@ export function MentionInput({
     closeMention,
     selectUser,
     navigateSelection,
-    updateQuery
+    updateQuery,
   } = useMentions();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -48,13 +51,13 @@ export function MentionInput({
 
     // Check for @ symbol
     const textBeforeCursor = newValue.slice(0, position);
-    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+    const lastAtIndex = textBeforeCursor.lastIndexOf("@");
 
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
 
       // Check if we're still in the mention (no spaces after @)
-      if (!textAfterAt.includes(' ') && textAfterAt.length <= 20) {
+      if (!textAfterAt.includes(" ") && textAfterAt.length <= 20) {
         setMentionPosition({ start: lastAtIndex, end: position });
         updateQuery(textAfterAt);
         if (!isOpen) {
@@ -74,20 +77,20 @@ export function MentionInput({
     if (!isOpen || mentionUsers.length === 0) return;
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
-        navigateSelection('down');
+        navigateSelection("down");
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
-        navigateSelection('up');
+        navigateSelection("up");
         break;
-      case 'Enter':
-      case 'Tab':
+      case "Enter":
+      case "Tab":
         e.preventDefault();
         insertMention();
         break;
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         closeMention();
         break;
@@ -122,23 +125,24 @@ export function MentionInput({
     const textBeforeMention = value.slice(0, mentionPosition.start);
 
     // Create a temporary div to measure text position
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.style.cssText = window.getComputedStyle(textarea).cssText;
-    div.style.position = 'absolute';
-    div.style.visibility = 'hidden';
-    div.style.height = 'auto';
-    div.style.whiteSpace = 'pre-wrap';
+    div.style.position = "absolute";
+    div.style.visibility = "hidden";
+    div.style.height = "auto";
+    div.style.whiteSpace = "pre-wrap";
     div.textContent = textBeforeMention;
 
     document.body.appendChild(div);
     const rect = textarea.getBoundingClientRect();
-    const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight) || 20;
+    const lineHeight =
+      parseInt(window.getComputedStyle(textarea).lineHeight) || 20;
 
     document.body.removeChild(div);
 
     return {
       top: rect.bottom + 5,
-      left: rect.left
+      left: rect.left,
     };
   };
 
@@ -169,21 +173,24 @@ export function MentionInput({
               <button
                 key={user.username}
                 onClick={() => insertMention(index)}
-                className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${index === selectedIndex
-                    ? 'bg-primary/10 border-l-2 border-primary'
-                    : 'hover:bg-muted/50'
-                  }`}
+                className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${
+                  index === selectedIndex
+                    ? "bg-primary/10 border-l-2 border-primary"
+                    : "hover:bg-muted/50"
+                }`}
               >
                 <UserAvatar
                   username={user.username}
                   echoes={user.echoes}
                   size="sm"
-                  avatarUrl={user.avatarUrl}
+                  avatarUrl={user.avatar_url}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium truncate">{user.username}</span>
-                    {user.isVerified && (
+                    <span className="font-medium truncate">
+                      {user.username}
+                    </span>
+                    {!user.is_muffled && (
                       <span className="text-primary text-xs">✓</span>
                     )}
                   </div>

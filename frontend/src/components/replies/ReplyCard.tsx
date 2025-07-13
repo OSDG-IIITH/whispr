@@ -9,30 +9,18 @@ import { RankBadge } from "@/components/user/RankBadge";
 import { VoteButtons } from "@/components/reviews/VoteButtons";
 import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
-
-interface Reply {
-  id: string;
-  author: {
-    username: string;
-    echoes: number;
-    isVerified: boolean;
-    avatarUrl?: string;
-  };
-  content: string;
-  upvotes: number;
-  downvotes: number;
-  createdAt: string;
-  isEdited: boolean;
-  userVote?: "up" | "down" | null;
-  isOwn?: boolean;
-}
+import { FrontendReply } from "@/types/frontend-models";
 
 interface ReplyCardProps {
-  reply: Reply;
-  onVote: (replyId: string, type: "up" | "down") => void;
-  onEdit?: (replyId: string) => void;
-  onDelete?: (replyId: string) => void;
-  onReport?: (replyId: string, reportType: string, reason: string) => void;
+  reply: FrontendReply;
+  onVote: (replyId: string, type: "up" | "down") => Promise<void> | void;
+  onEdit?: (replyId: string, content: string) => Promise<void> | void;
+  onDelete?: (replyId: string) => Promise<void> | void;
+  onReport?: (
+    replyId: string,
+    reportType: string,
+    reason: string
+  ) => Promise<void> | void;
 }
 
 export function ReplyCard({
@@ -126,7 +114,7 @@ export function ReplyCard({
                 <>
                   {onEdit && (
                     <button
-                      onClick={() => onEdit(reply.id)}
+                      onClick={() => onEdit(reply.id, reply.content)}
                       className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
                       title="Edit reply"
                     >

@@ -34,7 +34,9 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <p className="text-secondary mb-4">Please log in to view your dashboard</p>
+          <p className="text-secondary mb-4">
+            Please log in to view your dashboard
+          </p>
           <a href="/auth/login" className="btn btn-primary">
             Sign In
           </a>
@@ -65,7 +67,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/verify'}
+              onClick={() => (window.location.href = "/verify")}
               className="btn btn-primary px-4 py-2 text-sm"
             >
               Verify Now
@@ -93,10 +95,14 @@ export default function DashboardPage() {
                   <h2 className="text-xl font-bold mb-2">{user.username}</h2>
                   <div className="flex items-center justify-center gap-2 mb-4">
                     <span className="text-sm text-secondary">Rank:</span>
-                    <span className="text-sm font-semibold text-primary">{rank.rank}</span>
+                    <span className="text-sm font-semibold text-primary">
+                      {rank.name}
+                    </span>
                   </div>
                   <div className="bg-primary/10 rounded-lg p-3">
-                    <div className="text-2xl font-bold text-primary">{user.echoes}</div>
+                    <div className="text-2xl font-bold text-primary">
+                      {user.echoes}
+                    </div>
                     <div className="text-xs text-secondary">Echoes</div>
                   </div>
                 </div>
@@ -109,7 +115,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-secondary">Status</span>
-                    <span className={!user.is_muffled ? "text-green-400" : "text-yellow-400"}>
+                    <span
+                      className={
+                        !user.is_muffled ? "text-green-400" : "text-yellow-400"
+                      }
+                    >
                       {!user.is_muffled ? "Verified" : "Unverified"}
                     </span>
                   </div>
@@ -126,13 +136,13 @@ export default function DashboardPage() {
                 <h3 className="font-semibold mb-4">Quick Actions</h3>
                 <div className="space-y-3">
                   <button
-                    onClick={() => router.push('/courses')}
+                    onClick={() => router.push("/courses")}
                     className="w-full h-10 btn btn-primary text-sm"
                   >
                     Write Review
                   </button>
                   <button
-                    onClick={() => router.push('/courses')}
+                    onClick={() => router.push("/courses")}
                     className="w-full h-10 btn btn-secondary text-sm"
                   >
                     Browse Courses
@@ -157,9 +167,12 @@ export default function DashboardPage() {
               transition={{ delay: 0.2 }}
               className="bg-card border border-primary/20 rounded-xl p-6"
             >
-              <h1 className="text-2xl font-bold mb-4">Welcome back, {user.username}!</h1>
+              <h1 className="text-2xl font-bold mb-4">
+                Welcome back, {user.username}!
+              </h1>
               <p className="text-secondary mb-6">
-                Ready to share your thoughts on courses and professors? Your voice matters in helping others make informed decisions.
+                Ready to share your thoughts on courses and professors? Your
+                voice matters in helping others make informed decisions.
               </p>
 
               <div className="grid md:grid-cols-3 gap-4">

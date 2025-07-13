@@ -13,6 +13,11 @@ import type { Review, Vote } from "@/lib/api";
 // Helper function to transform backend review to frontend format
 const transformReview = (review: Review, userVotes: Vote[]) => {
   const userVote = userVotes.find((vote) => vote.review_id === review.id);
+  const voteType = userVote
+    ? userVote.vote_type
+      ? ("up" as const)
+      : ("down" as const)
+    : null;
 
   return {
     id: review.id,
@@ -20,6 +25,7 @@ const transformReview = (review: Review, userVotes: Vote[]) => {
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,
       isVerified: !review.user?.is_muffled,
+      avatarUrl: review.user?.avatar_url,
     },
     content: review.content || "",
     rating: review.rating,
@@ -28,7 +34,7 @@ const transformReview = (review: Review, userVotes: Vote[]) => {
     replyCount: 0, // TODO: Add reply count when replies are implemented
     createdAt: review.created_at,
     isEdited: review.is_edited,
-    userVote: userVote ? (userVote.vote_type ? "up" : "down") : null,
+    userVote: voteType,
     isOwn: true,
     courseName: review.course?.name || review.course_instructor?.course?.name,
     professorName:
@@ -96,7 +102,12 @@ export default function MyReviewsPage() {
     }
   };
 
-  const handleReply = async (reviewId: string, content: string) => {
+  const handleReply = async (reviewId: string, content?: string) => {
+    if (!content) {
+      showError("Reply content cannot be empty");
+      return;
+    }
+
     try {
       await replyAPI.createReply({
         review_id: reviewId,
@@ -110,10 +121,18 @@ export default function MyReviewsPage() {
     }
   };
 
-  const handleEdit = async (reviewId: string, data: { content?: string; rating?: number }) => {
+  const handleEdit = async (
+    reviewId: string,
+    data?: { content?: string; rating?: number }
+  ) => {
+    if (!data) {
+      showError("No changes to make");
+      return;
+    }
+
     try {
       await reviewAPI.updateReview(reviewId, data);
-      
+
       // Refresh reviews to show updated content
       await fetchUserReviews();
       showSuccess("Review updated successfully!");
@@ -138,13 +157,30 @@ export default function MyReviewsPage() {
 
   const handleReport = async (
     reviewId: string,
-    reportType: string,
-    reason: string
+    reportType?: string,
+    reason?: string
   ) => {
+    if (!reportType) {
+      showError("Please select a report type");
+      return;
+    }
+
+    if (!reason) {
+      showError("Please provide a reason for your report");
+      return;
+    }
+
     try {
+      const validReportType = reportType as
+        | "spam"
+        | "harassment"
+        | "inappropriate"
+        | "misinformation"
+        | "other";
+
       await reportAPI.createReport({
         review_id: reviewId,
-        report_type: reportType,
+        report_type: validReportType,
         reason: reason,
       });
       showSuccess(

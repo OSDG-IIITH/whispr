@@ -5,43 +5,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { ReplyCard } from "./ReplyCard";
 import { ReplyForm } from "./ReplyForm";
-
-interface Reply {
-  id: string;
-  author: {
-    username: string;
-    echoes: number;
-    isVerified: boolean;
-  };
-  content: string;
-  upvotes: number;
-  downvotes: number;
-  createdAt: string;
-  isEdited: boolean;
-  userVote?: "up" | "down" | null;
-  isOwn?: boolean;
-}
+import { FrontendReply } from "@/types/frontend-models";
 
 interface ReplyListProps {
-  replies: Reply[];
+  replies: FrontendReply[];
   reviewId: string;
-  onVote: (replyId: string, type: "up" | "down") => void;
-  onSubmitReply: (reviewId: string, content: string) => void;
-  onEdit?: (replyId: string) => void;
-  onDelete?: (replyId: string) => void;
-  onReport?: (replyId: string) => void;
+  onVote: (replyId: string, type: "up" | "down") => Promise<void> | void;
+  onSubmitReply: (reviewId: string, content: string) => Promise<void> | void;
+  onEdit?: (replyId: string, content: string) => Promise<void> | void;
+  onDelete?: (replyId: string) => Promise<void> | void;
+  onReport?: (
+    replyId: string,
+    reportType?: string,
+    reason?: string
+  ) => Promise<void> | void;
   collapsed?: boolean;
 }
 
-export function ReplyList({ 
-  replies, 
+export function ReplyList({
+  replies,
   reviewId,
-  onVote, 
+  onVote,
   onSubmitReply,
-  onEdit, 
-  onDelete, 
+  onEdit,
+  onDelete,
   onReport,
-  collapsed = false
+  collapsed = false,
 }: ReplyListProps) {
   const [isExpanded, setIsExpanded] = useState(!collapsed);
   const [showReplyForm, setShowReplyForm] = useState(false);
@@ -72,8 +61,14 @@ export function ReplyList({
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center gap-2 text-sm text-secondary hover:text-primary transition-colors mb-3 ml-12"
         >
-          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          <span>{replies.length} {replies.length === 1 ? 'reply' : 'replies'}</span>
+          {isExpanded ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+          <span>
+            {replies.length} {replies.length === 1 ? "reply" : "replies"}
+          </span>
         </button>
       )}
 

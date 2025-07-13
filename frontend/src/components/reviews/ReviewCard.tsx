@@ -9,33 +9,19 @@ import { RankBadge } from "@/components/user/RankBadge";
 import { VoteButtons } from "./VoteButtons";
 import { ReportModal } from "@/components/common/ReportModal";
 import { formatDate } from "@/lib/utils";
-
-interface Review {
-  id: string;
-  author: {
-    username: string;
-    echoes: number;
-    isVerified: boolean;
-    avatarUrl?: string;
-  };
-  content: string;
-  rating: number;
-  upvotes: number;
-  downvotes: number;
-  replyCount: number;
-  createdAt: string;
-  isEdited: boolean;
-  userVote?: "up" | "down" | null;
-  isOwn?: boolean;
-}
+import { FrontendReview } from "@/types/frontend-models";
 
 interface ReviewCardProps {
-  review: Review;
-  onVote: (reviewId: string, type: "up" | "down") => void;
-  onReply: (reviewId: string) => void;
-  onEdit?: (reviewId: string) => void;
-  onDelete?: (reviewId: string) => void;
-  onReport?: (reviewId: string, reportType: string, reason: string) => void;
+  review: FrontendReview;
+  onVote: (reviewId: string, type: "up" | "down") => Promise<void> | void;
+  onReply: (reviewId: string) => Promise<void> | void;
+  onEdit?: (reviewId: string) => Promise<void> | void;
+  onDelete?: (reviewId: string) => Promise<void> | void;
+  onReport?: (
+    reviewId: string,
+    reportType: string,
+    reason: string
+  ) => Promise<void> | void;
   showReplies?: boolean;
 }
 

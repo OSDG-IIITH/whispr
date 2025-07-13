@@ -1,0 +1,250 @@
+/*
+ * This file contains interfaces for the frontend components.
+ * These are derived from backend models but adapted to match how they're used in the frontend.
+ */
+
+import {
+  User,
+  Notification,
+  Course,
+  CourseInstructor,
+  Professor,
+  Review,
+  Reply,
+  Vote,
+  Report,
+} from "./backend-models";
+
+export interface FrontendUser extends Omit<User, "avatar_url"> {
+  // Alias with camelCase for frontend consistency
+  avatarUrl?: string; // Alias for avatar_url
+  isVerified: boolean; // Derived from is_muffled (inverse of is_muffled)
+}
+
+export interface FrontendNotification extends Omit<Notification, "is_read"> {
+  is_read: boolean;
+  read: boolean; // Required in frontend - an alias for is_read
+}
+
+export interface FrontendCourse extends Omit<Course, "average_rating"> {
+  average_rating: string | number; // Can be either string from API or number in frontend
+}
+
+export interface FrontendProfessor extends Omit<Professor, "average_rating"> {
+  average_rating: string | number; // Can be either string from API or number in frontend
+}
+
+export interface FrontendCourseInstructor
+  extends Omit<CourseInstructor, "average_rating"> {
+  average_rating: string | number; // Can be either string from API or number in frontend
+}
+
+export interface FrontendReview {
+  id: string;
+  author: {
+    username: string;
+    echoes: number;
+    isVerified: boolean;
+    avatarUrl?: string;
+  };
+  content?: string;
+  rating: number;
+  upvotes: number;
+  downvotes: number;
+  replyCount: number;
+  createdAt: string;
+  isEdited: boolean;
+  userVote: "up" | "down" | null;
+  isOwn: boolean;
+  courseName?: string;
+  professorName?: string;
+}
+
+export interface FrontendReply {
+  id: string;
+  author: {
+    username: string;
+    echoes: number;
+    isVerified: boolean;
+    avatarUrl?: string;
+  };
+  content: string;
+  upvotes: number;
+  downvotes: number;
+  createdAt: string;
+  isEdited: boolean;
+  userVote: "up" | "down" | null;
+  isOwn: boolean;
+}
+
+// Component Props Interfaces
+export interface ReviewFormProps {
+  onSubmit: (data: { content: string; rating: number }) => Promise<void> | void;
+  onCancel: () => void;
+  placeholder: string;
+  disabled?: boolean;
+}
+
+export interface ReviewListProps {
+  reviews: FrontendReview[];
+  showCourse?: boolean;
+  showProfessor?: boolean;
+  loading?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
+  emptyMessage?: string;
+  onVote: (reviewId: string, type: "up" | "down") => Promise<void> | void;
+  onReply: (reviewId: string, content?: string) => Promise<void> | void;
+  onEdit?: (
+    reviewId: string,
+    data?: { content?: string; rating?: number }
+  ) => Promise<void> | void;
+  onDelete?: (reviewId: string) => Promise<void> | void;
+  onReport?: (
+    reviewId: string,
+    reportType?: string,
+    reason?: string
+  ) => Promise<void> | void;
+}
+
+export interface ReplyListProps {
+  replies: FrontendReply[];
+  reviewId?: string;
+  collapsed?: boolean;
+  onSubmitReply?: (reviewId: string, content: string) => Promise<void> | void;
+  onVote: (replyId: string, type: "up" | "down") => Promise<void> | void;
+  onEdit?: (replyId: string, content: string) => Promise<void> | void;
+  onDelete?: (replyId: string) => Promise<void> | void;
+  onReport?: (
+    replyId: string,
+    reportType?: string,
+    reason?: string
+  ) => Promise<void> | void;
+}
+
+// API Request Interfaces
+export interface VoteRequest {
+  review_id?: string;
+  reply_id?: string;
+  vote_type: boolean; // TRUE for upvote, FALSE for downvote
+}
+
+export interface ReportRequest {
+  review_id?: string;
+  reply_id?: string;
+  reported_user_id?: string;
+  report_type:
+    | "spam"
+    | "harassment"
+    | "inappropriate"
+    | "misinformation"
+    | "other";
+  reason: string;
+}
+
+// UI Related Interfaces
+export interface Rank {
+  name: string;
+  min: number;
+  max: number;
+  color: string;
+  gradient: string;
+  icon: string;
+  // Additional frontend properties
+  nextRankName?: string;
+  echoesToNext?: number;
+}
+
+// Helper functions for converting between backend and frontend models
+export function convertUserToFrontendUser(user: User): FrontendUser {
+  return {
+    ...user,
+    avatarUrl: user.avatar_url,
+    isVerified: !user.is_muffled,
+  };
+}
+
+export function convertNotificationToFrontendNotification(
+  notification: Notification
+): FrontendNotification {
+  return {
+    ...notification,
+    is_read: notification.is_read,
+    read: notification.is_read,
+  };
+}
+
+export function convertReviewToFrontendReview(
+  review: Review,
+  userVote?: Vote | null,
+  currentUserId?: string
+): FrontendReview {
+  return {
+    id: review.id,
+    author: {
+      username: review.user?.username || "Unknown",
+      echoes: review.user?.echoes || 0,
+      isVerified: review.user ? !review.user.is_muffled : false,
+      avatarUrl: review.user?.avatar_url,
+    },
+    content: review.content,
+    rating: review.rating,
+    upvotes: review.upvotes,
+    downvotes: review.downvotes,
+    replyCount: 0, // This should be populated by the caller
+    createdAt: review.created_at,
+    isEdited: review.is_edited,
+    userVote: userVote ? (userVote.vote_type ? "up" : "down") : null,
+    isOwn: currentUserId ? review.user_id === currentUserId : false,
+    courseName: review.course?.name,
+    professorName: review.professor?.name,
+  };
+}
+
+export function convertReplyToFrontendReply(
+  reply: Reply,
+  userVote?: Vote | null,
+  currentUserId?: string
+): FrontendReply {
+  return {
+    id: reply.id,
+    author: {
+      username: reply.user?.username || "Unknown",
+      echoes: reply.user?.echoes || 0,
+      isVerified: reply.user ? !reply.user.is_muffled : false,
+      avatarUrl: reply.user?.avatar_url,
+    },
+    content: reply.content,
+    upvotes: reply.upvotes,
+    downvotes: reply.downvotes,
+    createdAt: reply.created_at,
+    isEdited: reply.is_edited,
+    userVote: userVote ? (userVote.vote_type ? "up" : "down") : null,
+    isOwn: currentUserId ? reply.user_id === currentUserId : false,
+  };
+}
+
+export function convertCourseToFrontendCourse(course: Course): FrontendCourse {
+  return {
+    ...course,
+    average_rating: course.average_rating,
+  };
+}
+
+export function convertProfessorToFrontendProfessor(
+  professor: Professor
+): FrontendProfessor {
+  return {
+    ...professor,
+    average_rating: professor.average_rating,
+  };
+}
+
+export function convertCourseInstructorToFrontendCourseInstructor(
+  courseInstructor: CourseInstructor
+): FrontendCourseInstructor {
+  return {
+    ...courseInstructor,
+    average_rating: courseInstructor.average_rating,
+  };
+}

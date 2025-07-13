@@ -2,11 +2,28 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Star, Users, BookOpen, Calendar, Plus, ArrowLeft, Loader2, GraduationCap } from "lucide-react";
+import {
+  Star,
+  Users,
+  BookOpen,
+  Calendar,
+  Plus,
+  ArrowLeft,
+  Loader2,
+  GraduationCap,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
-import { courseAPI, reviewAPI, voteAPI, replyAPI, Course, Review, Vote } from "@/lib/api";
+import {
+  courseAPI,
+  reviewAPI,
+  voteAPI,
+  replyAPI,
+  Course,
+  Review,
+  Vote,
+} from "@/lib/api";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 
@@ -36,7 +53,11 @@ export default function CoursePage() {
       setCourse(courseData);
 
       // Fetch course reviews
-      const reviewsData = await courseAPI.getCourseReviews(courseData.id, 0, 100);
+      const reviewsData = await courseAPI.getCourseReviews(
+        courseData.id,
+        0,
+        100
+      );
       setReviews(reviewsData);
 
       // Fetch user votes if logged in
@@ -68,7 +89,7 @@ export default function CoursePage() {
     try {
       const reviewsData = await reviewAPI.getReviews({ course_id: course.id });
       setReviews(reviewsData);
-      
+
       // Also refresh user votes if logged in
       if (user) {
         try {
@@ -85,7 +106,7 @@ export default function CoursePage() {
 
   // Helper function to get user's vote for a specific review
   const getUserVoteForReview = (reviewId: string): "up" | "down" | null => {
-    const userVote = userVotes.find(vote => vote.review_id === reviewId);
+    const userVote = userVotes.find((vote) => vote.review_id === reviewId);
     if (!userVote) return null;
     return userVote.vote_type ? "up" : "down";
   };
@@ -101,7 +122,7 @@ export default function CoursePage() {
         review_id: reviewId,
         vote_type: type === "up",
       });
-      
+
       // Refresh reviews to show updated vote counts
       await fetchReviews();
     } catch (err: any) {
@@ -110,9 +131,14 @@ export default function CoursePage() {
     }
   };
 
-  const handleReply = async (reviewId: string, content: string) => {
+  const handleReply = async (reviewId: string, content?: string) => {
     if (!user) {
       showError("Please log in to reply");
+      return;
+    }
+
+    if (!content) {
+      showError("Reply content cannot be empty");
       return;
     }
 
@@ -121,7 +147,7 @@ export default function CoursePage() {
         review_id: reviewId,
         content: content,
       });
-      
+
       // Refresh reviews to show updated reply counts
       await fetchReviews();
       showSuccess("Reply submitted successfully!");
@@ -131,7 +157,10 @@ export default function CoursePage() {
     }
   };
 
-  const handleSubmitReview = async (data: { content: string; rating: number }) => {
+  const handleSubmitReview = async (data: {
+    content: string;
+    rating: number;
+  }) => {
     if (!course) return;
 
     if (!user) {
@@ -153,18 +182,28 @@ export default function CoursePage() {
 
       // Update course stats
       if (course) {
-        setCourse((prevCourse: Course | null) => prevCourse ? {
-          ...prevCourse,
-          review_count: prevCourse.review_count + 1,
-          average_rating: ((parseFloat(prevCourse.average_rating) * prevCourse.review_count) + data.rating) / (prevCourse.review_count + 1)
-        } : null);
+        setCourse((prevCourse: Course | null) =>
+          prevCourse
+            ? {
+                ...prevCourse,
+                review_count: prevCourse.review_count + 1,
+                average_rating: String(
+                  (parseFloat(prevCourse.average_rating) *
+                    prevCourse.review_count +
+                    data.rating) /
+                    (prevCourse.review_count + 1)
+                ),
+              }
+            : null
+        );
       }
 
       setShowReviewForm(false);
       showSuccess("Review submitted successfully!");
     } catch (err: any) {
       console.error("Error submitting review:", err);
-      const errorMessage = err?.message || "Failed to submit review. Please try again.";
+      const errorMessage =
+        err?.message || "Failed to submit review. Please try again.";
       showError(errorMessage);
     } finally {
       setSubmittingReview(false);
@@ -175,8 +214,11 @@ export default function CoursePage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-secondary'
-          }`}
+        className={`w-5 h-5 ${
+          i < Math.floor(rating)
+            ? "text-yellow-500 fill-current"
+            : "text-secondary"
+        }`}
       />
     ));
   };
@@ -188,7 +230,7 @@ export default function CoursePage() {
 
     // Get unique semester/year combinations
     const timeSlots = new Set<string>();
-    course.course_instructors.forEach(instructor => {
+    course.course_instructors.forEach((instructor) => {
       if (instructor.semester && instructor.year) {
         timeSlots.add(`${instructor.semester} ${instructor.year}`);
       }
@@ -204,7 +246,7 @@ export default function CoursePage() {
 
     // Get unique professors
     const professors = new Map<string, string>();
-    course.course_instructors.forEach(instructor => {
+    course.course_instructors.forEach((instructor) => {
       if (instructor.professor) {
         professors.set(instructor.professor.id, instructor.professor.name);
       }
@@ -230,11 +272,10 @@ export default function CoursePage() {
         <div className="text-center">
           <BookOpen className="w-16 h-16 text-secondary mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">Course Not Found</h3>
-          <p className="text-secondary mb-4">{error || "The requested course could not be found."}</p>
-          <button
-            onClick={() => router.back()}
-            className="btn btn-primary"
-          >
+          <p className="text-secondary mb-4">
+            {error || "The requested course could not be found."}
+          </p>
+          <button onClick={() => router.back()} className="btn btn-primary">
             Go Back
           </button>
         </div>
@@ -271,12 +312,16 @@ export default function CoursePage() {
               {timeInfo && (
                 <div className="flex items-center gap-2 mb-4">
                   <Calendar className="w-5 h-5 text-primary" />
-                  <span className="text-lg font-semibold text-primary">{timeInfo}</span>
+                  <span className="text-lg font-semibold text-primary">
+                    {timeInfo}
+                  </span>
                 </div>
               )}
 
               <div className="flex items-center gap-4 mb-2">
-                <h1 className="text-3xl font-bold text-primary">{course.code}</h1>
+                <h1 className="text-3xl font-bold text-primary">
+                  {course.code}
+                </h1>
                 <span className="px-3 py-1 bg-primary/20 text-primary text-sm rounded-full">
                   {course.credits} Credits
                 </span>
@@ -291,7 +336,10 @@ export default function CoursePage() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {professors.map((professor, i) => (
-                      <span key={i} className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full">
+                      <span
+                        key={i}
+                        className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full"
+                      >
                         {professor}
                       </span>
                     ))}
@@ -311,8 +359,12 @@ export default function CoursePage() {
               <div className="flex items-center gap-1">
                 {renderStars(parseFloat(course.average_rating) || 0)}
               </div>
-              <span className="font-semibold">{(parseFloat(course.average_rating) || 0).toFixed(1)}</span>
-              <span className="text-secondary">({course.review_count || 0} reviews)</span>
+              <span className="font-semibold">
+                {(parseFloat(course.average_rating) || 0).toFixed(1)}
+              </span>
+              <span className="text-secondary">
+                ({course.review_count || 0} reviews)
+              </span>
             </div>
 
             {course.official_document_url && (
@@ -333,12 +385,20 @@ export default function CoursePage() {
           {/* Actions */}
           <div className="flex gap-4">
             <button
-              onClick={() => user ? setShowReviewForm(true) : showError("Please log in to submit a review")}
+              onClick={() =>
+                user
+                  ? setShowReviewForm(true)
+                  : showError("Please log in to submit a review")
+              }
               className="btn btn-primary px-6 py-3 flex items-center gap-2"
               disabled={submittingReview}
             >
               <Plus className="w-4 h-4" />
-              {submittingReview ? "Submitting..." : user ? "Rate & Review" : "Login to Review"}
+              {submittingReview
+                ? "Submitting..."
+                : user
+                ? "Rate & Review"
+                : "Login to Review"}
             </button>
             <button className="btn btn-secondary px-6 py-3">
               View Professors
@@ -377,10 +437,11 @@ export default function CoursePage() {
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${sortBy === option
-                    ? 'bg-primary text-black'
-                    : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                    }`}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    sortBy === option
+                      ? "bg-primary text-black"
+                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                  }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
@@ -389,12 +450,13 @@ export default function CoursePage() {
           </div>
 
           <ReviewList
-            reviews={reviews.map(review => ({
+            reviews={reviews.map((review) => ({
               id: review.id,
               author: {
                 username: review.user?.username || "Anonymous",
                 echoes: review.user?.echoes || 0,
-                isVerified: !review.user?.is_muffled
+                isVerified: !review.user?.is_muffled,
+                avatarUrl: review.user?.avatar_url,
               },
               content: review.content || "",
               rating: review.rating,
@@ -403,7 +465,8 @@ export default function CoursePage() {
               replyCount: 0, // TODO: Add reply count from backend
               createdAt: review.created_at,
               isEdited: review.is_edited,
-              userVote: getUserVoteForReview(review.id)
+              userVote: getUserVoteForReview(review.id),
+              isOwn: user ? review.user_id === user.id : false,
             }))}
             onVote={handleVote}
             onReply={handleReply}

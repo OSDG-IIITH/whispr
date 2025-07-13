@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Calendar, MessageSquare, TrendingUp, Settings, Flag, ArrowLeft } from "lucide-react";
+import {
+  Calendar,
+  MessageSquare,
+  TrendingUp,
+  Settings,
+  Flag,
+  ArrowLeft,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { RankBadge } from "@/components/user/RankBadge";
@@ -13,18 +20,27 @@ import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { userAPI, reviewAPI, voteAPI, replyAPI } from "@/lib/api";
-import type { User, Review, Vote } from "@/lib/api";
+import type { User, Review, Vote } from "@/types/backend-models";
+import {
+  FrontendReview,
+  convertReviewToFrontendReview,
+} from "@/types/frontend-models";
 
 // Helper function to transform backend review to frontend format
-const transformReview = (review: Review, userVotes: Vote[], isOwn: boolean) => {
-  const userVote = userVotes.find(vote => vote.review_id === review.id);
+const transformReview = (
+  review: Review,
+  userVotes: Vote[],
+  isOwn: boolean
+): FrontendReview => {
+  const userVote = userVotes.find((vote) => vote.review_id === review.id);
 
   return {
     id: review.id,
     author: {
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,
-      isVerified: !review.user?.is_muffled
+      isVerified: review.user ? !review.user.is_muffled : false,
+      avatarUrl: review.user?.avatar_url,
     },
     content: review.content || "",
     rating: review.rating,
@@ -36,7 +52,8 @@ const transformReview = (review: Review, userVotes: Vote[], isOwn: boolean) => {
     userVote: userVote ? (userVote.vote_type ? "up" : "down") : null,
     isOwn,
     courseName: review.course?.name || review.course_instructor?.course?.name,
-    professorName: review.professor?.name || review.course_instructor?.professor?.name
+    professorName:
+      review.professor?.name || review.course_instructor?.professor?.name,
   };
 };
 
@@ -44,7 +61,7 @@ export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
   const { user: currentUser } = useAuth();
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -88,13 +105,18 @@ export default function ProfilePage() {
 
   const handleVote = async (reviewId: string, type: "up" | "down") => {
     try {
-      await voteAPI.createVote({ review_id: reviewId, vote_type: type });
+      await voteAPI.createVote({
+        review_id: reviewId,
+        vote_type: type === "up",
+      });
       // Refresh votes and reviews
       if (currentUser) {
         const votes = await voteAPI.getMyVotes();
         setUserVotes(votes);
       }
-      const userReviews = await reviewAPI.getReviews({ user_id: profileUser!.id });
+      const userReviews = await reviewAPI.getReviews({
+        user_id: profileUser!.id,
+      });
       setReviews(userReviews);
     } catch (error) {
       console.error("Failed to vote:", error);
@@ -102,9 +124,14 @@ export default function ProfilePage() {
     }
   };
 
-  const handleReply = async (reviewId: string, content: string) => {
+  const handleReply = async (reviewId: string, content?: string) => {
     if (!currentUser) {
       showError("Please log in to reply");
+      return;
+    }
+
+    if (!content) {
+      showError("Reply content is required");
       return;
     }
 
@@ -113,9 +140,11 @@ export default function ProfilePage() {
         review_id: reviewId,
         content: content,
       });
-      
+
       // Refresh reviews to show updated reply counts
-      const userReviews = await reviewAPI.getReviews({ user_id: profileUser!.id });
+      const userReviews = await reviewAPI.getReviews({
+        user_id: profileUser!.id,
+      });
       setReviews(userReviews);
       showSuccess("Reply submitted successfully!");
     } catch (error: any) {
@@ -124,17 +153,27 @@ export default function ProfilePage() {
     }
   };
 
-  const handleEdit = async (reviewId: string, data: { content?: string; rating?: number }) => {
+  const handleEdit = async (
+    reviewId: string,
+    data?: { content?: string; rating?: number }
+  ) => {
     if (!currentUser) {
       showError("Please log in to edit");
       return;
     }
 
+    if (!data) {
+      showError("No changes to make");
+      return;
+    }
+
     try {
       await reviewAPI.updateReview(reviewId, data);
-      
+
       // Refresh reviews to show updated content
-      const userReviews = await reviewAPI.getReviews({ user_id: profileUser!.id });
+      const userReviews = await reviewAPI.getReviews({
+        user_id: profileUser!.id,
+      });
       setReviews(userReviews);
       showSuccess("Review updated successfully!");
     } catch (error: any) {
@@ -155,9 +194,11 @@ export default function ProfilePage() {
 
     try {
       await reviewAPI.deleteReview(reviewId);
-      
+
       // Refresh reviews to remove deleted review
-      const userReviews = await reviewAPI.getReviews({ user_id: profileUser!.id });
+      const userReviews = await reviewAPI.getReviews({
+        user_id: profileUser!.id,
+      });
       setReviews(userReviews);
       showSuccess("Review deleted successfully!");
     } catch (error: any) {
@@ -192,10 +233,7 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <p className="text-secondary mb-4">User not found</p>
-          <button
-            onClick={() => router.back()}
-            className="btn btn-primary"
-          >
+          <button onClick={() => router.back()} className="btn btn-primary">
             Go Back
           </button>
         </div>
@@ -204,13 +242,16 @@ export default function ProfilePage() {
   }
 
   // Transform reviews to frontend format
-  const transformedReviews = reviews.map(review =>
+  const transformedReviews = reviews.map((review) =>
     transformReview(review, userVotes, isOwnProfile)
   );
 
   // Calculate stats from actual data
   const totalUpvotes = reviews.reduce((sum, review) => sum + review.upvotes, 0);
-  const totalDownvotes = reviews.reduce((sum, review) => sum + review.downvotes, 0);
+  const totalDownvotes = reviews.reduce(
+    (sum, review) => sum + review.downvotes,
+    0
+  );
   const followersCount = 0; // TODO: Implement followers when backend supports it
   const profileViews = 0; // TODO: Implement profile views when backend supports it
 
@@ -218,23 +259,23 @@ export default function ProfilePage() {
     {
       label: "Reviews",
       value: reviews.length,
-      icon: <MessageSquare className="w-5 h-5 text-blue-500" />
+      icon: <MessageSquare className="w-5 h-5 text-blue-500" />,
     },
     {
       label: "Upvotes",
       value: totalUpvotes,
-      icon: <TrendingUp className="w-5 h-5 text-green-500" />
+      icon: <TrendingUp className="w-5 h-5 text-green-500" />,
     },
     {
       label: "Profile Views",
       value: profileViews,
-      icon: <Settings className="w-5 h-5 text-purple-500" />
+      icon: <Settings className="w-5 h-5 text-purple-500" />,
     },
     {
       label: "Followers",
       value: followersCount,
-      icon: <Calendar className="w-5 h-5 text-yellow-500" />
-    }
+      icon: <Calendar className="w-5 h-5 text-yellow-500" />,
+    },
   ];
 
   return (
@@ -284,7 +325,9 @@ export default function ProfilePage() {
               </div>
 
               {profileUser.bio && (
-                <p className="text-secondary leading-relaxed mb-4">{profileUser.bio}</p>
+                <p className="text-secondary leading-relaxed mb-4">
+                  {profileUser.bio}
+                </p>
               )}
 
               <div className="flex items-center gap-4 text-sm text-secondary">
@@ -311,9 +354,7 @@ export default function ProfilePage() {
                 </button>
               ) : (
                 <>
-                  <button className="btn btn-primary px-4 py-2">
-                    Follow
-                  </button>
+                  <button className="btn btn-primary px-4 py-2">Follow</button>
                   <button className="btn btn-secondary px-4 py-2 flex items-center gap-2">
                     <Flag className="w-4 h-4" />
                     Report
@@ -333,9 +374,7 @@ export default function ProfilePage() {
                 transition={{ delay: 0.1 * index }}
                 className="bg-muted/50 rounded-lg p-4 text-center"
               >
-                <div className="flex justify-center mb-2">
-                  {stat.icon}
-                </div>
+                <div className="flex justify-center mb-2">{stat.icon}</div>
                 <div className="text-xl font-bold">{stat.value}</div>
                 <div className="text-sm text-secondary">{stat.label}</div>
               </motion.div>
@@ -350,7 +389,9 @@ export default function ProfilePage() {
           transition={{ delay: 0.2 }}
         >
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold">Reviews ({transformedReviews.length})</h3>
+            <h3 className="text-2xl font-bold">
+              Reviews ({transformedReviews.length})
+            </h3>
 
             <div className="flex items-center gap-2">
               <span className="text-secondary">Filter:</span>
@@ -358,10 +399,11 @@ export default function ProfilePage() {
                 <button
                   key={option}
                   onClick={() => setFilterBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${filterBy === option
-                    ? 'bg-primary text-black'
-                    : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                    }`}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    filterBy === option
+                      ? "bg-primary text-black"
+                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                  }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

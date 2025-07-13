@@ -2,7 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Star, Users, GraduationCap, Plus, ArrowLeft, ExternalLink } from "lucide-react";
+import {
+  Star,
+  Users,
+  GraduationCap,
+  Plus,
+  ArrowLeft,
+  ExternalLink,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
@@ -19,50 +26,62 @@ const mockProfessor = {
   courses: [
     { code: "CS101", name: "Computer Networks", semester: "MONSOON 2024" },
     { code: "CS301", name: "Advanced Networking", semester: "SPRING 2024" },
-    { code: "CS501", name: "Network Security", semester: "MONSOON 2023" }
+    { code: "CS501", name: "Network Security", semester: "MONSOON 2023" },
   ],
-  researchAreas: ["Computer Networks", "Distributed Systems", "IoT", "Network Security"],
+  researchAreas: [
+    "Computer Networks",
+    "Distributed Systems",
+    "IoT",
+    "Network Security",
+  ],
   socialMedia: [
-    { platform: "Google Scholar", url: "https://scholar.google.com/citations?user=example" },
+    {
+      platform: "Google Scholar",
+      url: "https://scholar.google.com/citations?user=example",
+    },
     { platform: "LinkedIn", url: "https://linkedin.com/in/example" },
-    { platform: "Personal Website", url: "https://example.com" }
+    { platform: "Personal Website", url: "https://example.com" },
   ],
-  bio: "Dr. Network Expert is a leading researcher in computer networks and distributed systems. With over 10 years of experience in academia and industry, they have published numerous papers in top-tier conferences and journals."
+  bio: "Dr. Network Expert is a leading researcher in computer networks and distributed systems. With over 10 years of experience in academia and industry, they have published numerous papers in top-tier conferences and journals.",
 };
 
 const mockReviews = [
   {
     id: "1",
+    user_id: "user1",
     author: {
-      username: "grateful_student",
-      echoes: 156,
-      isVerified: true
+      username: "grad_student",
+      echoes: 120,
+      isVerified: true,
     },
-    content: "Absolutely fantastic professor! Dr. Expert has a unique ability to make complex networking concepts easy to understand. Their lectures are engaging and the assignments are challenging but fair. Always available for help during office hours.",
+    content:
+      "Prof. Einstein is incredibly knowledgeable and passionate about physics. His lectures are engaging and he's always willing to help students during office hours. The assignments are challenging but fair, and you'll learn a lot if you put in the effort.",
     rating: 5,
-    upvotes: 32,
-    downvotes: 1,
-    replyCount: 12,
-    createdAt: "2024-01-20T10:30:00Z",
+    upvotes: 45,
+    downvotes: 3,
+    replyCount: 2,
+    createdAt: "2024-02-12T09:15:00Z",
     isEdited: false,
-    userVote: null
+    userVote: null,
   },
   {
     id: "2",
+    user_id: "user2",
     author: {
       username: "systems_student",
       echoes: 78,
-      isVerified: true
+      isVerified: true,
     },
-    content: "Great teaching style and very knowledgeable. The course was well-structured and I learned a lot. However, the exams can be quite challenging, so make sure to keep up with the material throughout the semester.",
+    content:
+      "Great teaching style and very knowledgeable. The course was well-structured and I learned a lot. However, the exams can be quite challenging, so make sure to keep up with the material throughout the semester.",
     rating: 4,
     upvotes: 18,
     downvotes: 2,
     replyCount: 5,
     createdAt: "2024-01-18T14:22:00Z",
     isEdited: false,
-    userVote: "up" as const
-  }
+    userVote: "up" as const,
+  },
 ];
 
 export default function ProfessorPage() {
@@ -87,13 +106,13 @@ export default function ProfessorPage() {
         }
       }
     };
-    
+
     fetchUserVotes();
   }, [user]);
 
   // Helper function to get user's vote for a specific review
   const getUserVoteForReview = (reviewId: string): "up" | "down" | null => {
-    const userVote = userVotes.find(vote => vote.review_id === reviewId);
+    const userVote = userVotes.find((vote) => vote.review_id === reviewId);
     if (!userVote) return null;
     return userVote.vote_type ? "up" : "down";
   };
@@ -109,7 +128,7 @@ export default function ProfessorPage() {
         review_id: reviewId,
         vote_type: type === "up",
       });
-      
+
       // Refresh user votes to show updated state
       try {
         const votes = await voteAPI.getMyVotes();
@@ -117,7 +136,7 @@ export default function ProfessorPage() {
       } catch (err) {
         console.error("Error refreshing user votes:", err);
       }
-      
+
       showSuccess(`${type === "up" ? "Upvoted" : "Downvoted"} review!`);
     } catch (err: any) {
       console.error("Error voting on review:", err);
@@ -125,9 +144,14 @@ export default function ProfessorPage() {
     }
   };
 
-  const handleReply = async (reviewId: string, content: string) => {
+  const handleReply = async (reviewId: string, content?: string) => {
     if (!user) {
       showError("Please log in to reply");
+      return;
+    }
+
+    if (!content) {
+      showError("Reply content cannot be empty");
       return;
     }
 
@@ -136,7 +160,7 @@ export default function ProfessorPage() {
         review_id: reviewId,
         content: content,
       });
-      
+
       // Note: You'll need to implement review refresh similar to other pages
       showSuccess("Reply submitted successfully!");
     } catch (err: any) {
@@ -145,7 +169,10 @@ export default function ProfessorPage() {
     }
   };
 
-  const handleSubmitReview = async (data: { content: string; rating: number }) => {
+  const handleSubmitReview = async (data: {
+    content: string;
+    rating: number;
+  }) => {
     console.log("Submitting review:", data);
     setShowReviewForm(false);
   };
@@ -154,8 +181,11 @@ export default function ProfessorPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${i < Math.floor(rating) ? 'text-yellow-500 fill-current' : 'text-secondary'
-          }`}
+        className={`w-5 h-5 ${
+          i < Math.floor(rating)
+            ? "text-yellow-500 fill-current"
+            : "text-secondary"
+        }`}
       />
     ));
   };
@@ -188,7 +218,9 @@ export default function ProfessorPage() {
             <div className="flex-1">
               <h1 className="text-3xl font-bold mb-2">{mockProfessor.name}</h1>
               <p className="text-primary text-lg mb-4">{mockProfessor.lab}</p>
-              <p className="text-secondary leading-relaxed">{mockProfessor.bio}</p>
+              <p className="text-secondary leading-relaxed">
+                {mockProfessor.bio}
+              </p>
             </div>
           </div>
 
@@ -198,8 +230,12 @@ export default function ProfessorPage() {
               <div className="flex items-center gap-1">
                 {renderStars(mockProfessor.averageRating)}
               </div>
-              <span className="font-semibold text-lg">{mockProfessor.averageRating.toFixed(1)}</span>
-              <span className="text-secondary">({mockProfessor.reviewCount} reviews)</span>
+              <span className="font-semibold text-lg">
+                {mockProfessor.averageRating.toFixed(1)}
+              </span>
+              <span className="text-secondary">
+                ({mockProfessor.reviewCount} reviews)
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -213,7 +249,10 @@ export default function ProfessorPage() {
             <h3 className="font-semibold mb-3">Research Areas</h3>
             <div className="flex flex-wrap gap-2">
               {mockProfessor.researchAreas.map((area, index) => (
-                <span key={index} className="bg-primary/10 text-primary px-3 py-2 rounded-lg">
+                <span
+                  key={index}
+                  className="bg-primary/10 text-primary px-3 py-2 rounded-lg"
+                >
                   {area}
                 </span>
               ))}
@@ -228,7 +267,9 @@ export default function ProfessorPage() {
                 <div key={index} className="bg-muted p-4 rounded-lg">
                   <div className="font-medium text-primary">{course.code}</div>
                   <div className="font-medium">{course.name}</div>
-                  <div className="text-sm text-secondary">{course.semester}</div>
+                  <div className="text-sm text-secondary">
+                    {course.semester}
+                  </div>
                 </div>
               ))}
             </div>
@@ -299,10 +340,11 @@ export default function ProfessorPage() {
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${sortBy === option
-                      ? 'bg-primary text-black'
-                      : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                    }`}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    sortBy === option
+                      ? "bg-primary text-black"
+                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                  }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
@@ -311,9 +353,10 @@ export default function ProfessorPage() {
           </div>
 
           <ReviewList
-            reviews={reviews.map(review => ({
+            reviews={reviews.map((review) => ({
               ...review,
-              userVote: getUserVoteForReview(review.id)
+              userVote: getUserVoteForReview(review.id),
+              isOwn: user ? review.user_id === user.id : false,
             }))}
             onVote={handleVote}
             onReply={handleReply}

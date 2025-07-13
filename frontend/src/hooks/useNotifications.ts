@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { notificationAPI, type Notification } from "@/lib/api";
+import { notificationAPI } from "@/lib/api";
+import { Notification } from "@/types/backend-models";
+import {
+  FrontendNotification,
+  convertNotificationToFrontendNotification,
+} from "@/types/frontend-models";
 
 export function useNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<FrontendNotification[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -15,8 +22,12 @@ export function useNotifications() {
   const fetchNotifications = async () => {
     try {
       const data = await notificationAPI.getNotifications();
-      setNotifications(data);
-      setUnreadCount(data.filter((n: Notification) => !n.read).length);
+      // Transform backend notifications to frontend format
+      const frontendNotifications = data.map((n) =>
+        convertNotificationToFrontendNotification(n)
+      );
+      setNotifications(frontendNotifications);
+      setUnreadCount(frontendNotifications.filter((n) => !n.read).length);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     } finally {
@@ -28,12 +39,12 @@ export function useNotifications() {
     try {
       await notificationAPI.markAsRead(notificationId);
 
-      setNotifications(prev =>
-        prev.map(n =>
-          n.id === notificationId ? { ...n, read: true } : n
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notificationId ? { ...n, is_read: true, read: true } : n
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
     }
@@ -43,8 +54,8 @@ export function useNotifications() {
     try {
       await notificationAPI.markAllAsRead();
 
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, read: true }))
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, is_read: true, read: true }))
       );
       setUnreadCount(0);
     } catch (error) {
@@ -53,14 +64,17 @@ export function useNotifications() {
   };
 
   const addNotification = (notification: Omit<Notification, "id">) => {
-    const newNotification: Notification = {
+    const backendNotification: Notification = {
       ...notification,
-      id: Date.now().toString()
+      id: Date.now().toString(),
     };
 
-    setNotifications(prev => [newNotification, ...prev]);
-    if (!notification.read) {
-      setUnreadCount(prev => prev + 1);
+    const newNotification =
+      convertNotificationToFrontendNotification(backendNotification);
+
+    setNotifications((prev) => [newNotification, ...prev]);
+    if (!newNotification.read) {
+      setUnreadCount((prev) => prev + 1);
     }
   };
 
@@ -71,6 +85,6 @@ export function useNotifications() {
     markAsRead,
     markAllAsRead,
     addNotification,
-    refresh: fetchNotifications
+    refresh: fetchNotifications,
   };
 }

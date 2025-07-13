@@ -1,57 +1,31 @@
 // API service for backend integration
+import {
+  User,
+  Review,
+  Vote,
+  Reply,
+  Report,
+  Notification,
+  Professor,
+  CourseInstructor,
+  Course,
+} from "@/types/backend-models";
+
+import {
+  FrontendUser,
+  FrontendReview,
+  FrontendReply,
+  FrontendNotification,
+  FrontendCourse,
+  FrontendProfessor,
+  FrontendCourseInstructor,
+  convertUserToFrontendUser,
+  convertNotificationToFrontendNotification,
+  convertReviewToFrontendReview,
+  convertReplyToFrontendReply,
+} from "@/types/frontend-models";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
-
-// Types
-export interface User {
-  id: string;
-  username: string;
-  avatar_url?: string;
-  bio?: string;
-  student_since_year?: number;
-  is_muffled: boolean;
-  is_admin: boolean;
-  echoes: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Review {
-  id: string;
-  user_id: string;
-  course_id?: string;
-  professor_id?: string;
-  course_instructor_id?: string;
-  rating: number;
-  content?: string;
-  upvotes: number;
-  downvotes: number;
-  is_edited: boolean;
-  created_at: string;
-  updated_at: string;
-  user?: User;
-  course?: {
-    id: string;
-    code: string;
-    name: string;
-  };
-  professor?: {
-    id: string;
-    name: string;
-  };
-  course_instructor?: {
-    id: string;
-    course: {
-      id: string;
-      code: string;
-      name: string;
-    };
-    professor: {
-      id: string;
-      name: string;
-    };
-  };
-}
 
 export interface UserUpdate {
   username?: string;
@@ -61,95 +35,27 @@ export interface UserUpdate {
   password?: string;
 }
 
-export interface Vote {
-  id: string;
-  user_id: string;
-  review_id?: string;
-  reply_id?: string;
-  vote_type: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Reply {
-  id: string;
-  review_id: string;
-  user_id: string;
-  content: string;
-  upvotes: number;
-  downvotes: number;
-  is_edited: boolean;
-  created_at: string;
-  updated_at: string;
-  user?: User;
-}
-
-export interface Report {
-  id: string;
-  reporter_id: string;
-  review_id?: string;
-  reply_id?: string;
-  reported_user_id?: string;
-  report_type:
-    | "spam"
-    | "harassment"
-    | "inappropriate"
-    | "misinformation"
-    | "other";
-  reason: string;
-  status: "pending" | "reviewed" | "resolved" | "dismissed";
-  admin_notes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Notification {
-  id: string;
-  username: string;
-  type: "MENTION" | "VOTE" | "REPLY" | "RANK_CHANGE" | "SYSTEM";
-  content: string;
-  source_id?: string;
-  source_type?: string;
-  actor_username?: string;
-  is_read: boolean;
-  created_at: string;
-}
-
-export interface Professor {
-  id: string;
-  name: string;
-  lab?: string;
-  review_count: number;
-  average_rating: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CourseInstructor {
-  id: string;
-  professor_id: string;
-  course_id: string;
-  semester?: string;
-  year?: number;
-  summary?: string;
-  review_count: number;
-  average_rating: string;
-  created_at: string;
-  professor: Professor;
-}
-
-export interface Course {
-  id: string;
-  code: string;
-  name: string;
-  credits: number;
-  description: string;
-  average_rating: string;
-  review_count: number;
-  created_at: string;
-  updated_at: string;
-  course_instructors: CourseInstructor[];
-}
+// Re-export types for convenience
+export type {
+  User,
+  Review,
+  Vote,
+  Reply,
+  Report,
+  Notification,
+  Professor,
+  CourseInstructor,
+  Course,
+};
+export type {
+  FrontendUser,
+  FrontendReview,
+  FrontendReply,
+  FrontendNotification,
+  FrontendCourse,
+  FrontendProfessor,
+  FrontendCourseInstructor,
+};
 
 // Helper function for API calls
 async function apiCall<T>(

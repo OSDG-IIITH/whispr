@@ -5,36 +5,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ReviewCard } from "./ReviewCard";
 import { LoadingBubble } from "@/components/common/LoadingBubble";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-
-interface Review {
-  id: string;
-  author: {
-    username: string;
-    echoes: number;
-    isVerified: boolean;
-    avatarUrl?: string;
-  };
-  content: string;
-  rating: number;
-  upvotes: number;
-  downvotes: number;
-  replyCount: number;
-  createdAt: string;
-  isEdited: boolean;
-  userVote?: "up" | "down" | null;
-  isOwn?: boolean;
-}
+import { FrontendReview } from "@/types/frontend-models";
 
 interface ReviewListProps {
-  reviews: Review[];
+  reviews: FrontendReview[];
   loading?: boolean;
   hasMore?: boolean;
   onLoadMore?: () => void;
-  onVote: (reviewId: string, type: "up" | "down") => void;
-  onReply: (reviewId: string) => void;
-  onEdit?: (reviewId: string) => void;
-  onDelete?: (reviewId: string) => void;
-  onReport?: (reviewId: string) => void;
+  showCourse?: boolean;
+  showProfessor?: boolean;
+  onVote: (reviewId: string, type: "up" | "down") => Promise<void> | void;
+  onReply: (reviewId: string, content?: string) => Promise<void> | void;
+  onEdit?: (
+    reviewId: string,
+    data?: { content?: string; rating?: number }
+  ) => Promise<void> | void;
+  onDelete?: (reviewId: string) => Promise<void> | void;
+  onReport?: (
+    reviewId: string,
+    reportType?: string,
+    reason?: string
+  ) => Promise<void> | void;
   emptyMessage?: string;
 }
 
@@ -48,12 +39,12 @@ export function ReviewList({
   onEdit,
   onDelete,
   onReport,
-  emptyMessage = "No reviews yet. Be the first to share your experience!"
+  emptyMessage = "No reviews yet. Be the first to share your experience!",
 }: ReviewListProps) {
   const { loadMoreRef } = useInfiniteScroll({
     hasMore,
-    onLoadMore: onLoadMore || (() => { }),
-    loading
+    onLoadMore: onLoadMore || (() => {}),
+    loading,
   });
 
   if (loading && reviews.length === 0) {
