@@ -23,3 +23,6 @@ venv/
 # Compiled TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# GitHub files
+.github/
