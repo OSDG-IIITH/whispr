@@ -60,7 +60,7 @@ const transformReview = (
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refresh } = useAuth();
   const { showError, showSuccess } = useToast();
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
@@ -118,6 +118,9 @@ export default function ProfilePage() {
         user_id: profileUser!.id,
       });
       setReviews(userReviews);
+      
+      // Refresh user data to get updated echo points
+      await refresh();
     } catch (error) {
       console.error("Failed to vote:", error);
       showError("Failed to vote. Please try again.");

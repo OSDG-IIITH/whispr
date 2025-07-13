@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Shield, CheckCircle, XCircle, AlertCircle, ExternalLink } from "lucide-react";
 import { verificationAPI } from "@/lib/api";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function VerifyPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { refresh } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'initiate'>('loading');
   const [message, setMessage] = useState('');
   const [step, setStep] = useState<'disclaimer' | 'redirect'>('disclaimer');
@@ -21,6 +23,9 @@ export default function VerifyPage() {
     if (success === 'true') {
       setStatus('success');
       setMessage('Your account has been successfully verified! You can now post reviews and vote.');
+
+      // Refresh user data to get updated verification status
+      refresh();
 
       // Redirect to dashboard after 3 seconds
       setTimeout(() => {
@@ -50,7 +55,7 @@ export default function VerifyPage() {
     } else {
       setStatus('initiate');
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, refresh]);
 
   const handleInitiateVerification = async () => {
     if (step === 'disclaimer' && agreed) {

@@ -28,13 +28,13 @@ import {
 } from "@/lib/api";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
-import { convertReplyToFrontendReply } from '@/types/frontend-models';
+import { convertReplyToFrontendReply } from "@/types/frontend-models";
 
 export default function CoursePage() {
   const params = useParams();
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userVotes, setUserVotes] = useState<Vote[]>([]);
@@ -43,9 +43,13 @@ export default function CoursePage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [sortBy, setSortBy] = useState("newest");
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [activeReplyReviewId, setActiveReplyReviewId] = useState<string | null>(null);
+  const [activeReplyReviewId, setActiveReplyReviewId] = useState<string | null>(
+    null
+  );
   const [replySubmitting, setReplySubmitting] = useState(false);
-  const [repliesByReview, setRepliesByReview] = useState<Record<string, any[]>>({});
+  const [repliesByReview, setRepliesByReview] = useState<Record<string, any[]>>(
+    {}
+  );
 
   const courseCode = params.id as string;
 
@@ -91,7 +95,9 @@ export default function CoursePage() {
       reviews.map(async (review) => {
         const replies = await replyAPI.getReplies({ review_id: review.id });
         // Transform replies to FrontendReply
-        repliesObj[review.id] = replies.map((reply: any) => convertReplyToFrontendReply(reply));
+        repliesObj[review.id] = replies.map((reply: any) =>
+          convertReplyToFrontendReply(reply)
+        );
       })
     );
     setRepliesByReview(repliesObj);
@@ -159,13 +165,15 @@ export default function CoursePage() {
 
       // Refresh reviews to show updated vote counts
       await fetchReviewsAndReplies();
+
+      // Refresh user data to get updated echo points
+      await refresh();
     } catch (err: any) {
       console.error("Error voting on review:", err);
       showError(err.message || "Failed to vote. Please try again.");
     }
   };
 
-  // Voting for replies
   const handleReplyVote = async (replyId: string, type: "up" | "down") => {
     if (!user) {
       showError("Please log in to vote");
@@ -180,10 +188,12 @@ export default function CoursePage() {
         reply_id: replyId,
         vote_type: type === "up",
       });
-      // Refresh votes and replies
-      const votes = await voteAPI.getMyVotes();
-      setUserVotes(votes);
+
+      // Refresh reviews and replies to show updated vote counts
       await fetchReviewsAndReplies();
+
+      // Refresh user data to get updated echo points
+      await refresh();
     } catch (err: any) {
       console.error("Error voting on reply:", err);
       showError(err.message || "Failed to vote. Please try again.");
@@ -245,15 +255,15 @@ export default function CoursePage() {
         setCourse((prevCourse: Course | null) =>
           prevCourse
             ? {
-              ...prevCourse,
-              review_count: prevCourse.review_count + 1,
-              average_rating: String(
-                (parseFloat(prevCourse.average_rating) *
-                  prevCourse.review_count +
-                  data.rating) /
-                (prevCourse.review_count + 1)
-              ),
-            }
+                ...prevCourse,
+                review_count: prevCourse.review_count + 1,
+                average_rating: String(
+                  (parseFloat(prevCourse.average_rating) *
+                    prevCourse.review_count +
+                    data.rating) /
+                    (prevCourse.review_count + 1)
+                ),
+              }
             : null
         );
       }
@@ -323,10 +333,11 @@ export default function CoursePage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${i < Math.floor(rating)
-          ? "text-yellow-500 fill-current"
-          : "text-secondary"
-          }`}
+        className={`w-5 h-5 ${
+          i < Math.floor(rating)
+            ? "text-yellow-500 fill-current"
+            : "text-secondary"
+        }`}
       />
     ));
   };
@@ -509,8 +520,8 @@ export default function CoursePage() {
               {submittingReview
                 ? "Submitting..."
                 : user
-                  ? "Rate & Review"
-                  : "Login to Review"}
+                ? "Rate & Review"
+                : "Login to Review"}
             </button>
             <button className="btn btn-secondary px-6 py-3">
               View Professors
@@ -549,10 +560,11 @@ export default function CoursePage() {
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${sortBy === option
-                    ? "bg-primary text-black"
-                    : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                    }`}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    sortBy === option
+                      ? "bg-primary text-black"
+                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                  }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
@@ -594,7 +606,9 @@ export default function CoursePage() {
                     className="mt-2"
                   >
                     <ReplyForm
-                      onSubmit={async (content) => await handleReply(review.id, content)}
+                      onSubmit={async (content) =>
+                        await handleReply(review.id, content)
+                      }
                       onCancel={() => setActiveReplyReviewId(null)}
                       disabled={replySubmitting}
                     />
@@ -607,7 +621,9 @@ export default function CoursePage() {
                   }))}
                   reviewId={review.id}
                   onVote={handleReplyVote}
-                  onSubmitReply={async (reviewId, content) => await handleReply(reviewId, content)}
+                  onSubmitReply={async (reviewId, content) =>
+                    await handleReply(reviewId, content)
+                  }
                   onEdit={handleReplyEdit}
                   onDelete={handleReplyDelete}
                 />

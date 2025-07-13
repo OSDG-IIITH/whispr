@@ -37,11 +37,11 @@ export function ReviewCard({
   onReport,
   showReplies = true,
 }: ReviewCardProps) {
+  const { showError } = useToast();
   const [showActions, setShowActions] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const { showError } = useToast ? useToast() : { showError: () => { } };
 
   const handleVote = (type: "up" | "down") => {
     onVote(review.id, type);
@@ -60,7 +60,7 @@ export function ReviewCard({
       await onEdit(review.id, data);
       setIsEditing(false);
     } catch (e: any) {
-      showError?.(e?.message || "Failed to update review");
+      showError(e?.message || "Failed to update review");
     }
   };
 
@@ -149,6 +149,7 @@ export function ReviewCard({
                 initialRating={review.rating}
                 submitText="Save Changes"
                 title="Edit Review"
+                placeholder="Edit your review..."
                 onSubmit={handleEditSubmit}
                 onCancel={() => setIsEditing(false)}
               />

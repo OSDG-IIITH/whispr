@@ -44,7 +44,7 @@ const transformReview = (review: Review, userVotes: Vote[]) => {
 
 export default function MyReviewsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const { showError, showSuccess } = useToast();
   const [reviews, setReviews] = useState<any[]>([]);
   const [userVotes, setUserVotes] = useState<Vote[]>([]);
@@ -96,6 +96,9 @@ export default function MyReviewsPage() {
       // Refresh votes and reviews
       await fetchUserVotes();
       await fetchUserReviews();
+      
+      // Refresh user data to get updated echo points
+      await refresh();
     } catch (error) {
       console.error("Failed to vote:", error);
       showError("Failed to vote. Please try again.");

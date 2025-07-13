@@ -33,11 +33,11 @@ export function ReplyCard({
   onDelete,
   onReport,
 }: ReplyCardProps) {
+  const { showError } = useToast();
   const [showActions, setShowActions] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const { showError } = useToast ? useToast() : { showError: () => { } };
 
   const handleVote = (type: "up" | "down") => {
     onVote(reply.id, type);
@@ -56,7 +56,7 @@ export function ReplyCard({
       await onEdit(reply.id, content);
       setIsEditing(false);
     } catch (e: any) {
-      showError?.(e?.message || "Failed to update reply");
+      showError(e?.message || "Failed to update reply");
     }
   };
 

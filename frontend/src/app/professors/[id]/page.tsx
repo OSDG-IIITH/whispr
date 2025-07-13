@@ -88,7 +88,7 @@ export default function ProfessorPage() {
   const params = useParams();
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviews, setReviews] = useState(mockReviews);
   const [userVotes, setUserVotes] = useState<Vote[]>([]);
@@ -136,6 +136,9 @@ export default function ProfessorPage() {
       } catch (err) {
         console.error("Error refreshing user votes:", err);
       }
+
+      // Refresh user data to get updated echo points
+      await refresh();
 
       showSuccess(`${type === "up" ? "Upvoted" : "Downvoted"} review!`);
     } catch (err: any) {

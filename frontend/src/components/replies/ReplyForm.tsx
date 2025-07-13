@@ -10,20 +10,22 @@ interface ReplyFormProps {
   onCancel?: () => void;
   placeholder?: string;
   initialContent?: string;
+  disabled?: boolean;
 }
 
 export function ReplyForm({ 
   onSubmit, 
   onCancel, 
   placeholder = "Write a thoughtful reply...",
-  initialContent = ""
+  initialContent = "",
+  disabled = false
 }: ReplyFormProps) {
   const [content, setContent] = useState(initialContent);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || isSubmitting) return;
+    if (!content.trim() || isSubmitting || disabled) return;
 
     setIsSubmitting(true);
     try {
@@ -47,6 +49,7 @@ export function ReplyForm({
           placeholder={placeholder}
           maxLength={500}
           rows={3}
+          disabled={disabled || isSubmitting}
         />
         
         <div className="flex justify-between items-center">
@@ -66,7 +69,7 @@ export function ReplyForm({
             )}
             <button
               type="submit"
-              disabled={!content.trim() || isSubmitting}
+              disabled={!content.trim() || isSubmitting || disabled}
               className="btn btn-primary px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isSubmitting ? (
