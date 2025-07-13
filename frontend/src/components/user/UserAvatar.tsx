@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import Image from "next/image";
 import { getRank } from "@/lib/utils";
 
 interface UserAvatarProps {
@@ -59,7 +58,7 @@ export function UserAvatar({ username, echoes = 0, size = "md", className = "", 
   if (avatarUrl) {
     return (
       <div className={`${sizeClasses[size]} relative ${className}`}>
-        <Image
+        <img
           src={avatarUrl}
           alt={`${username}'s avatar`}
           width={100}
