@@ -5,7 +5,7 @@ Helper functions for managing echo points.
 from typing import Optional
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func, and_
+from sqlalchemy import select, update, func, and_, case
 
 from app.models.user import User as UserModel
 from app.models.vote import Vote as VoteModel
@@ -29,7 +29,7 @@ async def calculate_user_echo_points(
     """
     # Get votes on user's reviews
     stmt = select(func.sum(
-        func.case(
+        case(
             (VoteModel.vote_type.is_(True), 1),
             (VoteModel.vote_type.is_(False), -1),
             else_=0
@@ -46,7 +46,7 @@ async def calculate_user_echo_points(
 
     # Get votes on user's replies
     stmt = select(func.sum(
-        func.case(
+        case(
             (VoteModel.vote_type.is_(True), 0.5),
             (VoteModel.vote_type.is_(False), -0.5),
             else_=0

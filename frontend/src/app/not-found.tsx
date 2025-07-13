@@ -54,10 +54,10 @@ export default function NotFound() {
             className="mb-8"
           >
             <p className="text-xl text-secondary mb-4">
-              Oops! The page you're looking for seems to have whispered away.
+              Oops! The page you&apos;re looking for seems to have whispered away.
             </p>
             <p className="text-lg text-secondary">
-              Don't worry, you can always find your way back to the main conversation.
+              Don&apos;t worry, you can always find your way back to the main conversation.
             </p>
           </motion.div>
 

@@ -135,7 +135,7 @@ export function ReportModal({
                 {/* Report Type Selection */}
                 <div>
                   <h3 className="text-sm font-medium mb-3">
-                    What's the issue?
+                    What&apos;s the issue?
                   </h3>
                   <div className="space-y-2">
                     {reportTypes.map((type) => {

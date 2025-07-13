@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Star, Users, GraduationCap, Plus, ArrowLeft, ExternalLink } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { voteAPI, replyAPI, Vote } from "@/lib/api";
+import { useToast } from "@/providers/ToastProvider";
+import { useAuth } from "@/providers/AuthProvider";
 
 const mockProfessor = {
   id: "1",
@@ -65,16 +68,81 @@ const mockReviews = [
 export default function ProfessorPage() {
   const params = useParams();
   const router = useRouter();
+  const { showSuccess, showError } = useToast();
+  const { user } = useAuth();
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviews, setReviews] = useState(mockReviews);
+  const [userVotes, setUserVotes] = useState<Vote[]>([]);
   const [sortBy, setSortBy] = useState("newest");
 
-  const handleVote = async (reviewId: string, type: "up" | "down") => {
-    console.log(`Voting ${type} on review ${reviewId}`);
+  // Fetch user votes when component mounts
+  useEffect(() => {
+    const fetchUserVotes = async () => {
+      if (user) {
+        try {
+          const votes = await voteAPI.getMyVotes();
+          setUserVotes(votes);
+        } catch (err) {
+          console.error("Error fetching user votes:", err);
+        }
+      }
+    };
+    
+    fetchUserVotes();
+  }, [user]);
+
+  // Helper function to get user's vote for a specific review
+  const getUserVoteForReview = (reviewId: string): "up" | "down" | null => {
+    const userVote = userVotes.find(vote => vote.review_id === reviewId);
+    if (!userVote) return null;
+    return userVote.vote_type ? "up" : "down";
   };
 
-  const handleReply = (reviewId: string) => {
-    console.log(`Replying to review ${reviewId}`);
+  const handleVote = async (reviewId: string, type: "up" | "down") => {
+    if (!user) {
+      showError("Please log in to vote");
+      return;
+    }
+
+    try {
+      await voteAPI.createVote({
+        review_id: reviewId,
+        vote_type: type === "up",
+      });
+      
+      // Refresh user votes to show updated state
+      try {
+        const votes = await voteAPI.getMyVotes();
+        setUserVotes(votes);
+      } catch (err) {
+        console.error("Error refreshing user votes:", err);
+      }
+      
+      showSuccess(`${type === "up" ? "Upvoted" : "Downvoted"} review!`);
+    } catch (err: any) {
+      console.error("Error voting on review:", err);
+      showError(err.message || "Failed to vote. Please try again.");
+    }
+  };
+
+  const handleReply = async (reviewId: string, content: string) => {
+    if (!user) {
+      showError("Please log in to reply");
+      return;
+    }
+
+    try {
+      await replyAPI.createReply({
+        review_id: reviewId,
+        content: content,
+      });
+      
+      // Note: You'll need to implement review refresh similar to other pages
+      showSuccess("Reply submitted successfully!");
+    } catch (err: any) {
+      console.error("Error creating reply:", err);
+      showError(err.message || "Failed to create reply. Please try again.");
+    }
   };
 
   const handleSubmitReview = async (data: { content: string; rating: number }) => {
@@ -243,7 +311,10 @@ export default function ProfessorPage() {
           </div>
 
           <ReviewList
-            reviews={reviews}
+            reviews={reviews.map(review => ({
+              ...review,
+              userVote: getUserVoteForReview(review.id)
+            }))}
             onVote={handleVote}
             onReply={handleReply}
             emptyMessage={`No reviews yet for ${mockProfessor.name}. Be the first to share your experience!`}

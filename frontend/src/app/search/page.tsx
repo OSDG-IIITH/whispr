@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, Users, BookOpen, GraduationCap, MessageSquare } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -63,13 +63,7 @@ export default function SearchPage() {
   const [filter, setFilter] = useState(searchParams.get("filter") || "all");
   const [sort, setSort] = useState(searchParams.get("sort") || "relevance");
 
-  useEffect(() => {
-    if (query) {
-      performSearch();
-    }
-  }, [query, filter, sort]);
-
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     setLoading(true);
     try {
       // TODO: Implement actual search API call
@@ -82,7 +76,13 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    if (query) {
+      performSearch();
+    }
+  }, [query, filter, sort, performSearch]);
 
   const getResultIcon = (type: string) => {
     switch (type) {

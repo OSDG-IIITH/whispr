@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Calendar, MessageSquare, TrendingUp, Settings, Flag, ArrowLeft } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -12,7 +12,7 @@ import { KillSwitch } from "@/components/common/KillSwitch";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
-import { userAPI, reviewAPI, voteAPI } from "@/lib/api";
+import { userAPI, reviewAPI, voteAPI, replyAPI } from "@/lib/api";
 import type { User, Review, Vote } from "@/lib/api";
 
 // Helper function to transform backend review to frontend format
@@ -33,7 +33,7 @@ const transformReview = (review: Review, userVotes: Vote[], isOwn: boolean) => {
     replyCount: 0, // TODO: Add reply count when replies are implemented
     createdAt: review.created_at,
     isEdited: review.is_edited,
-    userVote: userVote?.vote_type || null,
+    userVote: userVote ? (userVote.vote_type ? "up" : "down") : null,
     isOwn,
     courseName: review.course?.name || review.course_instructor?.course?.name,
     professorName: review.professor?.name || review.course_instructor?.professor?.name
@@ -56,13 +56,7 @@ export default function ProfilePage() {
   const username = params.username as string;
   const isOwnProfile = currentUser?.username === username;
 
-  useEffect(() => {
-    if (username) {
-      fetchProfileData();
-    }
-  }, [username]);
-
-  const fetchProfileData = async () => {
+  const fetchProfileData = useCallback(async () => {
     setLoading(true);
     try {
       // Fetch user profile
@@ -84,7 +78,13 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [username, currentUser, showError]);
+
+  useEffect(() => {
+    if (username) {
+      fetchProfileData();
+    }
+  }, [username, fetchProfileData]);
 
   const handleVote = async (reviewId: string, type: "up" | "down") => {
     try {
@@ -102,19 +102,68 @@ export default function ProfilePage() {
     }
   };
 
-  const handleReply = (reviewId: string) => {
-    console.log(`Replying to review ${reviewId}`);
-    // TODO: Implement reply functionality
+  const handleReply = async (reviewId: string, content: string) => {
+    if (!currentUser) {
+      showError("Please log in to reply");
+      return;
+    }
+
+    try {
+      await replyAPI.createReply({
+        review_id: reviewId,
+        content: content,
+      });
+      
+      // Refresh reviews to show updated reply counts
+      const userReviews = await reviewAPI.getReviews({ user_id: profileUser!.id });
+      setReviews(userReviews);
+      showSuccess("Reply submitted successfully!");
+    } catch (error: any) {
+      console.error("Failed to create reply:", error);
+      showError(error.message || "Failed to create reply. Please try again.");
+    }
   };
 
-  const handleEdit = (reviewId: string) => {
-    console.log(`Editing review ${reviewId}`);
-    // TODO: Implement edit functionality
+  const handleEdit = async (reviewId: string, data: { content?: string; rating?: number }) => {
+    if (!currentUser) {
+      showError("Please log in to edit");
+      return;
+    }
+
+    try {
+      await reviewAPI.updateReview(reviewId, data);
+      
+      // Refresh reviews to show updated content
+      const userReviews = await reviewAPI.getReviews({ user_id: profileUser!.id });
+      setReviews(userReviews);
+      showSuccess("Review updated successfully!");
+    } catch (error: any) {
+      console.error("Failed to edit review:", error);
+      showError(error.message || "Failed to edit review. Please try again.");
+    }
   };
 
-  const handleDelete = (reviewId: string) => {
-    console.log(`Deleting review ${reviewId}`);
-    // TODO: Implement delete functionality
+  const handleDelete = async (reviewId: string) => {
+    if (!currentUser) {
+      showError("Please log in to delete");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this review?")) {
+      return;
+    }
+
+    try {
+      await reviewAPI.deleteReview(reviewId);
+      
+      // Refresh reviews to remove deleted review
+      const userReviews = await reviewAPI.getReviews({ user_id: profileUser!.id });
+      setReviews(userReviews);
+      showSuccess("Review deleted successfully!");
+    } catch (error: any) {
+      console.error("Failed to delete review:", error);
+      showError(error.message || "Failed to delete review. Please try again.");
+    }
   };
 
   const handleReport = (reviewId: string) => {

@@ -111,7 +111,7 @@ export function KillSwitch({ onConfirm, isOpen, onClose }: KillSwitchProps) {
               {/* Confirmation Text */}
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-2">
-                  Type "DELETE" to confirm
+                  Type &quot;DELETE&quot; to confirm
                 </label>
                 <input
                   type="text"

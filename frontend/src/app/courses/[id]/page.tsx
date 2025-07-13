@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Star, Users, BookOpen, Calendar, Plus, ArrowLeft, Loader2, GraduationCap } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
-import { courseAPI, reviewAPI, Course, Review } from "@/lib/api";
+import { courseAPI, reviewAPI, voteAPI, replyAPI, Course, Review, Vote } from "@/lib/api";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 
@@ -17,6 +17,7 @@ export default function CoursePage() {
   const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [userVotes, setUserVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -25,13 +26,7 @@ export default function CoursePage() {
 
   const courseCode = params.id as string;
 
-  useEffect(() => {
-    if (courseCode) {
-      fetchCourseData();
-    }
-  }, [courseCode]);
-
-  const fetchCourseData = async () => {
+  const fetchCourseData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -43,26 +38,97 @@ export default function CoursePage() {
       // Fetch course reviews
       const reviewsData = await courseAPI.getCourseReviews(courseData.id, 0, 100);
       setReviews(reviewsData);
+
+      // Fetch user votes if logged in
+      if (user) {
+        try {
+          const votes = await voteAPI.getMyVotes();
+          setUserVotes(votes);
+        } catch (err) {
+          console.error("Error fetching user votes:", err);
+          // Don't fail the whole page if votes can't be loaded
+        }
+      }
     } catch (err) {
       console.error("Error fetching course data:", err);
       setError("Failed to load course data. Please try again later.");
     } finally {
       setLoading(false);
     }
+  }, [courseCode, user]);
+
+  useEffect(() => {
+    if (courseCode) {
+      fetchCourseData();
+    }
+  }, [courseCode, fetchCourseData]);
+
+  const fetchReviews = useCallback(async () => {
+    if (!course) return;
+    try {
+      const reviewsData = await reviewAPI.getReviews({ course_id: course.id });
+      setReviews(reviewsData);
+      
+      // Also refresh user votes if logged in
+      if (user) {
+        try {
+          const votes = await voteAPI.getMyVotes();
+          setUserVotes(votes);
+        } catch (err) {
+          console.error("Error fetching user votes:", err);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+    }
+  }, [course, user]);
+
+  // Helper function to get user's vote for a specific review
+  const getUserVoteForReview = (reviewId: string): "up" | "down" | null => {
+    const userVote = userVotes.find(vote => vote.review_id === reviewId);
+    if (!userVote) return null;
+    return userVote.vote_type ? "up" : "down";
   };
 
   const handleVote = async (reviewId: string, type: "up" | "down") => {
+    if (!user) {
+      showError("Please log in to vote");
+      return;
+    }
+
     try {
-      // TODO: Implement vote functionality
-      console.log(`Voting ${type} on review ${reviewId}`);
-    } catch (err) {
+      await voteAPI.createVote({
+        review_id: reviewId,
+        vote_type: type === "up",
+      });
+      
+      // Refresh reviews to show updated vote counts
+      await fetchReviews();
+    } catch (err: any) {
       console.error("Error voting on review:", err);
+      showError(err.message || "Failed to vote. Please try again.");
     }
   };
 
-  const handleReply = (reviewId: string) => {
-    // TODO: Implement reply functionality
-    console.log(`Replying to review ${reviewId}`);
+  const handleReply = async (reviewId: string, content: string) => {
+    if (!user) {
+      showError("Please log in to reply");
+      return;
+    }
+
+    try {
+      await replyAPI.createReply({
+        review_id: reviewId,
+        content: content,
+      });
+      
+      // Refresh reviews to show updated reply counts
+      await fetchReviews();
+      showSuccess("Reply submitted successfully!");
+    } catch (err: any) {
+      console.error("Error creating reply:", err);
+      showError(err.message || "Failed to create reply. Please try again.");
+    }
   };
 
   const handleSubmitReview = async (data: { content: string; rating: number }) => {
@@ -337,7 +403,7 @@ export default function CoursePage() {
               replyCount: 0, // TODO: Add reply count from backend
               createdAt: review.created_at,
               isEdited: review.is_edited,
-              userVote: null // TODO: Add user vote from backend
+              userVote: getUserVoteForReview(review.id)
             }))}
             onVote={handleVote}
             onReply={handleReply}

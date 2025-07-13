@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Star, Filter, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -47,14 +47,7 @@ export default function MyReviewsPage() {
   const [sortBy, setSortBy] = useState("newest");
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    if (user) {
-      fetchUserReviews();
-      fetchUserVotes();
-    }
-  }, [user]);
-
-  const fetchUserReviews = async () => {
+  const fetchUserReviews = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -67,9 +60,9 @@ export default function MyReviewsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, showError]);
 
-  const fetchUserVotes = async () => {
+  const fetchUserVotes = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -79,7 +72,14 @@ export default function MyReviewsPage() {
       console.error("Failed to fetch user votes:", error);
       showError("Failed to load your votes. Please try again.");
     }
-  };
+  }, [user, showError]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserReviews();
+      fetchUserVotes();
+    }
+  }, [user, fetchUserReviews, fetchUserVotes]);
 
   const handleVote = async (reviewId: string, type: "up" | "down") => {
     try {
@@ -110,9 +110,17 @@ export default function MyReviewsPage() {
     }
   };
 
-  const handleEdit = (reviewId: string) => {
-    console.log(`Editing review ${reviewId}`);
-    // TODO: Implement edit functionality
+  const handleEdit = async (reviewId: string, data: { content?: string; rating?: number }) => {
+    try {
+      await reviewAPI.updateReview(reviewId, data);
+      
+      // Refresh reviews to show updated content
+      await fetchUserReviews();
+      showSuccess("Review updated successfully!");
+    } catch (error: any) {
+      console.error("Failed to edit review:", error);
+      showError(error.message || "Failed to edit review. Please try again.");
+    }
   };
 
   const handleDelete = async (reviewId: string) => {

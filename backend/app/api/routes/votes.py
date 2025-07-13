@@ -138,49 +138,13 @@ async def create_vote(
             return existing_vote
 
         # If vote type is different, update the existing vote
-        async with db.begin():
-            stmt = update(VoteModel).where(
-                VoteModel.id == existing_vote.id
-            ).values(
-                vote_type=vote_in.vote_type
-            ).returning(*VoteModel.__table__.c)
-            result = await db.execute(stmt)
-            updated_vote = result.fetchone()
-
-            # Update target's vote stats
-            if vote_in.review_id:
-                await _update_review_vote_stats(db, vote_in.review_id)
-                # Update echo points for review author
-                review = await db.execute(select(ReviewModel).where(ReviewModel.id == vote_in.review_id))
-                review_obj = review.scalar_one_or_none()
-                if review_obj:
-                    await update_user_echo_points(db, review_obj.user_id, notify=False)
-            if vote_in.reply_id:
-                await _update_reply_vote_stats(db, vote_in.reply_id)
-                # Update echo points for reply author
-                reply = await db.execute(select(ReplyModel).where(ReplyModel.id == vote_in.reply_id))
-                reply_obj = reply.scalar_one_or_none()
-                if reply_obj:
-                    await update_user_echo_points(db, reply_obj.user_id, notify=False)
-
-            # Create notification
-            if vote_in.review_id:
-                await notify_on_vote(db, vote_in.review_id, "review", vote_in.vote_type, current_user.username)
-            if vote_in.reply_id:
-                await notify_on_vote(db, vote_in.reply_id, "reply", vote_in.vote_type, current_user.username)
-
-        return updated_vote
-
-    # Create new vote
-    async with db.begin():
-        stmt = insert(VoteModel).values(
-            user_id=current_user.id,
-            review_id=vote_in.review_id,
-            reply_id=vote_in.reply_id,
+        stmt = update(VoteModel).where(
+            VoteModel.id == existing_vote.id
+        ).values(
             vote_type=vote_in.vote_type
         ).returning(*VoteModel.__table__.c)
         result = await db.execute(stmt)
-        vote = result.fetchone()
+        updated_vote = result.fetchone()
 
         # Update target's vote stats
         if vote_in.review_id:
@@ -203,6 +167,44 @@ async def create_vote(
             await notify_on_vote(db, vote_in.review_id, "review", vote_in.vote_type, current_user.username)
         if vote_in.reply_id:
             await notify_on_vote(db, vote_in.reply_id, "reply", vote_in.vote_type, current_user.username)
+        
+        await db.commit()
+
+        return updated_vote
+
+    # Create new vote
+    stmt = insert(VoteModel).values(
+        user_id=current_user.id,
+        review_id=vote_in.review_id,
+        reply_id=vote_in.reply_id,
+        vote_type=vote_in.vote_type
+    ).returning(*VoteModel.__table__.c)
+    result = await db.execute(stmt)
+    vote = result.fetchone()
+
+    # Update target's vote stats
+    if vote_in.review_id:
+        await _update_review_vote_stats(db, vote_in.review_id)
+        # Update echo points for review author
+        review = await db.execute(select(ReviewModel).where(ReviewModel.id == vote_in.review_id))
+        review_obj = review.scalar_one_or_none()
+        if review_obj:
+            await update_user_echo_points(db, review_obj.user_id, notify=False)
+    if vote_in.reply_id:
+        await _update_reply_vote_stats(db, vote_in.reply_id)
+        # Update echo points for reply author
+        reply = await db.execute(select(ReplyModel).where(ReplyModel.id == vote_in.reply_id))
+        reply_obj = reply.scalar_one_or_none()
+        if reply_obj:
+            await update_user_echo_points(db, reply_obj.user_id, notify=False)
+
+    # Create notification
+    if vote_in.review_id:
+        await notify_on_vote(db, vote_in.review_id, "review", vote_in.vote_type, current_user.username)
+    if vote_in.reply_id:
+        await notify_on_vote(db, vote_in.reply_id, "reply", vote_in.vote_type, current_user.username)
+    
+    await db.commit()
 
     return vote
 
@@ -239,25 +241,26 @@ async def delete_vote(
     review_id = getattr(vote, "review_id", None)
     reply_id = getattr(vote, "reply_id", None)
 
-    async with db.begin():
-        stmt = delete(VoteModel).where(VoteModel.id == vote_id)
-        await db.execute(stmt)
+    stmt = delete(VoteModel).where(VoteModel.id == vote_id)
+    await db.execute(stmt)
 
-        # Update target's vote stats
-        if review_id:
-            await _update_review_vote_stats(db, review_id)
-            # Update echo points for review author
-            review = await db.execute(select(ReviewModel).where(ReviewModel.id == review_id))
-            review_obj = review.scalar_one_or_none()
-            if review_obj:
-                await update_user_echo_points(db, review_obj.user_id, notify=False)
-        if reply_id:
-            await _update_reply_vote_stats(db, reply_id)
-            # Update echo points for reply author
-            reply = await db.execute(select(ReplyModel).where(ReplyModel.id == reply_id))
-            reply_obj = reply.scalar_one_or_none()
-            if reply_obj:
-                await update_user_echo_points(db, reply_obj.user_id, notify=False)
+    # Update target's vote stats
+    if review_id:
+        await _update_review_vote_stats(db, review_id)
+        # Update echo points for review author
+        review = await db.execute(select(ReviewModel).where(ReviewModel.id == review_id))
+        review_obj = review.scalar_one_or_none()
+        if review_obj:
+            await update_user_echo_points(db, review_obj.user_id, notify=False)
+    if reply_id:
+        await _update_reply_vote_stats(db, reply_id)
+        # Update echo points for reply author
+        reply = await db.execute(select(ReplyModel).where(ReplyModel.id == reply_id))
+        reply_obj = reply.scalar_one_or_none()
+        if reply_obj:
+            await update_user_echo_points(db, reply_obj.user_id, notify=False)
+    
+    await db.commit()
 
 
 # Helper functions to update vote statistics
