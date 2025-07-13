@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
-import Image from "next/image";
+import React, { useMemo } from "react";
 import { getRank } from "@/lib/utils";
 
 interface UserAvatarProps {
@@ -59,13 +58,13 @@ export function UserAvatar({ username, echoes = 0, size = "md", className = "", 
   if (avatarUrl) {
     return (
       <div className={`${sizeClasses[size]} relative ${className}`}>
-        <Image
+        <img
           src={avatarUrl}
           alt={`${username}'s avatar`}
           width={100}
           height={100}
           className="w-full h-full rounded-full object-cover shadow-lg"
-          onError={(e) => {
+          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
             // Fallback to generated avatar if image fails to load
             const target = e.target as HTMLImageElement;
             target.style.display = 'none';
