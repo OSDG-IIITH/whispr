@@ -1,64 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Users, Star, GraduationCap, Plus } from "lucide-react";
 import Link from "next/link";
-
-interface Professor {
-  id: string;
-  name: string;
-  lab: string;
-  averageRating: number;
-  reviewCount: number;
-  courses: string[];
-  researchAreas: string[];
-}
-
-const mockProfessors: Professor[] = [
-  {
-    id: "1",
-    name: "Dr. Network Expert",
-    lab: "Networking Lab",
-    averageRating: 4.5,
-    reviewCount: 34,
-    courses: ["CS101", "CS301", "CS501"],
-    researchAreas: ["Computer Networks", "Distributed Systems", "IoT"]
-  },
-  {
-    id: "2",
-    name: "Prof. AI Master",
-    lab: "Machine Learning Lab",
-    averageRating: 4.2,
-    reviewCount: 56,
-    courses: ["CS201", "CS401", "CS601"],
-    researchAreas: ["Machine Learning", "Deep Learning", "Computer Vision"]
-  },
-  {
-    id: "3",
-    name: "Dr. Systems Guru",
-    lab: "Systems Lab",
-    averageRating: 4.0,
-    reviewCount: 28,
-    courses: ["CS202", "CS302"],
-    researchAreas: ["Operating Systems", "Database Systems", "Compilers"]
-  }
-];
+import { professorAPI, Professor } from "@/lib/api";
+import Loader from "@/components/common/Loader";
 
 export default function ProfessorsPage() {
-  const [professors, setProfessors] = useState(mockProfessors);
+  const [professors, setProfessors] = useState<Professor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLab, setSelectedLab] = useState("ALL");
   const [sortBy, setSortBy] = useState("rating");
 
-  const labs = ["ALL", "Networking Lab", "Machine Learning Lab", "Systems Lab"];
+  useEffect(() => {
+    fetchProfessors();
+  }, []);
+
+  const fetchProfessors = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const professorsData = await professorAPI.getProfessors(0, 1000); // Get all professors
+      setProfessors(professorsData);
+    } catch (err) {
+      console.error("Error fetching professors:", err);
+      setError("Failed to load professors. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get unique labs for filtering
+  const labs = ["ALL", ...Array.from(new Set(professors.map(prof => prof.lab).filter(Boolean)))];
 
   const filteredProfessors = professors.filter(prof => {
     const matchesSearch = prof.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prof.researchAreas.some(area => area.toLowerCase().includes(searchQuery.toLowerCase()));
+      (prof.lab && prof.lab.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesLab = selectedLab === "ALL" || prof.lab === selectedLab;
 
     return matchesSearch && matchesLab;
+  });
+
+  const sortedProfessors = [...filteredProfessors].sort((a, b) => {
+    switch (sortBy) {
+      case "rating":
+        return parseFloat(b.average_rating) - parseFloat(a.average_rating);
+      case "reviews":
+        return b.review_count - a.review_count;
+      case "name":
+        return a.name.localeCompare(b.name);
+      default:
+        return 0;
+    }
   });
 
   const renderStars = (rating: number) => {
@@ -70,6 +66,49 @@ export default function ProfessorsPage() {
       />
     ));
   };
+
+  // Get courses taught by professor from course instructors
+  const getCourses = (professor: Professor) => {
+    if (!professor.course_instructors || professor.course_instructors.length === 0) {
+      return [];
+    }
+
+    // Get unique courses
+    const courses = new Map<string, string>();
+    professor.course_instructors.forEach((instructor) => {
+      if (instructor.course) {
+        courses.set(instructor.course.id, instructor.course.code);
+      }
+    });
+
+    return Array.from(courses.values());
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="mx-auto mb-4" />
+          <p className="text-secondary">Loading professors...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <GraduationCap className="w-16 h-16 text-secondary mx-auto mb-4" />
+          <h3 className="text-xl font-semibold mb-2">Error Loading Professors</h3>
+          <p className="text-secondary mb-4">{error}</p>
+          <button onClick={fetchProfessors} className="btn btn-primary h-10 w-24">
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black pb-24">
@@ -99,7 +138,7 @@ export default function ProfessorsPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search professors or research areas..."
+                  placeholder="Search professors or labs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm sm:text-base"
@@ -147,84 +186,87 @@ export default function ProfessorsPage() {
           </div>
 
           <div className="text-secondary text-xs sm:text-base">
-            {filteredProfessors.length} professors found
+            {sortedProfessors.length} professors found
           </div>
         </motion.div>
 
         {/* Professors Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProfessors.map((professor, index) => (
-            <motion.div
-              key={professor.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-            >
-              <Link href={`/professors/${professor.id}`}>
-                <div className="bg-card border border-border rounded-xl p-4 sm:p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-base sm:text-lg mb-1">{professor.name}</h3>
-                      <p className="text-primary text-xs sm:text-sm">{professor.lab}</p>
-                    </div>
-                    <GraduationCap className="w-6 h-6 text-secondary" />
-                  </div>
+          {sortedProfessors.map((professor, index) => {
+            const courses = getCourses(professor);
 
-                  <div className="mb-4">
-                    <h4 className="text-xs sm:text-sm font-medium mb-2">Research Areas</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {professor.researchAreas.slice(0, 3).map((area, i) => (
-                        <span key={i} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded">
-                          {area}
-                        </span>
-                      ))}
-                      {professor.researchAreas.length > 3 && (
-                        <span className="text-xs text-secondary">
-                          +{professor.researchAreas.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="text-xs sm:text-sm font-medium mb-2">Courses</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {professor.courses.slice(0, 3).map((course, i) => (
-                        <span key={i} className="bg-muted text-secondary text-xs px-2 py-1 rounded">
-                          {course}
-                        </span>
-                      ))}
-                      {professor.courses.length > 3 && (
-                        <span className="text-xs text-secondary">
-                          +{professor.courses.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        {renderStars(professor.averageRating)}
+            return (
+              <motion.div
+                key={professor.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index }}
+              >
+                <Link href={`/professors/${professor.id}`}>
+                  <div className="bg-card border border-border rounded-xl p-4 sm:p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-base sm:text-lg mb-1">{professor.name}</h3>
+                        {professor.lab && (
+                          <p className="text-primary text-xs sm:text-sm">{professor.lab}</p>
+                        )}
                       </div>
-                      <span className="text-xs sm:text-sm font-medium">
-                        {professor.averageRating.toFixed(1)}
-                      </span>
+                      <GraduationCap className="w-6 h-6 text-secondary" />
                     </div>
 
-                    <div className="flex items-center gap-1 text-xs sm:text-sm text-secondary">
-                      <Users className="w-4 h-4" />
-                      <span>{professor.reviewCount}</span>
+                    {/* Review Summary */}
+                    {professor.review_summary && (
+                      <div className="mb-4">
+                        <h4 className="text-xs sm:text-sm font-medium mb-2">Summary</h4>
+                        <p className="text-secondary text-xs line-clamp-3">
+                          {professor.review_summary}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Courses */}
+                    {courses.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-xs sm:text-sm font-medium mb-2">Courses</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {courses.slice(0, 3).map((course, i) => (
+                            <span key={i} className="bg-muted text-secondary text-xs px-2 py-1 rounded">
+                              {course}
+                            </span>
+                          ))}
+                          {courses.length > 3 && (
+                            <span className="text-xs text-secondary">
+                              +{courses.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {renderStars(parseFloat(professor.average_rating) || 0)}
+                        </div>
+                        <span className="text-xs sm:text-sm font-medium">
+                          {(parseFloat(professor.average_rating) || 0).toFixed(1)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1 text-xs sm:text-sm text-secondary">
+                        <Users className="w-4 h-4" />
+                        <span>{professor.review_count}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Empty State */}
-        {filteredProfessors.length === 0 && (
+        {sortedProfessors.length === 0 && !loading && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

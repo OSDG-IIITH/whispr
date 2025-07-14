@@ -70,6 +70,7 @@ class Professor(ProfessorInDBBase):
 # Schema for including social media with professor
 class ProfessorWithSocialMedia(Professor):
     """
-    Schema for professor with social media.
+    Schema for professor with social media and course instructors.
     """
     social_media: List[Any] = []  # Using Any to avoid circular import
+    course_instructors: List[Any] = []  # Using Any to avoid circular import
