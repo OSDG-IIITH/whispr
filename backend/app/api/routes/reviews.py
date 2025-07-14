@@ -17,7 +17,7 @@ from app.models.professor import Professor as ProfessorModel
 from app.models.course_instructor import \
     CourseInstructor as CourseInstructorModel
 from app.schemas.review import (
-    Review, ReviewCreate, ReviewUpdate, ReviewWithUser)
+    Review, ReviewCreate, ReviewUpdate, ReviewWithUser, ReviewWithRelations)
 from app.auth.jwt import get_current_unmuffled_user
 from app.models.user import User as UserModel
 from app.core.notifications import notify_on_mention
@@ -25,7 +25,7 @@ from app.core.notifications import notify_on_mention
 router = APIRouter()
 
 
-@router.get("/", response_model=List[ReviewWithUser])
+@router.get("/", response_model=List[ReviewWithRelations])
 async def read_reviews(
     skip: int = 0,
     limit: int = 100,
@@ -38,7 +38,14 @@ async def read_reviews(
     """
     Retrieve reviews with optional filters.
     """
-    query = select(ReviewModel).options(joinedload(ReviewModel.user))
+    # Load all relations for comprehensive data
+    query = select(ReviewModel).options(
+        joinedload(ReviewModel.user),
+        joinedload(ReviewModel.course),
+        joinedload(ReviewModel.professor),
+        joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.course),
+        joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.professor)
+    )
 
     # Apply filters
     filters = []
@@ -62,7 +69,7 @@ async def read_reviews(
     return reviews
 
 
-@router.get("/{review_id}", response_model=ReviewWithUser)
+@router.get("/{review_id}", response_model=ReviewWithRelations)
 async def read_review(
     review_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -72,7 +79,13 @@ async def read_review(
     """
     stmt = (
         select(ReviewModel)
-        .options(joinedload(ReviewModel.user))
+        .options(
+            joinedload(ReviewModel.user),
+            joinedload(ReviewModel.course),
+            joinedload(ReviewModel.professor),
+            joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.course),
+            joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.professor)
+        )
         .where(ReviewModel.id == review_id)
     )
     result = await db.execute(stmt)

@@ -16,6 +16,7 @@ import { RankBadge } from "@/components/user/RankBadge";
 import { EchoesDisplay } from "@/components/user/EchoesDisplay";
 import { FollowButton } from "@/components/user/FollowButton";
 import { ReviewList } from "@/components/reviews/ReviewList";
+import { FeedReviewCard } from "@/components/reviews/FeedReviewCard";
 import { KillSwitch } from "@/components/common/KillSwitch";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
@@ -28,36 +29,6 @@ import {
 } from "@/types/frontend-models";
 import Loader from "@/components/common/Loader";
 
-// Helper function to transform backend review to frontend format
-const transformReview = (
-  review: Review,
-  userVotes: Vote[],
-  isOwn: boolean
-): FrontendReview => {
-  const userVote = userVotes.find((vote) => vote.review_id === review.id);
-
-  return {
-    id: review.id,
-    author: {
-      username: review.user?.username || "Unknown",
-      echoes: review.user?.echoes || 0,
-      isVerified: review.user ? !review.user.is_muffled : false,
-    },
-    content: review.content || "",
-    rating: review.rating,
-    upvotes: review.upvotes,
-    downvotes: review.downvotes,
-    replyCount: 0, // TODO: Add reply count when replies are implemented
-    createdAt: review.created_at,
-    isEdited: review.is_edited,
-    userVote: userVote ? (userVote.vote_type ? "up" : "down") : null,
-    isOwn,
-    courseName: review.course?.name || review.course_instructor?.course?.name,
-    professorName:
-      review.professor?.name || review.course_instructor?.professor?.name,
-  };
-};
-
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
@@ -65,7 +36,7 @@ export default function ProfilePage() {
   const { showError, showSuccess } = useToast();
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [userVotes, setUserVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
   const [showKillSwitch, setShowKillSwitch] = useState(false);
@@ -381,8 +352,14 @@ export default function ProfilePage() {
     }
   };
 
-  const handleReport = (reviewId: string) => {
-    console.log(`Reporting review ${reviewId}`);
+  const handleReport = async (
+    reviewId: string,
+    reportType: string,
+    reason: string
+  ) => {
+    console.log(
+      `Reporting review ${reviewId} with type ${reportType} and reason: ${reason}`
+    );
     // TODO: Implement report functionality
   };
 
@@ -416,9 +393,20 @@ export default function ProfilePage() {
   }
 
   // Transform reviews to frontend format
-  const transformedReviews = reviews.map((review) =>
-    transformReview(review, userVotes || [], isOwnProfile)
-  );
+  const transformedReviews = reviews.map((review) => {
+    const userVote = userVotes.find((vote) => vote.review_id === review.id);
+    return convertReviewToFrontendReview(review, userVote, currentUser?.id);
+  });
+
+  // Filter reviews based on selected filter
+  const filteredReviews = transformedReviews.filter((review) => {
+    if (filterBy === "all") return true;
+    if (filterBy === "courses")
+      return review.course_id || review.course_instructor_id;
+    if (filterBy === "professors")
+      return review.professor_id || review.course_instructor_id;
+    return true;
+  });
 
   // Calculate stats from actual data
   const totalUpvotes = reviews.reduce(
@@ -577,7 +565,7 @@ export default function ProfilePage() {
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold">
-              Reviews ({transformedReviews.length})
+              Reviews ({filteredReviews.length})
             </h3>
 
             <div className="flex items-center gap-2">
@@ -598,15 +586,32 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <ReviewList
-            reviews={transformedReviews}
-            onVote={handleVote}
-            onReply={handleReply}
-            onEdit={isOwnProfile ? handleEdit : undefined}
-            onDelete={isOwnProfile ? handleDelete : undefined}
-            onReport={!isOwnProfile ? handleReport : undefined}
-            emptyMessage={`${profileUser.username} hasn't written any reviews yet.`}
-          />
+          <div className="space-y-4">
+            {filteredReviews.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-2xl">💭</span>
+                </div>
+                <p className="text-secondary">
+                  {profileUser.username} hasn&apos;t written any reviews yet.
+                </p>
+              </div>
+            ) : (
+              filteredReviews.map((review) => (
+                <FeedReviewCard
+                  key={review.id}
+                  review={review}
+                  onVote={handleVote}
+                  onReply={handleReply}
+                  currentUserId={currentUser?.id}
+                  showVoteButtons={!!currentUser && !currentUser.is_muffled}
+                  onEdit={isOwnProfile ? handleEdit : undefined}
+                  onDelete={isOwnProfile ? handleDelete : undefined}
+                  onReport={!isOwnProfile ? handleReport : undefined}
+                />
+              ))
+            )}
+          </div>
         </motion.div>
 
         {/* Kill Switch Modal */}

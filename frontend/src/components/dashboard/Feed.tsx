@@ -9,12 +9,14 @@ import {
   convertReviewToFrontendReview,
 } from "@/types/frontend-models";
 import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/providers/ToastProvider";
 import { FeedReviewCard } from "@/components/reviews/FeedReviewCard";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import Loader from "@/components/common/Loader";
 
 export function Feed() {
   const { user } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [reviews, setReviews] = useState<FrontendReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -69,10 +71,10 @@ export function Feed() {
       let userVotes = new Map();
       if (user?.id && backendReviews.length > 0) {
         try {
-          const reviewIds = backendReviews.map(r => r.id);
+          const reviewIds = backendReviews.map((r) => r.id);
           const votes = await voteAPI.getVotes({ user_id: user.id });
           // Create a map of review_id -> vote for quick lookup
-          votes.forEach(vote => {
+          votes.forEach((vote) => {
             if (vote.review_id && reviewIds.includes(vote.review_id)) {
               userVotes.set(vote.review_id, vote);
             }
@@ -279,6 +281,69 @@ export function Feed() {
     console.log("Reply to review:", reviewId);
   };
 
+  const handleEdit = async (
+    reviewId: string,
+    data: { content: string; rating: number }
+  ) => {
+    if (!user) {
+      showError("Please log in to edit");
+      return;
+    }
+
+    try {
+      await reviewAPI.updateReview(reviewId, data);
+
+      // Update the review in the local state
+      setReviews((prev) =>
+        prev.map((review) =>
+          review.id === reviewId
+            ? {
+                ...review,
+                content: data.content,
+                rating: data.rating,
+                isEdited: true,
+              }
+            : review
+        )
+      );
+
+      showSuccess("Review updated successfully!");
+    } catch (error: any) {
+      console.error("Failed to edit review:", error);
+      showError(error.message || "Failed to edit review. Please try again.");
+    }
+  };
+
+  const handleDelete = async (reviewId: string) => {
+    if (!user) {
+      showError("Please log in to delete");
+      return;
+    }
+
+    try {
+      await reviewAPI.deleteReview(reviewId);
+
+      // Remove the review from the local state
+      setReviews((prev) => prev.filter((review) => review.id !== reviewId));
+
+      showSuccess("Review deleted successfully!");
+    } catch (error: any) {
+      console.error("Failed to delete review:", error);
+      showError(error.message || "Failed to delete review. Please try again.");
+    }
+  };
+
+  const handleReport = async (
+    reviewId: string,
+    reportType: string,
+    reason: string
+  ) => {
+    console.log(
+      `Reporting review ${reviewId} with type ${reportType} and reason: ${reason}`
+    );
+    // TODO: Implement report functionality
+  };
+
   useEffect(() => {
     const initializeFeed = async () => {
       if (user?.id) {
@@ -365,6 +430,9 @@ export function Feed() {
               onFollowChange={handleFollowChange}
               currentUserId={user?.id}
               showVoteButtons={!!user && !user.is_muffled}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onReport={handleReport}
             />
           ))}
         </div>
