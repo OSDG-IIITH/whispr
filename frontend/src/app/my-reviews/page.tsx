@@ -75,9 +75,11 @@ export default function MyReviewsPage() {
       setUserVotes(votes);
     } catch (error) {
       console.error("Failed to fetch user votes:", error);
-      showError("Failed to load your votes. Please try again.");
+      // Set empty votes array as fallback instead of showing error to user
+      setUserVotes([]);
+      // Don't show error to user since this might be expected for muffled users
     }
-  }, [user, showError]);
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -93,9 +95,16 @@ export default function MyReviewsPage() {
         vote_type: type === "up",
       });
       // Refresh votes and reviews
-      await fetchUserVotes();
+      try {
+        const votes = await voteAPI.getMyVotes();
+        setUserVotes(votes);
+      } catch (error) {
+        console.error("Failed to fetch votes:", error);
+        // Set empty votes array as fallback
+        setUserVotes([]);
+      }
       await fetchUserReviews();
-      
+
       // Refresh user data to get updated echo points
       await refresh();
     } catch (error) {
@@ -195,7 +204,7 @@ export default function MyReviewsPage() {
   };
 
   const transformedReviews = reviews.map((review) =>
-    transformReview(review, userVotes)
+    transformReview(review, userVotes || [])
   );
 
   const filteredReviews = transformedReviews.filter((review) => {
@@ -295,7 +304,7 @@ export default function MyReviewsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">
-                  {reviews.filter((r) => r.courseName).length}
+                  {reviews.filter((r) => r?.courseName).length}
                 </div>
                 <div className="text-sm text-secondary">Course Reviews</div>
               </div>
@@ -309,7 +318,7 @@ export default function MyReviewsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">
-                  {reviews.filter((r) => r.professorName).length}
+                  {reviews.filter((r) => r?.professorName).length}
                 </div>
                 <div className="text-sm text-secondary">Professor Reviews</div>
               </div>
@@ -323,7 +332,7 @@ export default function MyReviewsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">
-                  {reviews.reduce((sum, r) => sum + r.upvotes, 0)}
+                  {reviews.reduce((sum, r) => sum + (r?.upvotes || 0), 0)}
                 </div>
                 <div className="text-sm text-secondary">Total Upvotes</div>
               </div>
@@ -362,11 +371,10 @@ export default function MyReviewsPage() {
                   <button
                     key={option}
                     onClick={() => setFilterBy(option)}
-                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                      filterBy === option
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${filterBy === option
                         ? "bg-primary text-black"
                         : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                    }`}
+                      }`}
                   >
                     {option.charAt(0).toUpperCase() + option.slice(1)}
                   </button>
