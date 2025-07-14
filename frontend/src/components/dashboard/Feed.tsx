@@ -403,9 +403,6 @@ export function Feed() {
           <RefreshCw
             className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
           />
-          <span className="text-sm">
-            {refreshing ? "Refreshing..." : "Refresh"}
-          </span>
         </button>
       </div>
 
