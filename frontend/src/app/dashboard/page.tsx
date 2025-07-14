@@ -177,17 +177,17 @@ export default function DashboardPage() {
                     onClick={() => router.push("/courses")}
                     className="w-full h-10 btn btn-primary text-sm"
                   >
-                    Write Review
-                  </button>
-                  <button
-                    onClick={() => router.push("/courses")}
-                    className="w-full h-10 btn btn-secondary text-sm"
-                  >
                     Browse Courses
                   </button>
                   <button
+                    onClick={() => router.push("/professors")}
+                    className="w-full h-10 btn btn-primary text-sm"
+                  >
+                    Browse Professors
+                  </button>
+                  <button
                     onClick={() => router.push(`/profile/${user?.username}`)}
-                    className="w-full h-10 btn btn-accent text-sm"
+                    className="w-full h-10 btn btn-secondary text-sm"
                   >
                     View Profile
                   </button>

@@ -9,11 +9,13 @@ from pydantic.version import VERSION as PYDANTIC_VERSION
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, delete
+from sqlalchemy.orm import joinedload
 
 from app.db.session import get_db
 from app.models.professor import Professor as ProfessorModel
 from app.models.professor_social_media import \
     ProfessorSocialMedia as ProfessorSocialMediaModel
+from app.models.course_instructor import CourseInstructor as CourseInstructorModel
 from app.schemas.professor import (
     Professor, ProfessorCreate, ProfessorUpdate, ProfessorWithSocialMedia)
 from app.schemas.professor_social_media import (
@@ -23,8 +25,65 @@ from app.schemas.professor_social_media import (
 )
 from app.auth.jwt import get_current_admin_user
 from app.models.user import User as UserModel
+from app.schemas.course import CourseBase
 
 router = APIRouter()
+
+
+def convert_professor_to_with_social_media(professor: ProfessorModel) -> ProfessorWithSocialMedia:
+    """
+    Convert a professor model to ProfessorWithSocialMedia schema.
+    """
+    # Build course instructors list
+    course_instructors = []
+    for instructor in professor.course_instructors:
+        if instructor.course:
+            course_base = CourseBase(
+                code=instructor.course.code,
+                name=instructor.course.name,
+                credits=instructor.course.credits,
+                description=instructor.course.description,
+                official_document_url=instructor.course.official_document_url,
+                review_summary=instructor.course.review_summary
+            )
+            instructor_data = {
+                'id': instructor.id,
+                'professor_id': instructor.professor_id,
+                'course_id': instructor.course_id,
+                'semester': instructor.semester,
+                'year': instructor.year,
+                'summary': instructor.summary,
+                'review_count': instructor.review_count,
+                'average_rating': instructor.average_rating,
+                'created_at': instructor.created_at,
+                'course': course_base
+            }
+            course_instructors.append(instructor_data)
+
+    # Build social media list
+    social_media = []
+    for sm in professor.social_media:
+        social_media.append({
+            'id': sm.id,
+            'professor_id': sm.professor_id,
+            'platform': sm.platform,
+            'url': sm.url,
+            'created_at': sm.created_at,
+            'updated_at': sm.updated_at
+        })
+
+    return ProfessorWithSocialMedia(
+        id=professor.id,
+        name=professor.name,
+        lab=professor.lab,
+        review_summary=professor.review_summary,
+        review_count=professor.review_count,
+        average_rating=professor.average_rating,
+        created_at=professor.created_at,
+        updated_at=professor.updated_at,
+        social_media=social_media,
+        course_instructors=course_instructors
+    )
 
 
 @router.get("/", response_model=List[Professor])
@@ -37,14 +96,17 @@ async def read_professors(
     """
     Retrieve professors with optional search.
     """
-    query = select(ProfessorModel)
+    query = (
+        select(ProfessorModel)
+        .options(joinedload(ProfessorModel.course_instructors).joinedload(CourseInstructorModel.course))
+    )
 
     if search:
         query = query.where(ProfessorModel.name.ilike(f"%{search}%"))
 
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
-    professors = result.scalars().all()
+    professors = result.unique().scalars().all()
 
     return professors
 
@@ -57,9 +119,14 @@ async def read_professor(
     """
     Get a specific professor by id.
     """
-    stmt = select(ProfessorModel).where(ProfessorModel.id == professor_id)
+    stmt = (
+        select(ProfessorModel)
+        .options(joinedload(ProfessorModel.course_instructors).joinedload(CourseInstructorModel.course))
+        .options(joinedload(ProfessorModel.social_media))
+        .where(ProfessorModel.id == professor_id)
+    )
     result = await db.execute(stmt)
-    professor = result.scalar_one_or_none()
+    professor = result.unique().scalar_one_or_none()
 
     if professor is None:
         raise HTTPException(
@@ -67,20 +134,7 @@ async def read_professor(
             detail="Professor not found"
         )
 
-    # Load social media
-    stmt = select(ProfessorSocialMediaModel).where(
-        ProfessorSocialMediaModel.professor_id == professor_id)
-    result = await db.execute(stmt)
-    social_media = result.scalars().all()
-
-    # Construct response
-    if PYDANTIC_VERSION.startswith('2.'):
-        professor_data = ProfessorWithSocialMedia.model_validate(professor)
-    else:
-        professor_data = ProfessorWithSocialMedia.from_orm(professor)
-    professor_data.social_media = list(social_media)
-
-    return professor_data
+    return convert_professor_to_with_social_media(professor)
 
 
 @router.post(
