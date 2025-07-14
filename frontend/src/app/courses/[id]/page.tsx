@@ -604,9 +604,6 @@ export default function CoursePage() {
                   ? "Rate & Review"
                   : "Login to Review"}
             </button>
-            <button className="btn btn-secondary px-4 py-3 text-sm sm:text-base w-full sm:w-auto">
-              View Professors
-            </button>
           </div>
         </motion.div>
 
