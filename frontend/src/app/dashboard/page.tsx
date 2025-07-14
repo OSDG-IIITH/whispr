@@ -185,12 +185,6 @@ export default function DashboardPage() {
                   >
                     Browse Professors
                   </button>
-                  <button
-                    onClick={() => router.push(`/profile/${user?.username}`)}
-                    className="w-full h-10 btn btn-secondary text-sm"
-                  >
-                    View Profile
-                  </button>
                 </div>
               </motion.div>
             </div>

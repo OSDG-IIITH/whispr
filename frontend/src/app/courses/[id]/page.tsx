@@ -314,10 +314,10 @@ export default function CoursePage() {
         prevReviews.map((review) =>
           review.id === reviewId
             ? {
-                ...review,
-                upvotes: currentReview.upvotes,
-                downvotes: currentReview.downvotes,
-              }
+              ...review,
+              upvotes: currentReview.upvotes,
+              downvotes: currentReview.downvotes,
+            }
             : review
         )
       );
@@ -463,10 +463,10 @@ export default function CoursePage() {
         [reviewId]: prevReplies[reviewId].map((reply) =>
           reply.id === replyId
             ? {
-                ...reply,
-                upvotes: currentReply.upvotes,
-                downvotes: currentReply.downvotes,
-              }
+              ...reply,
+              upvotes: currentReply.upvotes,
+              downvotes: currentReply.downvotes,
+            }
             : reply
         ),
       }));
@@ -538,15 +538,15 @@ export default function CoursePage() {
         setCourse((prevCourse: Course | null) =>
           prevCourse
             ? {
-                ...prevCourse,
-                review_count: prevCourse.review_count + 1,
-                average_rating: String(
-                  (parseFloat(prevCourse.average_rating) *
-                    prevCourse.review_count +
-                    data.rating) /
-                    (prevCourse.review_count + 1)
-                ),
-              }
+              ...prevCourse,
+              review_count: prevCourse.review_count + 1,
+              average_rating: String(
+                (parseFloat(prevCourse.average_rating) *
+                  prevCourse.review_count +
+                  data.rating) /
+                (prevCourse.review_count + 1)
+              ),
+            }
             : null
         );
       }
@@ -651,11 +651,10 @@ export default function CoursePage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < Math.floor(rating)
+        className={`w-5 h-5 ${i < Math.floor(rating)
             ? "text-yellow-500 fill-current"
             : "text-secondary"
-        }`}
+          }`}
       />
     ));
   };
@@ -745,17 +744,10 @@ export default function CoursePage() {
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
             <div className="flex-1">
-              {/* Time Info - More Prominent */}
-              {timeInfo && (
-                <div className="flex items-center gap-2 mb-4">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  <span className="text-base font-semibold text-primary">
-                    {timeInfo}
-                  </span>
-                </div>
-              )}
 
-              <div className="flex items-center gap-4 mb-2 flex-wrap">
+
+              {/* Course Info Row: code, credits, name */}
+              <div className="flex items-center justify-between mb-2 w-full">
                 <h1 className="text-xl sm:text-3xl font-bold text-primary">
                   {course.code}
                 </h1>
@@ -763,16 +755,14 @@ export default function CoursePage() {
                   {course.credits} Credits
                 </span>
               </div>
-              <h2 className="text-lg sm:text-2xl font-semibold mb-4 break-words">
+
+              <h2 className="text-lg sm:text-2xl font-semibold break-words mb-4">
                 {course.name}
               </h2>
 
               {/* Professors */}
               {professors.length > 0 && (
                 <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <GraduationCap className="w-5 h-5 text-secondary" />
-                  </div>
                   <div className="flex flex-wrap gap-2">
                     {professors.map((professor, i) => (
                       <span
@@ -841,8 +831,8 @@ export default function CoursePage() {
               {submittingReview
                 ? "Submitting..."
                 : user
-                ? "Rate & Review"
-                : "Login to Review"}
+                  ? "Rate & Review"
+                  : "Login to Review"}
             </button>
           </div>
         </motion.div>
@@ -878,11 +868,10 @@ export default function CoursePage() {
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${
-                    sortBy === option
+                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${sortBy === option
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

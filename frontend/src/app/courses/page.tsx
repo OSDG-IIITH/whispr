@@ -252,13 +252,6 @@ export default function CoursesPage() {
               >
                 <Link href={`/courses/${course.code}`}>
                   <div className="bg-card border border-border rounded-xl p-4 sm:p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">
-                    {/* Time Info - More Prominent */}
-                    {timeInfo && (
-                      <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="w-4 h-4 text-primary" />
-                        <span className="text-xs sm:text-sm font-semibold text-primary">{timeInfo}</span>
-                      </div>
-                    )}
 
                     {/* Course Code and Credits */}
                     <div className="flex items-start justify-between mb-4">
@@ -272,31 +265,6 @@ export default function CoursesPage() {
 
                     {/* Course Name */}
                     <h4 className="font-semibold mb-3 text-base sm:text-lg">{course.name}</h4>
-
-                    {/* Professors */}
-                    {professors.length > 0 && (
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <GraduationCap className="w-4 h-4 text-secondary" />
-                          <span className="text-xs sm:text-sm font-medium text-secondary">Professors</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {professors.slice(0, 3).map((professor, i) => (
-                            <span
-                              key={i}
-                              className="bg-primary/10 text-primary text-xs px-2 py-1 rounded"
-                            >
-                              {professor}
-                            </span>
-                          ))}
-                          {professors.length > 3 && (
-                            <span className="text-xs text-secondary">
-                              +{professors.length - 3} more
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
 
                     <p className="text-secondary text-xs sm:text-sm mb-4 line-clamp-3">
                       {course.description || "No description available"}

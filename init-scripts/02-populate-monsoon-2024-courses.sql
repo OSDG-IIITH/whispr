@@ -87,7 +87,7 @@ SELECT create_course_with_instructors('SC2.309', 'Chemistry Topics for Engineers
 SELECT create_course_with_instructors('CL3.202', 'Computational Linguistics II: Comp Semantics and Discourse parsing', 4, 'Rajakrishnan P Rajkumar + Parameswari Krishnamurthy');
 SELECT create_course_with_instructors('CS0.301', 'Computer Problem Solving', 4, 'Shatrunjay Rawat');
 SELECT create_course_with_instructors('CS0.101', 'Computer Programming', 5, 'Girish Varma + Charu Sharma + TBD');
-SELECT create_course_with_instructors('SC4.101', 'Computing in Sciences-1(H2)', 2, 'Deva Priyakumar');
+SELECT create_course_with_instructors('SC4.101', 'Computing in Sciences-1 (H2)', 2, 'Deva Priyakumar');
 SELECT create_course_with_instructors('CS4.405', 'Data Analytics I', 4, 'Krishna Reddy Polepalli');
 SELECT create_course_with_instructors('CS4.301', 'Data and Applications (H2)', 2, 'Ponnurangam Kumaraguru');
 SELECT create_course_with_instructors('CS1.304', 'Data Structures & Algorithms for Problem Solving', 6, 'Kshitij Gajjar + Lini Thomas');
