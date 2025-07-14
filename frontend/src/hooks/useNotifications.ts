@@ -37,13 +37,17 @@ export function useNotifications() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await notificationAPI.markAsRead(notificationId);
+      console.log("Marking notification as read:", notificationId);
+      const result = await notificationAPI.markAsRead(notificationId);
+      console.log("Mark as read result:", result);
 
-      setNotifications((prev) =>
-        prev.map((n) =>
+      setNotifications((prev) => {
+        const updated = prev.map((n) =>
           n.id === notificationId ? { ...n, is_read: true, read: true } : n
-        )
-      );
+        );
+        console.log("Updated notifications:", updated);
+        return updated;
+      });
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
@@ -52,11 +56,15 @@ export function useNotifications() {
 
   const markAllAsRead = async () => {
     try {
-      await notificationAPI.markAllAsRead();
+      console.log("Marking all notifications as read");
+      const result = await notificationAPI.markAllAsRead();
+      console.log("Mark all as read result:", result);
 
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, is_read: true, read: true }))
-      );
+      setNotifications((prev) => {
+        const updated = prev.map((n) => ({ ...n, is_read: true, read: true }));
+        console.log("Updated all notifications:", updated);
+        return updated;
+      });
       setUnreadCount(0);
     } catch (error) {
       console.error("Failed to mark all notifications as read:", error);

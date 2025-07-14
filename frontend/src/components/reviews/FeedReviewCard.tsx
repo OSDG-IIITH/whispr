@@ -55,9 +55,9 @@ export function FeedReviewCard({
       return (
         <div className="flex items-center gap-2 text-sm text-secondary mb-3">
           <BookOpen className="w-4 h-4 text-primary" />
-          <span className="font-medium">{review.course.code}</span>
-          <span>•</span>
           <span>{review.course.name}</span>
+          <span>•</span>
+          <span className="font-medium">{review.course.code}</span>
         </div>
       );
     } else if (review.professor_id && review.professor) {
@@ -81,7 +81,9 @@ export function FeedReviewCard({
             {review.course_instructor.course?.code || "Unknown Course"}
           </span>
           <span>•</span>
-          <span>{review.course_instructor.course?.name || "Course Name"}</span>
+          <span>
+            {review.course_instructor.course?.name || "Unknown Course Name"}
+          </span>
           <span>•</span>
           <GraduationCap className="w-4 h-4 text-primary" />
           <span>
@@ -105,8 +107,9 @@ export function FeedReviewCard({
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${i < rating ? "text-yellow-500 fill-current" : "text-secondary"
-          }`}
+        className={`w-4 h-4 ${
+          i < rating ? "text-yellow-500 fill-current" : "text-secondary"
+        }`}
       />
     ));
   };
@@ -137,12 +140,18 @@ export function FeedReviewCard({
           {/* Header */}
           <div className="flex items-center gap-2 mb-3">
             <UserHoverCard
-              username={review.author?.username || review.user?.username || "Unknown"}
+              username={
+                review.author?.username || review.user?.username || "Unknown"
+              }
               echoes={review.author?.echoes || review.user?.echoes || 0}
-              isVerified={review.author?.isVerified || review.user?.isVerified || false}
+              isVerified={
+                review.author?.isVerified || review.user?.isVerified || false
+              }
             >
               <UserAvatar
-                username={review.author?.username || review.user?.username || "Unknown"}
+                username={
+                  review.author?.username || review.user?.username || "Unknown"
+                }
                 echoes={review.author?.echoes || review.user?.echoes || 0}
                 size="sm"
               />
@@ -151,12 +160,22 @@ export function FeedReviewCard({
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <UserHoverCard
-                  username={review.author?.username || review.user?.username || "Unknown"}
+                  username={
+                    review.author?.username ||
+                    review.user?.username ||
+                    "Unknown"
+                  }
                   echoes={review.author?.echoes || review.user?.echoes || 0}
-                  isVerified={review.author?.isVerified || review.user?.isVerified || false}
+                  isVerified={
+                    review.author?.isVerified ||
+                    review.user?.isVerified ||
+                    false
+                  }
                 >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
-                    {review.author?.username || review.user?.username || "Unknown"}
+                    {review.author?.username ||
+                      review.user?.username ||
+                      "Unknown"}
                   </span>
                 </UserHoverCard>
                 <RankBadge
@@ -166,7 +185,11 @@ export function FeedReviewCard({
                 />
               </div>
               <div className="flex items-center gap-2 text-xs text-secondary">
-                <span>{formatDate(review.createdAt || review.created_at || new Date())}</span>
+                <span>
+                  {formatDate(
+                    review.createdAt || review.created_at || new Date()
+                  )}
+                </span>
                 {review.isEdited && <span>(edited)</span>}
               </div>
             </div>
@@ -180,7 +203,9 @@ export function FeedReviewCard({
           {/* Content */}
           <div className="prose prose-invert prose-sm max-w-none mb-3">
             <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-              {review.content ? <MentionTextWithHover content={review.content} /> : null}
+              {review.content ? (
+                <MentionTextWithHover content={review.content} />
+              ) : null}
             </p>
           </div>
         </div>

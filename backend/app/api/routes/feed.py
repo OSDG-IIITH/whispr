@@ -19,13 +19,13 @@ from app.models.review import Review as ReviewModel
 from app.models.course import Course as CourseModel
 from app.models.professor import Professor as ProfessorModel
 from app.models.course_instructor import CourseInstructor as CourseInstructorModel
-from app.schemas.review import Review
+from app.schemas.review import ReviewWithRelations
 from app.auth.jwt import get_current_user
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[Review])
+@router.get("/", response_model=List[ReviewWithRelations])
 async def get_feed(
     skip: int = 0,
     limit: int = 20,
@@ -75,7 +75,7 @@ async def get_feed(
         )
         
         result = await db.execute(stmt)
-        followed_recent_reviews = result.scalars().all()
+        followed_recent_reviews = result.scalars().unique().all()
         
         # Add all recent reviews from followed users with high probability
         for review in followed_recent_reviews:
@@ -126,7 +126,7 @@ async def get_feed(
             )
             
             result = await db.execute(stmt)
-            subject_reviews = result.scalars().all()
+            subject_reviews = result.scalars().unique().all()
             
             # Add with medium probability, preferring recent ones
             for review in subject_reviews:
@@ -170,7 +170,7 @@ async def get_feed(
         )
         
         result = await db.execute(stmt)
-        random_reviews = result.scalars().all()
+        random_reviews = result.scalars().unique().all()
         
         # Add with probability favoring recent reviews
         for review in random_reviews:

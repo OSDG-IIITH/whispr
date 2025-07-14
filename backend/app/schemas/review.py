@@ -81,6 +81,9 @@ class Review(ReviewInDBBase):
 
 
 from app.schemas.user import User
+from app.schemas.course import Course
+from app.schemas.professor import Professor
+from app.schemas.course_instructor import CourseInstructorDetail
 
 
 class ReviewWithUser(Review):
@@ -88,3 +91,13 @@ class ReviewWithUser(Review):
     Schema for review with user information.
     """
     user: User
+
+
+class ReviewWithRelations(Review):
+    """
+    Schema for review with all related information.
+    """
+    user: Optional[User] = None
+    course: Optional[Course] = None
+    professor: Optional[Professor] = None
+    course_instructor: Optional[CourseInstructorDetail] = None

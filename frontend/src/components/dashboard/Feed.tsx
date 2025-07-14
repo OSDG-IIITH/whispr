@@ -65,11 +65,30 @@ export function Feed() {
 
       const backendReviews = await feedAPI.getFeed(skipCount, 20);
 
+      // Get all user votes for these reviews in one call if logged in
+      let userVotes = new Map();
+      if (user?.id && backendReviews.length > 0) {
+        try {
+          const reviewIds = backendReviews.map(r => r.id);
+          const votes = await voteAPI.getVotes({ user_id: user.id });
+          // Create a map of review_id -> vote for quick lookup
+          votes.forEach(vote => {
+            if (vote.review_id && reviewIds.includes(vote.review_id)) {
+              userVotes.set(vote.review_id, vote);
+            }
+          });
+        } catch (error) {
+          console.log("Error fetching user votes:", error);
+        }
+      }
+
       // Convert backend reviews to frontend format
       const frontendReviews = backendReviews.map((review) => {
+        const userVote = userVotes.get(review.id) || null;
+
         const convertedReview = convertReviewToFrontendReview(
           review,
-          null,
+          userVote,
           user?.id
         );
 
