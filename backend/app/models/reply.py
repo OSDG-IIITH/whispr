@@ -40,3 +40,5 @@ class Reply(Base):
     user = relationship("User", back_populates="replies")
     votes = relationship("Vote", back_populates="reply",
                          cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="reply",
+                          cascade="all, delete-orphan")

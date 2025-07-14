@@ -4,7 +4,7 @@ Schemas for vote data.
 
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, UUID4, validator
+from pydantic import BaseModel, UUID4, model_validator
 from pydantic.version import VERSION as PYDANTIC_VERSION
 
 config_dict = {}
@@ -28,19 +28,13 @@ class VoteCreate(VoteBase):
     review_id: Optional[UUID4] = None
     reply_id: Optional[UUID4] = None
 
-    @validator('review_id', 'reply_id')
-    def check_exactly_one_target(cls, v, values, **kwargs):
-        field = kwargs['field'].name
-        other_field = 'reply_id' if field == 'review_id' else 'review_id'
-
-        if field in values and other_field in values:
-            if v is not None and values.get(other_field) is not None:
-                raise ValueError("Cannot vote on both a review and a reply")
-
-        if v is None and values.get(other_field) is None:
+    @model_validator(mode='after')
+    def check_exactly_one_target(self) -> 'VoteCreate':
+        if self.review_id is not None and self.reply_id is not None:
+            raise ValueError("Cannot vote on both a review and a reply")
+        if self.review_id is None and self.reply_id is None:
             raise ValueError("Must vote on either a review or a reply")
-
-        return v
+        return self
 
 
 class VoteUpdate(BaseModel):

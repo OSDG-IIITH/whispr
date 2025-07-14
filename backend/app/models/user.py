@@ -21,7 +21,6 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = Column(String(50), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
-    avatar_url = Column(Text, nullable=True)
     bio = Column(Text, nullable=True)
     student_since_year = Column(Integer, nullable=True)
     is_muffled = Column(Boolean, default=True)
@@ -54,3 +53,9 @@ class User(Base):
         primaryjoin="User.username==Notification.username",
         cascade="all, delete-orphan"
     )
+    reports_made = relationship("Report", foreign_keys="Report.reporter_id",
+                               back_populates="reporter",
+                               cascade="all, delete-orphan")
+    reports_received = relationship("Report", foreign_keys="Report.reported_user_id",
+                                   back_populates="reported_user",
+                                   cascade="all, delete-orphan")

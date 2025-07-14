@@ -7,13 +7,14 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, insert, and_, delete, func
 
 from app.db.session import get_db
 from app.models.user import User as UserModel
 from app.schemas.user import User, UserUpdate
 from app.auth.jwt import get_current_user, get_current_unmuffled_user
 from app.auth.password import get_password_hash
+from app.core.notifications import notify_on_follow
 
 router = APIRouter()
 
@@ -31,6 +32,37 @@ async def read_users(
     result = await db.execute(stmt)
     users = result.scalars().all()
     return users
+
+
+@router.get("/search", response_model=List[User])
+async def search_users(
+    q: str = "",
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+) -> Any:
+    """
+    Search users by username for mentions.
+    """
+    try:
+        # Return empty if query is too short
+        if not q or len(q.strip()) < 1:
+            return []
+        
+        query_clean = q.strip()
+        
+        # Search for users whose username starts with the query (case insensitive)
+        stmt = select(UserModel).where(
+            UserModel.username.ilike(f"{query_clean}%")
+        ).limit(min(limit, 20))  # Cap at 20 results
+        result = await db.execute(stmt)
+        users = result.scalars().all()
+        return users
+        
+    except Exception as e:
+        # Log the error but return empty list to not break the UI
+        print(f"Error in user search: {e}")
+        return []
 
 
 @router.get("/{user_id}", response_model=User)
@@ -75,6 +107,7 @@ async def read_user_by_username(
     return user
 
 
+
 @router.put("/me", response_model=User)
 async def update_user_me(
     user_update: UserUpdate,
@@ -91,12 +124,12 @@ async def update_user_me(
         update_data["hashed_password"] = hashed_password
         del update_data["password"]
 
-    async with db.begin():
-        stmt = update(UserModel).where(
-            UserModel.id == current_user.id
-        ).values(**update_data).returning(*UserModel.__table__.c)
-        result = await db.execute(stmt)
-        updated_user = result.fetchone()
+    stmt = update(UserModel).where(
+        UserModel.id == current_user.id
+    ).values(**update_data).returning(*UserModel.__table__.c)
+    result = await db.execute(stmt)
+    updated_user = result.fetchone()
+    await db.commit()
 
     return updated_user
 
@@ -127,9 +160,28 @@ async def follow_user(
             detail="User not found"
         )
 
-    # Add the relationship
-    if user_to_follow not in current_user.following:
-        current_user.following.append(user_to_follow)
+    # Check if already following using direct query
+    from app.models.user_followers import user_followers
+    check_stmt = select(user_followers).where(
+        and_(
+            user_followers.c.follower_id == current_user.id,
+            user_followers.c.followed_id == user_id
+        )
+    )
+    check_result = await db.execute(check_stmt)
+    existing_follow = check_result.first()
+
+    if existing_follow is None:
+        # Add the relationship using direct insert
+        insert_stmt = insert(user_followers).values(
+            follower_id=current_user.id,
+            followed_id=user_id
+        )
+        await db.execute(insert_stmt)
+        await db.commit()
+        
+        # Create notification
+        await notify_on_follow(db, user_id, current_user.username)
         await db.commit()
 
     return current_user
@@ -155,9 +207,151 @@ async def unfollow_user(
             detail="User not found"
         )
 
-    # Remove the relationship
-    if user_to_unfollow in current_user.following:
-        current_user.following.remove(user_to_unfollow)
-        await db.commit()
+    # Remove the relationship using direct delete
+    from app.models.user_followers import user_followers
+    delete_stmt = delete(user_followers).where(
+        and_(
+            user_followers.c.follower_id == current_user.id,
+            user_followers.c.followed_id == user_id
+        )
+    )
+    await db.execute(delete_stmt)
+    await db.commit()
 
     return current_user
+
+
+@router.get("/{user_id}/followers", response_model=List[User])
+async def get_user_followers(
+    user_id: UUID,
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """
+    Get followers of a user.
+    """
+    stmt = select(UserModel).where(UserModel.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Get followers with pagination using direct query
+    from app.models.user_followers import user_followers
+    followers_stmt = (
+        select(UserModel)
+        .join(user_followers, UserModel.id == user_followers.c.follower_id)
+        .where(user_followers.c.followed_id == user_id)
+        .offset(skip)
+        .limit(limit)
+    )
+    followers_result = await db.execute(followers_stmt)
+    followers = followers_result.scalars().all()
+    return followers
+
+
+@router.get("/{user_id}/following", response_model=List[User])
+async def get_user_following(
+    user_id: UUID,
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """
+    Get users that a user is following.
+    """
+    stmt = select(UserModel).where(UserModel.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Get following with pagination using direct query
+    from app.models.user_followers import user_followers
+    following_stmt = (
+        select(UserModel)
+        .join(user_followers, UserModel.id == user_followers.c.followed_id)
+        .where(user_followers.c.follower_id == user_id)
+        .offset(skip)
+        .limit(limit)
+    )
+    following_result = await db.execute(following_stmt)
+    following = following_result.scalars().all()
+    return following
+    return following
+
+
+@router.get("/{user_id}/follow-status", response_model=dict)
+async def get_follow_status(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+) -> Any:
+    """
+    Get follow status between current user and target user.
+    """
+    # Get the target user
+    stmt = select(UserModel).where(UserModel.id == user_id)
+    result = await db.execute(stmt)
+    target_user = result.scalar_one_or_none()
+
+    if target_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Check follow status using direct queries
+    from app.models.user_followers import user_followers
+    
+    # Check if current user is following target user
+    is_following_stmt = select(user_followers).where(
+        and_(
+            user_followers.c.follower_id == current_user.id,
+            user_followers.c.followed_id == user_id
+        )
+    )
+    is_following_result = await db.execute(is_following_stmt)
+    is_following = is_following_result.first() is not None
+
+    # Check if target user is following current user
+    is_followed_by_stmt = select(user_followers).where(
+        and_(
+            user_followers.c.follower_id == user_id,
+            user_followers.c.followed_id == current_user.id
+        )
+    )
+    is_followed_by_result = await db.execute(is_followed_by_stmt)
+    is_followed_by = is_followed_by_result.first() is not None
+
+    # Count followers and following using direct queries
+    from sqlalchemy import func
+    
+    followers_count_stmt = select(func.count(user_followers.c.follower_id)).where(
+        user_followers.c.followed_id == user_id
+    )
+    followers_count_result = await db.execute(followers_count_stmt)
+    followers_count = followers_count_result.scalar() or 0
+
+    following_count_stmt = select(func.count(user_followers.c.followed_id)).where(
+        user_followers.c.follower_id == user_id
+    )
+    following_count_result = await db.execute(following_count_stmt)
+    following_count = following_count_result.scalar() or 0
+
+    return {
+        "user_id": str(user_id),
+        "is_following": is_following,
+        "is_followed_by": is_followed_by,
+        "followers_count": followers_count,
+        "following_count": following_count
+    }

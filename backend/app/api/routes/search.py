@@ -549,11 +549,23 @@ async def search_course_instructors(
 
         # Create course instructor with details
         from app.schemas.course_instructor import CourseInstructorDetail
+        from app.schemas.course import Course
+        from app.schemas.professor import Professor
 
+        # Convert SQLAlchemy models to Pydantic schemas
+        course_schema = Course.model_validate(course)
+        professor_schema = Professor.model_validate(professor)
+
+        # Create course instructor dict from SQLAlchemy object
+        course_instructor_dict = {
+            column.name: getattr(course_instructor, column.name)
+            for column in course_instructor.__table__.columns
+        }
+        
         course_instructor_with_details = CourseInstructorDetail(
-            **course_instructor.__dict__,
-            course=course,
-            professor=professor
+            **course_instructor_dict,
+            course=course_schema,
+            professor=professor_schema
         )
 
         # Add to results
@@ -656,9 +668,20 @@ async def search_reviews(
 
         # Create review with user
         from app.schemas.review import ReviewWithUser
+        from app.schemas.user import User
+
+        # Convert SQLAlchemy models to Pydantic schemas
+        user_schema = User.model_validate(user)
+
+        # Create review dict from SQLAlchemy object
+        review_dict = {
+            column.name: getattr(review, column.name)
+            for column in review.__table__.columns
+        }
+        
         review_with_user = ReviewWithUser(
-            **review.__dict__,
-            user=user
+            **review_dict,
+            user=user_schema
         )
 
         # Add to results
@@ -743,9 +766,20 @@ async def search_replies(
 
         # Create reply with user
         from app.schemas.reply import ReplyWithUser
+        from app.schemas.user import User
+
+        # Convert SQLAlchemy models to Pydantic schemas
+        user_schema = User.model_validate(user)
+
+        # Create reply dict from SQLAlchemy object
+        reply_dict = {
+            column.name: getattr(reply, column.name)
+            for column in reply.__table__.columns
+        }
+        
         reply_with_user = ReplyWithUser(
-            **reply.__dict__,
-            user=user
+            **reply_dict,
+            user=user_schema
         )
 
         # Add to results

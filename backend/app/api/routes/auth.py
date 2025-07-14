@@ -63,15 +63,16 @@ async def logout(response: Response) -> Any:
 
 @router.post(
     "/register",
-    response_model=User,
+    response_model=Token,
     status_code=status.HTTP_201_CREATED
 )
 async def register_user(
+    response: Response,
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """
-    Register a new user.
+    Register a new user and automatically log them in.
     """
     # Check if user with this username already exists
     stmt = select(UserModel).where(UserModel.username == user_in.username)
@@ -89,7 +90,6 @@ async def register_user(
     stmt_user = insert(UserModel).values(
         username=user_in.username,
         hashed_password=hashed_password,
-        avatar_url=user_in.avatar_url,
         bio=user_in.bio,
         student_since_year=user_in.student_since_year,
         is_muffled=True,  # Default to muffled until email verification
@@ -104,7 +104,16 @@ async def register_user(
 
     await db.commit()
 
-    return created_user
+    # Automatically log the user in after registration
+    access_token_expires = timedelta(seconds=settings.JWT_EXPIRATION)
+    access_token = create_access_token(
+        subject=str(created_user.id), expires_delta=access_token_expires
+    )
+
+    # Set auth cookie
+    set_auth_cookie(response, access_token)
+
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/me", response_model=User)

@@ -21,7 +21,6 @@ class UserBase(BaseModel):
     Base user schema with common fields.
     """
     username: str
-    avatar_url: Optional[str] = None
     bio: Optional[str] = None
     student_since_year: Optional[int] = None
 
@@ -32,7 +31,6 @@ class UserCreate(BaseModel):
     """
     username: str
     password: str = Field(..., min_length=settings.MIN_PASSWORD_LENGTH)
-    avatar_url: Optional[str] = None
     bio: Optional[str] = None
     student_since_year: Optional[int] = None
 
@@ -48,7 +46,6 @@ class UserUpdate(BaseModel):
     Schema for updating a user.
     """
     username: Optional[str] = None
-    avatar_url: Optional[str] = None
     bio: Optional[str] = None
     student_since_year: Optional[int] = None
     password: Optional[str] = Field(
@@ -94,3 +91,11 @@ class UserInDB(UserInDBBase):
     Schema for user in database.
     """
     hashed_password: str
+
+
+class UserWithCounts(UserInDBBase):
+    """
+    Schema for user response with follower/following counts.
+    """
+    followers_count: int = 0
+    following_count: int = 0

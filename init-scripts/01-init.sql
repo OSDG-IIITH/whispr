@@ -134,6 +134,14 @@ CREATE TABLE used_emails (
     verified_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+-- Create verification_sessions table for temporary CAS verification flow
+CREATE TABLE verification_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    session_token VARCHAR(255) NOT NULL UNIQUE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 -- Create notifications table
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -144,7 +152,8 @@ CREATE TABLE notifications (
             'VOTE',
             'REPLY',
             'RANK_CHANGE',
-            'SYSTEM'
+            'SYSTEM',
+            'FOLLOW'
         )
     ),
     content TEXT NOT NULL,
@@ -153,6 +162,52 @@ CREATE TABLE notifications (
     actor_username VARCHAR(50) REFERENCES users(username) ON DELETE CASCADE,
     is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+-- Create reports table
+CREATE TABLE reports (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
+    reply_id UUID REFERENCES replies(id) ON DELETE CASCADE,
+    reported_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    report_type VARCHAR(50) NOT NULL CHECK (
+        report_type IN (
+            'spam',
+            'harassment',
+            'inappropriate',
+            'misinformation',
+            'other'
+        )
+    ),
+    reason TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending' CHECK (
+        status IN (
+            'pending',
+            'reviewed',
+            'resolved',
+            'dismissed'
+        )
+    ),
+    admin_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CHECK (
+        (
+            review_id IS NOT NULL
+            AND reply_id IS NULL
+            AND reported_user_id IS NULL
+        )
+        OR (
+            review_id IS NULL
+            AND reply_id IS NOT NULL
+            AND reported_user_id IS NULL
+        )
+        OR (
+            review_id IS NULL
+            AND reply_id IS NULL
+            AND reported_user_id IS NOT NULL
+        )
+    )
 );
 -- Add indexes for performance
 CREATE INDEX idx_users_username ON users(username);
@@ -175,6 +230,8 @@ CREATE INDEX idx_notifications_actor_username ON notifications(actor_username);
 CREATE INDEX idx_notifications_source ON notifications(source_id, source_type);
 CREATE INDEX idx_notifications_type ON notifications(type);
 CREATE INDEX idx_used_emails_email ON used_emails(email);
+CREATE INDEX idx_verification_sessions_session_token ON verification_sessions(session_token);
+CREATE INDEX idx_verification_sessions_user_id ON verification_sessions(user_id);
 CREATE INDEX idx_professor_social_media_professor_id ON professor_social_media(professor_id);
 CREATE INDEX idx_course_instructors_professor_id ON course_instructors(professor_id);
 CREATE INDEX idx_course_instructors_course_id ON course_instructors(course_id);

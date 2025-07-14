@@ -53,6 +53,8 @@ class Review(Base):
                            cascade="all, delete-orphan")
     votes = relationship("Vote", back_populates="review",
                          cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="review",
+                          cascade="all, delete-orphan")
 
     # Ensure at least one of course_id, professor_id,
     # or course_instructor_id is not null
