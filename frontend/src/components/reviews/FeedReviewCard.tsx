@@ -331,11 +331,11 @@ export function FeedReviewCard({
 
               {/* Content */}
               <div className="prose prose-invert prose-sm max-w-none mb-3">
-                <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                <div className="text-foreground leading-relaxed whitespace-pre-wrap">
                   {review.content ? (
                     <MentionTextWithHover content={review.content} />
                   ) : null}
-                </p>
+                </div>
               </div>
             </div>
           </div>

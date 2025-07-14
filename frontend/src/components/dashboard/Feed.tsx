@@ -109,7 +109,15 @@ export function Feed() {
         setReviews(frontendReviews);
         setSkip(20);
       } else {
-        setReviews((prev) => [...prev, ...frontendReviews]);
+        // Merge and ensure uniqueness by review id
+        setReviews((prev) => {
+          const merged = [...prev, ...frontendReviews];
+          const uniqueMap = new Map();
+          for (const review of merged) {
+            uniqueMap.set(review.id, review);
+          }
+          return Array.from(uniqueMap.values());
+        });
         setSkip((prev) => prev + 20);
       }
 
@@ -309,7 +317,11 @@ export function Feed() {
       showSuccess("Review updated successfully!");
     } catch (error: unknown) {
       console.error("Failed to edit review:", error);
-      showError(error instanceof Error ? error.message : "Failed to edit review. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to edit review. Please try again."
+      );
     }
   };
 
@@ -328,7 +340,11 @@ export function Feed() {
       showSuccess("Review deleted successfully!");
     } catch (error: unknown) {
       console.error("Failed to delete review:", error);
-      showError(error instanceof Error ? error.message : "Failed to delete review. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete review. Please try again."
+      );
     }
   };
 
