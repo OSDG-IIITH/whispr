@@ -42,12 +42,12 @@ export default function SearchPage() {
   );
   const [currentPage, setCurrentPage] = useState(0);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  
+
   const RESULTS_PER_PAGE = 20;
 
   const performSearch = useCallback(async (page = 0, append = false) => {
     if (!query.trim()) return;
-    
+
     setLoading(true);
     try {
       const params: any = {
@@ -62,21 +62,21 @@ export default function SearchPage() {
       if (entityTypes.length > 0) {
         params.entity_types = entityTypes;
       }
-      
+
       if (minRating !== undefined) {
         params.min_rating = minRating;
       }
-      
+
       if (maxRating !== undefined) {
         params.max_rating = maxRating;
       }
 
       const response = await searchAPI.search(params);
-      
+
       // Transform API results to our format
       const transformedResults: SearchResultData[] = response.results.map((result: any) => {
         let transformedResult: SearchResultData;
-        
+
         switch (result.entity_type) {
           case "course":
             transformedResult = {
@@ -86,7 +86,7 @@ export default function SearchPage() {
               subtitle: `${result.data.credits} Credits`,
               description: result.data.description || "No description available",
               rating: result.data.average_rating ? Number(result.data.average_rating) : undefined,
-              metadata: { 
+              metadata: {
                 reviewCount: result.data.review_count,
                 code: result.data.code,
                 credits: result.data.credits
@@ -95,7 +95,7 @@ export default function SearchPage() {
               rawData: result.data
             };
             break;
-            
+
           case "professor":
             transformedResult = {
               id: result.data.id,
@@ -104,7 +104,7 @@ export default function SearchPage() {
               subtitle: result.data.lab || "Faculty",
               description: result.data.review_summary || "No summary available",
               rating: result.data.average_rating ? Number(result.data.average_rating) : undefined,
-              metadata: { 
+              metadata: {
                 reviewCount: result.data.review_count,
                 lab: result.data.lab
               },
@@ -112,7 +112,7 @@ export default function SearchPage() {
               rawData: result.data
             };
             break;
-            
+
           case "course_instructor":
             transformedResult = {
               id: result.data.id,
@@ -121,7 +121,7 @@ export default function SearchPage() {
               subtitle: `${result.data.semester} ${result.data.year}`,
               description: result.data.summary || `${result.data.professor.name} teaching ${result.data.course.name}`,
               rating: result.data.average_rating ? Number(result.data.average_rating) : undefined,
-              metadata: { 
+              metadata: {
                 reviewCount: result.data.review_count,
                 semester: result.data.semester,
                 year: result.data.year,
@@ -132,7 +132,7 @@ export default function SearchPage() {
               rawData: result.data
             };
             break;
-            
+
           case "review":
             transformedResult = {
               id: result.data.id,
@@ -151,7 +151,7 @@ export default function SearchPage() {
               rawData: result.data
             };
             break;
-            
+
           case "reply":
             transformedResult = {
               id: result.data.id,
@@ -169,7 +169,7 @@ export default function SearchPage() {
               rawData: result.data
             };
             break;
-            
+
           default:
             transformedResult = {
               id: result.data.id || Math.random().toString(),
@@ -181,7 +181,7 @@ export default function SearchPage() {
               rawData: result.data
             };
         }
-        
+
         return transformedResult;
       });
 
@@ -190,7 +190,7 @@ export default function SearchPage() {
       } else {
         setResults(transformedResults);
       }
-      
+
       setTotalResults(response.total);
       setCurrentPage(page);
     } catch (error) {
@@ -221,7 +221,7 @@ export default function SearchPage() {
     if (deepSearch) params.set("deep", "true");
     if (minRating !== undefined) params.set("min_rating", minRating.toString());
     if (maxRating !== undefined) params.set("max_rating", maxRating.toString());
-    
+
     router.replace(`/search?${params.toString()}`);
   };
 
@@ -259,16 +259,16 @@ export default function SearchPage() {
         return `/courses/${result.metadata?.courseCode}?professor=${result.rawData?.professor?.id}`;
       case "review":
         // Find course code from the review data
-        const reviewCourseCode = result.rawData?.course?.code || 
-                                result.rawData?.course_instructor?.course?.code;
+        const reviewCourseCode = result.rawData?.course?.code ||
+          result.rawData?.course_instructor?.course?.code;
         if (reviewCourseCode) {
           return `/courses/${reviewCourseCode}?reviewId=${result.id}`;
         }
         return `/courses/${result.rawData?.course_id || result.id}`;
       case "reply":
         // Find course code from the reply's review data
-        const replyCourseCode = result.rawData?.review?.course?.code || 
-                               result.rawData?.review?.course_instructor?.course?.code;
+        const replyCourseCode = result.rawData?.review?.course?.code ||
+          result.rawData?.review?.course_instructor?.course?.code;
         if (replyCourseCode) {
           return `/courses/${replyCourseCode}?reviewId=${result.rawData?.review_id}&replyId=${result.id}`;
         }
@@ -348,11 +348,10 @@ export default function SearchPage() {
               <button
                 key={type}
                 onClick={() => handleEntityTypeToggle(type)}
-                className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                  entityTypes.length === 0 || entityTypes.includes(type)
+                className={`px-4 py-2 text-sm rounded-lg transition-colors ${entityTypes.length === 0 || entityTypes.includes(type)
                     ? 'bg-primary text-black'
                     : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                }`}
+                  }`}
               >
                 {label}
               </button>
@@ -379,11 +378,10 @@ export default function SearchPage() {
                     onChange={(e) => setDeepSearch(e.target.checked)}
                     className="sr-only"
                   />
-                  <div className={`w-4 h-4 rounded border-2 transition-colors ${
-                    deepSearch 
-                      ? 'bg-primary border-primary' 
+                  <div className={`w-4 h-4 rounded border-2 transition-colors ${deepSearch
+                      ? 'bg-primary border-primary'
                       : 'border-border hover:border-primary/50'
-                  }`}>
+                    }`}>
                     {deepSearch && (
                       <svg className="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -393,7 +391,7 @@ export default function SearchPage() {
                 </div>
                 <span className="text-secondary hover:text-primary transition-colors">Deep Search</span>
               </label>
-              
+
               <div className="flex items-center gap-2">
                 <span className="text-secondary text-sm">Sort:</span>
                 <select
@@ -407,7 +405,7 @@ export default function SearchPage() {
                     </option>
                   ))}
                 </select>
-                
+
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
@@ -521,14 +519,6 @@ export default function SearchPage() {
                           </div>
 
                           <div className="flex items-center gap-2 ml-4">
-                            {result.rating && (
-                              <div className="flex items-center gap-1">
-                                {renderStars(Number(result.rating))}
-                                <span className="text-sm font-medium ml-1">
-                                  {Number(result.rating).toFixed(1)}
-                                </span>
-                              </div>
-                            )}
                             <span className="text-xs text-secondary bg-muted px-2 py-1 rounded">
                               {(result.relevanceScore * 100).toFixed(0)}% match
                             </span>
@@ -540,19 +530,24 @@ export default function SearchPage() {
                         </p>
 
                         {/* Metadata */}
-                        <div className="flex items-center gap-4 text-xs text-secondary">
+                        <div className="flex items-center gap-4 text-xs text-secondary justify-end">
                           {result.metadata?.reviewCount !== undefined && (
-                            <span>{result.metadata.reviewCount} reviews</span>
+                            <span className="flex items-center gap-2">
+                              {result.metadata.reviewCount} reviews
+                              {result.rating !== undefined && (
+                                <span className="flex items-center gap-1 ml-2">
+                                  {renderStars(result.rating)}
+                                  <span className="text-sm text-secondary">{result.rating.toFixed(1)}</span>
+                                </span>
+                              )}
+                            </span>
                           )}
-                          
                           {result.metadata?.upvotes !== undefined && (
                             <span>{result.metadata.upvotes} upvotes</span>
                           )}
-                          
                           {result.metadata?.createdAt && (
                             <span>{result.metadata.createdAt}</span>
                           )}
-                          
                           {result.metadata?.semester && result.metadata?.year && (
                             <span>{result.metadata.semester} {result.metadata.year}</span>
                           )}
@@ -574,7 +569,7 @@ export default function SearchPage() {
             transition={{ delay: 0.3 }}
             className="text-center mt-8"
           >
-            <button 
+            <button
               onClick={handleLoadMore}
               className="btn btn-secondary px-6 py-3"
             >
@@ -582,7 +577,7 @@ export default function SearchPage() {
             </button>
           </motion.div>
         )}
-        
+
         {loading && results.length > 0 && (
           <div className="text-center mt-4">
             <div className="text-secondary">Loading more results...</div>

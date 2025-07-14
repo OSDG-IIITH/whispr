@@ -213,7 +213,7 @@ export default function DashboardPage() {
                 voice matters in helping others make informed decisions.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="bg-primary/10 rounded-lg p-4 text-center">
                   <Star className="w-8 h-8 text-primary mx-auto mb-2" />
                   <div className="text-2xl font-bold">
@@ -238,7 +238,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Social Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className="bg-primary/10 rounded-lg p-4 text-center">
                   <Users className="w-8 h-8 text-primary mx-auto mb-2" />
                   <div className="text-2xl font-bold">

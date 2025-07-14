@@ -102,7 +102,7 @@ def combine_relevance_scores(scores: Dict[str, float]) -> float:
         weight = field_weights.get(field, 1.0)
         total_score += score * weight
 
-    return total_score
+    return total_score # TODO: normalize this score if needed
 
 
 @router.post("/", response_model=SearchResponse)

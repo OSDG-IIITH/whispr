@@ -47,8 +47,22 @@ export default function CoursesPage() {
     const matchesSearch =
       course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.code.toLowerCase().includes(searchQuery.toLowerCase());
-    // Note: We don't have semester/year in the current course model, so we'll skip those filters for now
-    return matchesSearch;
+
+    // Semester filter
+    const matchesSemester =
+      selectedSemester === "ALL" ||
+      (course.course_instructors && course.course_instructors.some(
+        (ci) => ci.semester === selectedSemester
+      ));
+
+    // Year filter
+    const matchesYear =
+      selectedYear === "ALL" ||
+      (course.course_instructors && course.course_instructors.some(
+        (ci) => String(ci.year) === selectedYear
+      ));
+
+    return matchesSearch && matchesSemester && matchesYear;
   });
 
   const sortedCourses = [...filteredCourses].sort((a, b) => {
