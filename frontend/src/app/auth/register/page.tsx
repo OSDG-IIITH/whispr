@@ -86,7 +86,10 @@ export default function RegisterPage() {
 
           {/* Privacy Notice */}
           <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4 mb-6">
-            <h3 className="font-semibold text-primary mb-2 text-sm sm:text-base">🔒 Privacy First</h3>
+            <h3 className="font-semibold text-primary mb-2 text-sm sm:text-base flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              Privacy First
+            </h3>
             <ul className="text-xs sm:text-sm text-secondary space-y-1">
               <li>• No email required for registration</li>
               <li>• Complete anonymity guaranteed</li>

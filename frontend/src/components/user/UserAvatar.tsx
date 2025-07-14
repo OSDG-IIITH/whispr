@@ -99,7 +99,7 @@ export function UserAvatar({ username, echoes = 0, size = "md", className = "" }
       {/* Rank indicator for higher ranks */}
       {echoes >= 1000 && (
         <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-xs">
-          {rank.icon}
+          <rank.icon className="w-2 h-2 text-white" />
         </div>
       )}
     </div>

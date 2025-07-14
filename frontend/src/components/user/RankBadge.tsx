@@ -38,7 +38,7 @@ export function RankBadge({ echoes, size = "md", showIcon = true, showProgress =
         `}
       >
         {showIcon && (
-          <span className={iconSizes[size]}>{rank.icon}</span>
+          <rank.icon className={iconSizes[size]} />
         )}
         <span>{rank.name}</span>
       </div>

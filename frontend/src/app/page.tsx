@@ -231,7 +231,9 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.1 }}
                 className={`card p-6 text-center bg-gradient-to-br ${rank.gradient} border-none`}
               >
-                <div className="text-4xl mb-2">{rank.icon}</div>
+                <div className="text-4xl mb-2">
+                  <rank.icon className="w-12 h-12 text-white mx-auto" />
+                </div>
                 <h3 className="font-bold text-lg text-white">{rank.name}</h3>
                 <p className="text-sm text-white/80">{rank.min}+ echoes</p>
               </motion.div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Filter, Search } from "lucide-react";
+import { ArrowLeft, Star, Filter, Search, ThumbsUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -328,7 +328,7 @@ export default function MyReviewsPage() {
           <div className="bg-card border border-primary/20 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
-                <span className="text-yellow-500 text-lg">👍</span>
+                <ThumbsUp className="w-5 h-5 text-yellow-500" />
               </div>
               <div>
                 <div className="text-2xl font-bold">

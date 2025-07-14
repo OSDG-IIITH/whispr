@@ -55,27 +55,27 @@ export function MentionInput({
     const textBeforeCursor = newValue.slice(0, position);
     const lastAtIndex = textBeforeCursor.lastIndexOf("@");
 
-    console.log('⌨️ Input changed:', { newValue, position, textBeforeCursor, lastAtIndex });
+    console.log('Input changed:', { newValue, position, textBeforeCursor, lastAtIndex });
 
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
-      console.log('📍 Found @ at position', lastAtIndex, 'text after @:', textAfterAt);
+      console.log('Found @ at position', lastAtIndex, 'text after @:', textAfterAt);
 
       // Check if we're still in the mention (no spaces after @)
       if (!textAfterAt.includes(" ") && textAfterAt.length <= 20) {
-        console.log('✅ Valid mention, opening dropdown');
+        console.log('Valid mention, opening dropdown');
         setMentionPosition({ start: lastAtIndex, end: position });
         updateQuery(textAfterAt);
         if (!isOpen) {
           openMention(textAfterAt);
         }
       } else {
-        console.log('❌ Invalid mention (space found or too long), closing');
+        console.log('Invalid mention (space found or too long), closing');
         closeMention();
         setMentionPosition(null);
       }
     } else {
-      console.log('🚫 No @ found, closing mention');
+      console.log('No @ found, closing mention');
       closeMention();
       setMentionPosition(null);
     }

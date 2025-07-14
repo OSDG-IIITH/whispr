@@ -73,8 +73,9 @@ export function KillSwitch({ onConfirm, isOpen, onClose }: KillSwitchProps) {
 
               {/* Warning */}
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-red-400 mb-2">
-                  ⚠️ PERMANENT ACTION
+                <h3 className="font-semibold text-red-400 mb-2 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  PERMANENT ACTION
                 </h3>
                 <p className="text-sm text-red-300 mb-3">
                   This will permanently delete your account and ALL your data:

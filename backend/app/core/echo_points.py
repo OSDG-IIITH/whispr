@@ -108,16 +108,16 @@ async def get_user_rank_from_echoes(echoes: int) -> dict:
     Get user rank information based on echo points.
     """
     if echoes < 0:
-        return {"rank": "Muffled", "color": "red", "icon": "🔇"}
+        return {"rank": "Muffled", "color": "red", "icon": "VolumeX"}
     elif echoes < 10:
-        return {"rank": "Whisper", "color": "gray", "icon": "👤"}
+        return {"rank": "Whisper", "color": "gray", "icon": "User"}
     elif echoes < 25:
-        return {"rank": "Voice", "color": "blue", "icon": "🗣️"}
+        return {"rank": "Voice", "color": "blue", "icon": "MessageSquare"}
     elif echoes < 50:
-        return {"rank": "Speaker", "color": "green", "icon": "📢"}
+        return {"rank": "Speaker", "color": "green", "icon": "Megaphone"}
     elif echoes < 100:
-        return {"rank": "Resonator", "color": "purple", "icon": "🎵"}
+        return {"rank": "Resonator", "color": "purple", "icon": "Music"}
     elif echoes < 200:
-        return {"rank": "Amplifier", "color": "orange", "icon": "📻"}
+        return {"rank": "Amplifier", "color": "orange", "icon": "Radio"}
     else:
-        return {"rank": "Echo Master", "color": "gold", "icon": "👑"}
+        return {"rank": "Echo Master", "color": "gold", "icon": "Crown"}
