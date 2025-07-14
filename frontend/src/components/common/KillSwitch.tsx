@@ -83,7 +83,7 @@ export function KillSwitch({ onConfirm, isOpen, onClose }: KillSwitchProps) {
                   <li>• All your reviews and replies</li>
                   <li>• Your profile and rank progress</li>
                   <li>• All votes and interactions</li>
-                  <li>• Cannot be undone</li>
+                  <li>• Cannot be undone - You can NEVER create an account again with your IIIT email, if you have linked it.</li>
                 </ul>
               </div>
 

@@ -90,9 +90,15 @@ export default function ProfilePage() {
 
       // Fetch current user's votes if authenticated
       if (currentUser) {
-        const votes = await voteAPI.getMyVotes();
-        setUserVotes(votes);
-        
+        try {
+          const votes = await voteAPI.getMyVotes();
+          setUserVotes(votes);
+        } catch (error) {
+          console.error("Failed to fetch votes:", error);
+          // Set empty votes array as fallback
+          setUserVotes([]);
+        }
+
         // Fetch follow status if viewing someone else's profile
         if (!isOwnProfile) {
           try {
@@ -127,13 +133,21 @@ export default function ProfilePage() {
       });
       // Refresh votes and reviews
       if (currentUser) {
-        const votes = await voteAPI.getMyVotes();
-        setUserVotes(votes);
+        try {
+          const votes = await voteAPI.getMyVotes();
+          setUserVotes(votes);
+        } catch (error) {
+          console.error("Failed to fetch votes:", error);
+          // Set empty votes array as fallback
+          setUserVotes([]);
+        }
       }
-      const userReviews = await reviewAPI.getReviews({
-        user_id: profileUser!.id,
-      });
-      setReviews(userReviews);
+      if (profileUser) {
+        const userReviews = await reviewAPI.getReviews({
+          user_id: profileUser.id,
+        });
+        setReviews(userReviews);
+      }
 
       // Refresh user data to get updated echo points
       await refresh();
@@ -152,7 +166,7 @@ export default function ProfilePage() {
     try {
       // Update local state optimistically
       setIsFollowing(newIsFollowing);
-      setFollowersCount(prev => newIsFollowing ? prev + 1 : prev - 1);
+      setFollowersCount((prev: number) => newIsFollowing ? prev + 1 : prev - 1);
 
       // The FollowButton component handles the actual API call
       showSuccess(newIsFollowing ? "User followed!" : "User unfollowed!");
@@ -160,7 +174,7 @@ export default function ProfilePage() {
       console.error("Failed to update follow status:", error);
       // Revert optimistic update
       setIsFollowing(!newIsFollowing);
-      setFollowersCount(prev => newIsFollowing ? prev - 1 : prev + 1);
+      setFollowersCount((prev: number) => newIsFollowing ? prev - 1 : prev + 1);
       showError("Failed to update follow status. Please try again.");
     }
   };
@@ -183,10 +197,12 @@ export default function ProfilePage() {
       });
 
       // Refresh reviews to show updated reply counts
-      const userReviews = await reviewAPI.getReviews({
-        user_id: profileUser!.id,
-      });
-      setReviews(userReviews);
+      if (profileUser) {
+        const userReviews = await reviewAPI.getReviews({
+          user_id: profileUser.id,
+        });
+        setReviews(userReviews);
+      }
       showSuccess("Reply submitted successfully!");
     } catch (error: any) {
       console.error("Failed to create reply:", error);
@@ -212,10 +228,12 @@ export default function ProfilePage() {
       await reviewAPI.updateReview(reviewId, data);
 
       // Refresh reviews to show updated content
-      const userReviews = await reviewAPI.getReviews({
-        user_id: profileUser!.id,
-      });
-      setReviews(userReviews);
+      if (profileUser) {
+        const userReviews = await reviewAPI.getReviews({
+          user_id: profileUser.id,
+        });
+        setReviews(userReviews);
+      }
       showSuccess("Review updated successfully!");
     } catch (error: any) {
       console.error("Failed to edit review:", error);
@@ -237,10 +255,12 @@ export default function ProfilePage() {
       await reviewAPI.deleteReview(reviewId);
 
       // Refresh reviews to remove deleted review
-      const userReviews = await reviewAPI.getReviews({
-        user_id: profileUser!.id,
-      });
-      setReviews(userReviews);
+      if (profileUser) {
+        const userReviews = await reviewAPI.getReviews({
+          user_id: profileUser.id,
+        });
+        setReviews(userReviews);
+      }
       showSuccess("Review deleted successfully!");
     } catch (error: any) {
       console.error("Failed to delete review:", error);
@@ -284,13 +304,13 @@ export default function ProfilePage() {
 
   // Transform reviews to frontend format
   const transformedReviews = reviews.map((review) =>
-    transformReview(review, userVotes, isOwnProfile)
+    transformReview(review, userVotes || [], isOwnProfile)
   );
 
   // Calculate stats from actual data
-  const totalUpvotes = reviews.reduce((sum, review) => sum + review.upvotes, 0);
+  const totalUpvotes = reviews.reduce((sum, review) => sum + (review.upvotes || 0), 0);
   const totalDownvotes = reviews.reduce(
-    (sum, review) => sum + review.downvotes,
+    (sum, review) => sum + (review.downvotes || 0),
     0
   );
   const profileViews = 0; // TODO: Implement profile views when backend supports it
@@ -341,14 +361,14 @@ export default function ProfilePage() {
           <div className="flex items-start gap-6 mb-6">
             <UserAvatar
               username={profileUser.username}
-              echoes={profileUser.echoes}
+              echoes={profileUser.echoes || 0}
               size="xl"
             />
 
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold">{profileUser.username}</h1>
-                {!profileUser.is_muffled && (
+                {profileUser.is_muffled !== undefined && !profileUser.is_muffled && (
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                     <span className="text-black text-sm">✓</span>
                   </div>
@@ -356,11 +376,11 @@ export default function ProfilePage() {
               </div>
 
               <div className="mb-4">
-                <RankBadge echoes={profileUser.echoes} size="lg" showProgress />
+                <RankBadge echoes={profileUser.echoes || 0} size="lg" showProgress />
               </div>
 
               <div className="mb-4">
-                <EchoesDisplay echoes={profileUser.echoes} size="lg" />
+                <EchoesDisplay echoes={profileUser.echoes || 0} size="lg" />
               </div>
 
               {profileUser.bio && (
@@ -445,11 +465,10 @@ export default function ProfilePage() {
                 <button
                   key={option}
                   onClick={() => setFilterBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    filterBy === option
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${filterBy === option
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
