@@ -264,7 +264,8 @@ export default function SearchPage() {
         if (reviewCourseCode) {
           return `/courses/${reviewCourseCode}?reviewId=${result.id}`;
         }
-        return `/courses/${result.rawData?.course_id || result.id}`;
+        // Fallback to dashboard if no course code found
+        return `/dashboard`;
       case "reply":
         // Find course code from the reply's review data
         const replyCourseCode = result.rawData?.review?.course?.code ||
@@ -272,7 +273,8 @@ export default function SearchPage() {
         if (replyCourseCode) {
           return `/courses/${replyCourseCode}?reviewId=${result.rawData?.review_id}&replyId=${result.id}`;
         }
-        return `/courses/${result.rawData?.review?.course_id || result.id}`;
+        // Fallback to dashboard if no course code found
+        return `/dashboard`;
       default:
         return "#";
     }

@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { X, MessageSquare, Heart, Users, Shield } from "lucide-react";
+import { X, MessageSquare, Heart, Users, Shield, CheckCheck } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { FrontendNotification } from "@/types/frontend-models";
+import { reviewAPI, replyAPI, courseAPI } from "@/lib/api";
 import Loader from "@/components/common/Loader";
 
 interface NotificationPanelProps {
@@ -44,12 +45,25 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
             </span>
           )}
         </div>
-        <button
-          onClick={onClose}
-          className="text-secondary hover:text-foreground transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <button
+              onClick={async () => {
+                await markAllAsRead();
+              }}
+              className="text-secondary hover:text-primary transition-colors"
+              title="Mark all as read"
+            >
+              <CheckCheck className="w-5 h-5" />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="text-secondary hover:text-foreground transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Notifications List */}
@@ -76,33 +90,70 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                   !notification.read ? "bg-primary/10" : ""
                 }`}
                 onClick={async () => {
-                  // Mark as read when clicked
-                  if (!notification.read) {
-                    await markAsRead(notification.id);
-                  }
+                  try {
+                    // Mark as read when clicked and ensure it completes
+                    if (!notification.read) {
+                      await markAsRead(notification.id);
+                      // Give a small delay to ensure the UI updates
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                    }
 
-                  // Navigate based on notification type and source
-                  let actionUrl = "";
-                  if (
-                    notification.source_type === "review" &&
-                    notification.source_id
-                  ) {
-                    actionUrl = `/reviews/${notification.source_id}`;
-                  } else if (
-                    notification.source_type === "reply" &&
-                    notification.source_id
-                  ) {
-                    actionUrl = `/replies/${notification.source_id}`;
-                  } else if (
-                    notification.source_type === "user" &&
-                    notification.actor_username
-                  ) {
-                    actionUrl = `/profile/${notification.actor_username}`;
-                  }
+                    // Navigate based on notification type and source
+                    let actionUrl = "";
+                    
+                    if (
+                      notification.source_type === "review" &&
+                      notification.source_id
+                    ) {
+                      // Fetch review data to get course/professor info
+                      const review = await reviewAPI.getReview(notification.source_id);
+                      
+                      // Navigate to the appropriate page based on review type
+                      if (review.course_id) {
+                        // Fetch course data to get the course code
+                        const course = await courseAPI.getCourseById(review.course_id);
+                        actionUrl = `/courses/${course.code}`;
+                      } else if (review.professor_id) {
+                        actionUrl = `/professors/${review.professor_id}`;
+                      } else if (review.course_instructor_id) {
+                        actionUrl = `/dashboard`; // Fallback for now  
+                      }
+                    } else if (
+                      notification.source_type === "reply" &&
+                      notification.source_id
+                    ) {
+                      // Fetch reply data to get the review info
+                      const reply = await replyAPI.getReply(notification.source_id);
+                      
+                      // Now fetch the review to get course/professor info
+                      const review = await reviewAPI.getReview(reply.review_id);
+                      
+                      // Navigate to the appropriate page based on review type
+                      if (review.course_id) {
+                        // Fetch course data to get the course code
+                        const course = await courseAPI.getCourseById(review.course_id);
+                        actionUrl = `/courses/${course.code}`;
+                      } else if (review.professor_id) {
+                        actionUrl = `/professors/${review.professor_id}`;
+                      } else if (review.course_instructor_id) {
+                        actionUrl = `/dashboard`; // Fallback for now
+                      }
+                    } else if (
+                      notification.source_type === "user" &&
+                      notification.actor_username
+                    ) {
+                      actionUrl = `/profile/${notification.actor_username}`;
+                    }
 
-                  if (actionUrl) {
-                    window.location.href = actionUrl;
+                    if (actionUrl) {
+                      window.location.href = actionUrl;
+                    }
+                  } catch (error) {
+                    console.error("Error handling notification click:", error);
+                    // Still navigate to dashboard on error
+                    window.location.href = "/dashboard";
                   }
+                  
                   onClose();
                 }}
               >
@@ -128,20 +179,6 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
         )}
       </div>
 
-      {/* Footer */}
-      {notifications.length > 0 && unreadCount > 0 && (
-        <div className="p-3 border-t border-border">
-          <button
-            onClick={async () => {
-              await markAllAsRead();
-              onClose();
-            }}
-            className="w-full text-sm text-primary hover:text-primary/80 transition-colors"
-          >
-            Mark all as read
-          </button>
-        </div>
-      )}
     </div>
   );
 }

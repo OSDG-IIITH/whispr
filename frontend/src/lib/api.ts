@@ -467,6 +467,10 @@ export const courseAPI = {
     return apiCall<Course>(`/courses/by-code/${courseCode}`);
   },
 
+  getCourseById: async (courseId: string) => {
+    return apiCall<Course>(`/courses/${courseId}`);
+  },
+
   getCourseReviews: async (courseId: string, skip = 0, limit = 100) => {
     return apiCall<Review[]>(
       `/reviews/?course_id=${courseId}&skip=${skip}&limit=${limit}`

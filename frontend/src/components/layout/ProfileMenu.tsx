@@ -20,11 +20,11 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
     try {
       await logout();
       onClose();
-      router.push('/');
+      router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
       // Even if logout fails, redirect to home
-      router.push('/');
+      router.push("/");
     }
   };
 
@@ -33,19 +33,14 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
     router.push(`/profile/${user?.username}`);
   };
 
-  const handleMyReviews = () => {
-    onClose();
-    router.push('/my-reviews');
-  };
-
   const handleSettings = () => {
     onClose();
-    router.push('/settings');
+    router.push("/settings");
   };
 
   const handleVerifyAccount = () => {
     onClose();
-    router.push('/verify');
+    router.push("/verify");
   };
 
   if (!user) {
@@ -72,9 +67,7 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-semibold">{user.username}</h4>
-              {!user.is_muffled && (
-                <Shield className="w-4 h-4 text-primary" />
-              )}
+              {!user.is_muffled && <Shield className="w-4 h-4 text-primary" />}
             </div>
             <RankBadge echoes={user.echoes} size="sm" />
           </div>
@@ -92,16 +85,6 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
         >
           <User className="w-5 h-5 text-secondary" />
           <span>View Profile</span>
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleMyReviews}
-          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
-        >
-          <Star className="w-5 h-5 text-secondary" />
-          <span>My Reviews</span>
         </motion.button>
 
         <motion.button
