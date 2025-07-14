@@ -32,10 +32,10 @@ class Settings(BaseSettings):
 
     # CORS settings
     CORS_ORIGINS: List[str] = os.getenv(
-        "CORS_ORIGINS", "http://localhost:3000").split(",")
+        "CORS_ORIGINS", "http://localhost").split(",")
 
     # Frontend URL
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost")
 
     # Password settings
     MIN_PASSWORD_LENGTH: int = int(os.getenv("MIN_PASSWORD_LENGTH", "8"))

@@ -533,7 +533,7 @@ export default function SearchPage() {
                         <div className="flex items-center gap-4 text-xs text-secondary justify-end">
                           {result.metadata?.reviewCount !== undefined && (
                             <span className="flex items-center gap-2">
-                              {result.metadata.reviewCount} reviews
+                              {result.metadata.reviewCount} {result.metadata.reviewCount === 1 ? "review" : "reviews" }
                               {result.rating !== undefined && (
                                 <span className="flex items-center gap-1 ml-2">
                                   {renderStars(result.rating)}

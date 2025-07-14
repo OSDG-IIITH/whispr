@@ -208,20 +208,129 @@ export default function CoursePage() {
       return;
     }
 
+    // Find the current review
+    const currentReview = reviews.find((r) => r.id === reviewId);
+    if (!currentReview) return;
+
+    const currentUserVote = getUserVoteForReview(reviewId);
+    const isUpvote = type === "up";
+
+    // Calculate optimistic updates
+    let newUpvotes = currentReview.upvotes;
+    let newDownvotes = currentReview.downvotes;
+    let newUserVote: "up" | "down" | null = null;
+
+    if (currentUserVote === null) {
+      // User hasn't voted yet
+      if (isUpvote) {
+        newUpvotes += 1;
+        newUserVote = "up";
+      } else {
+        newDownvotes += 1;
+        newUserVote = "down";
+      }
+    } else if (currentUserVote === type) {
+      // User is removing their vote (clicking same button)
+      if (isUpvote) {
+        newUpvotes -= 1;
+      } else {
+        newDownvotes -= 1;
+      }
+      newUserVote = null;
+    } else {
+      // User is switching their vote
+      if (currentUserVote === "up") {
+        newUpvotes -= 1;
+        newDownvotes += 1;
+      } else {
+        newUpvotes += 1;
+        newDownvotes -= 1;
+      }
+      newUserVote = type;
+    }
+
+    // Optimistically update the UI
+    setReviews((prevReviews) =>
+      prevReviews.map((review) =>
+        review.id === reviewId
+          ? { ...review, upvotes: newUpvotes, downvotes: newDownvotes }
+          : review
+      )
+    );
+
+    // Optimistically update user votes
+    setUserVotes((prevVotes) => {
+      const filteredVotes = prevVotes.filter((v) => v.review_id !== reviewId);
+      if (newUserVote !== null) {
+        filteredVotes.push({
+          id: `temp-${reviewId}`,
+          user_id: user.id,
+          review_id: reviewId,
+          reply_id: undefined,
+          vote_type: newUserVote === "up",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+      return filteredVotes;
+    });
+
     try {
-      await voteAPI.createVote({
-        review_id: reviewId,
-        vote_type: type === "up",
-      });
+      if (newUserVote === null) {
+        // User is removing their vote - find and delete the existing vote
+        const existingVote = userVotes.find((v) => v.review_id === reviewId);
+        if (existingVote) {
+          await voteAPI.deleteVote(existingVote.id);
+        }
+      } else {
+        // User is creating or updating their vote
+        await voteAPI.createVote({
+          review_id: reviewId,
+          vote_type: isUpvote,
+        });
+      }
 
-      // Refresh reviews to show updated vote counts
-      await fetchReviewsAndReplies();
+      // Refresh user votes to get the correct vote data
+      if (user) {
+        try {
+          const votes = await voteAPI.getMyVotes();
+          setUserVotes(votes);
+        } catch (err) {
+          console.error("Error refreshing user votes:", err);
+        }
+      }
 
-      // Refresh user data to get updated echo points
-      await refresh();
+      // Only refresh user data for echo points if voting on someone else's review
+      // (users don't get echo points for voting on their own content)
+      if (currentReview.user_id !== user.id) {
+        await refresh();
+      }
     } catch (err: any) {
       console.error("Error voting on review:", err);
       showError(err.message || "Failed to vote. Please try again.");
+
+      // Revert optimistic update on error
+      setReviews((prevReviews) =>
+        prevReviews.map((review) =>
+          review.id === reviewId
+            ? {
+                ...review,
+                upvotes: currentReview.upvotes,
+                downvotes: currentReview.downvotes,
+              }
+            : review
+        )
+      );
+
+      // Revert user votes on error
+      if (user) {
+        try {
+          const votes = await voteAPI.getMyVotes();
+          setUserVotes(votes);
+        } catch (err) {
+          console.error("Error refreshing user votes:", err);
+        }
+      }
     }
   };
 
@@ -234,20 +343,143 @@ export default function CoursePage() {
       showError("Muffled users cannot vote");
       return;
     }
+
+    // Find the current reply
+    let currentReply: any = null;
+    let reviewId: string | null = null;
+
+    for (const [revId, replies] of Object.entries(repliesByReview)) {
+      const reply = replies.find((r) => r.id === replyId);
+      if (reply) {
+        currentReply = reply;
+        reviewId = revId;
+        break;
+      }
+    }
+
+    if (!currentReply || !reviewId) return;
+
+    const currentUserVote = getUserVoteForReply(replyId);
+    const isUpvote = type === "up";
+
+    // Calculate optimistic updates
+    let newUpvotes = currentReply.upvotes;
+    let newDownvotes = currentReply.downvotes;
+    let newUserVote: "up" | "down" | null = null;
+
+    if (currentUserVote === null) {
+      // User hasn't voted yet
+      if (isUpvote) {
+        newUpvotes += 1;
+        newUserVote = "up";
+      } else {
+        newDownvotes += 1;
+        newUserVote = "down";
+      }
+    } else if (currentUserVote === type) {
+      // User is removing their vote (clicking same button)
+      if (isUpvote) {
+        newUpvotes -= 1;
+      } else {
+        newDownvotes -= 1;
+      }
+      newUserVote = null;
+    } else {
+      // User is switching their vote
+      if (currentUserVote === "up") {
+        newUpvotes -= 1;
+        newDownvotes += 1;
+      } else {
+        newUpvotes += 1;
+        newDownvotes -= 1;
+      }
+      newUserVote = type;
+    }
+
+    // Optimistically update the UI
+    setRepliesByReview((prevReplies) => ({
+      ...prevReplies,
+      [reviewId]: prevReplies[reviewId].map((reply) =>
+        reply.id === replyId
+          ? { ...reply, upvotes: newUpvotes, downvotes: newDownvotes }
+          : reply
+      ),
+    }));
+
+    // Optimistically update user votes
+    setUserVotes((prevVotes) => {
+      const filteredVotes = prevVotes.filter((v) => v.reply_id !== replyId);
+      if (newUserVote !== null) {
+        filteredVotes.push({
+          id: `temp-${replyId}`,
+          user_id: user.id,
+          review_id: undefined,
+          reply_id: replyId,
+          vote_type: newUserVote === "up",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+      return filteredVotes;
+    });
+
     try {
-      await voteAPI.createVote({
-        reply_id: replyId,
-        vote_type: type === "up",
-      });
+      if (newUserVote === null) {
+        // User is removing their vote - find and delete the existing vote
+        const existingVote = userVotes.find((v) => v.reply_id === replyId);
+        if (existingVote) {
+          await voteAPI.deleteVote(existingVote.id);
+        }
+      } else {
+        // User is creating or updating their vote
+        await voteAPI.createVote({
+          reply_id: replyId,
+          vote_type: isUpvote,
+        });
+      }
 
-      // Refresh reviews and replies to show updated vote counts
-      await fetchReviewsAndReplies();
+      // Refresh user votes to get the correct vote data
+      if (user) {
+        try {
+          const votes = await voteAPI.getMyVotes();
+          setUserVotes(votes);
+        } catch (err) {
+          console.error("Error refreshing user votes:", err);
+        }
+      }
 
-      // Refresh user data to get updated echo points
-      await refresh();
+      // Only refresh user data for echo points if voting on someone else's reply
+      // (users don't get echo points for voting on their own content)
+      if (currentReply.user_id !== user.id) {
+        await refresh();
+      }
     } catch (err: any) {
       console.error("Error voting on reply:", err);
       showError(err.message || "Failed to vote. Please try again.");
+
+      // Revert optimistic update on error
+      setRepliesByReview((prevReplies) => ({
+        ...prevReplies,
+        [reviewId]: prevReplies[reviewId].map((reply) =>
+          reply.id === replyId
+            ? {
+                ...reply,
+                upvotes: currentReply.upvotes,
+                downvotes: currentReply.downvotes,
+              }
+            : reply
+        ),
+      }));
+
+      // Revert user votes on error
+      if (user) {
+        try {
+          const votes = await voteAPI.getMyVotes();
+          setUserVotes(votes);
+        } catch (err) {
+          console.error("Error refreshing user votes:", err);
+        }
+      }
     }
   };
 
@@ -306,15 +538,15 @@ export default function CoursePage() {
         setCourse((prevCourse: Course | null) =>
           prevCourse
             ? {
-              ...prevCourse,
-              review_count: prevCourse.review_count + 1,
-              average_rating: String(
-                (parseFloat(prevCourse.average_rating) *
-                  prevCourse.review_count +
-                  data.rating) /
-                (prevCourse.review_count + 1)
-              ),
-            }
+                ...prevCourse,
+                review_count: prevCourse.review_count + 1,
+                average_rating: String(
+                  (parseFloat(prevCourse.average_rating) *
+                    prevCourse.review_count +
+                    data.rating) /
+                    (prevCourse.review_count + 1)
+                ),
+              }
             : null
         );
       }
@@ -348,13 +580,17 @@ export default function CoursePage() {
     reviewId: string,
     data?: { content?: string; rating?: number }
   ) => {
+    if (!data) return;
+
     try {
       await reviewAPI.updateReview(reviewId, data);
 
       // Update the specific review in local state
       setReviews((prevReviews) =>
         prevReviews.map((review) =>
-          review.id === reviewId ? { ...review, ...data, is_edited: true } : review
+          review.id === reviewId
+            ? { ...review, ...data, is_edited: true }
+            : review
         )
       );
 
@@ -415,10 +651,11 @@ export default function CoursePage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${i < Math.floor(rating)
+        className={`w-5 h-5 ${
+          i < Math.floor(rating)
             ? "text-yellow-500 fill-current"
             : "text-secondary"
-          }`}
+        }`}
       />
     ));
   };
@@ -526,7 +763,9 @@ export default function CoursePage() {
                   {course.credits} Credits
                 </span>
               </div>
-              <h2 className="text-lg sm:text-2xl font-semibold mb-4 break-words">{course.name}</h2>
+              <h2 className="text-lg sm:text-2xl font-semibold mb-4 break-words">
+                {course.name}
+              </h2>
 
               {/* Professors */}
               {professors.length > 0 && (
@@ -563,7 +802,8 @@ export default function CoursePage() {
                 {(parseFloat(course.average_rating) || 0).toFixed(1)}
               </span>
               <span className="text-secondary text-xs sm:text-sm">
-                ({course.review_count || 0} reviews)
+                ({course.review_count || 0}{" "}
+                {course.review_count === 1 ? "review" : "reviews"})
               </span>
             </div>
 
@@ -601,8 +841,8 @@ export default function CoursePage() {
               {submittingReview
                 ? "Submitting..."
                 : user
-                  ? "Rate & Review"
-                  : "Login to Review"}
+                ? "Rate & Review"
+                : "Login to Review"}
             </button>
           </div>
         </motion.div>
@@ -630,7 +870,7 @@ export default function CoursePage() {
           transition={{ delay: 0.2 }}
         >
           <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-2 sm:gap-0">
-            <h3 className="text-lg sm:text-2xl font-bold">Reviews ({reviews.length})</h3>
+            <h3 className="text-lg sm:text-2xl font-bold">Reviews</h3>
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-secondary text-xs sm:text-base">Sort:</span>
@@ -638,10 +878,11 @@ export default function CoursePage() {
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${sortBy === option
+                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${
+                    sortBy === option
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                    }`}
+                  }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

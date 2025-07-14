@@ -19,14 +19,30 @@ async def calculate_user_echo_points(
     user_id: UUID
 ) -> int:
     """
-    Calculate a user's echo points based on their content votes.
+    Calculate a user's echo points based on their content and votes.
     
     Echo points calculation:
-    - +1 for each upvote on your review
-    - -1 for each downvote on your review
-    - +0.5 for each upvote on your reply
-    - -0.5 for each downvote on your reply
+    - Base points:
+      - +5 for each review created
+      - +1 for each reply created
+    - Vote points:
+      - +1 for each upvote on your review
+      - -1 for each downvote on your review
+      - +0.5 for each upvote on your reply
+      - -0.5 for each downvote on your reply
     """
+    # Get base points for reviews (5 points each)
+    stmt = select(func.count(ReviewModel.id)).where(ReviewModel.user_id == user_id)
+    result = await db.execute(stmt)
+    review_count = result.scalar_one() or 0
+    review_base_points = review_count * 5
+
+    # Get base points for replies (1 point each)
+    stmt = select(func.count(ReplyModel.id)).where(ReplyModel.user_id == user_id)
+    result = await db.execute(stmt)
+    reply_count = result.scalar_one() or 0
+    reply_base_points = reply_count * 1
+
     # Get votes on user's reviews
     stmt = select(func.sum(
         case(
@@ -42,7 +58,7 @@ async def calculate_user_echo_points(
     ).where(ReviewModel.user_id == user_id)
     
     result = await db.execute(stmt)
-    review_points = result.scalar_one() or 0
+    review_vote_points = result.scalar_one() or 0
 
     # Get votes on user's replies
     stmt = select(func.sum(
@@ -59,9 +75,10 @@ async def calculate_user_echo_points(
     ).where(ReplyModel.user_id == user_id)
     
     result = await db.execute(stmt)
-    reply_points = result.scalar_one() or 0
+    reply_vote_points = result.scalar_one() or 0
 
-    return int(review_points + reply_points)
+    total_points = review_base_points + reply_base_points + review_vote_points + reply_vote_points
+    return int(total_points)
 
 
 async def update_user_echo_points(

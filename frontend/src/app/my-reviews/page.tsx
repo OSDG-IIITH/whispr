@@ -88,28 +88,140 @@ export default function MyReviewsPage() {
     }
   }, [user, fetchUserReviews, fetchUserVotes]);
 
+  // Helper function to get user's vote for a specific review
+  const getUserVoteForReview = (reviewId: string): "up" | "down" | null => {
+    const userVote = userVotes.find((vote) => vote.review_id === reviewId);
+    if (!userVote) return null;
+    return userVote.vote_type ? "up" : "down";
+  };
+
   const handleVote = async (reviewId: string, type: "up" | "down") => {
+    if (!user) {
+      showError("Please log in to vote");
+      return;
+    }
+
+    // Find the current review
+    const currentReview = reviews.find((r) => r.id === reviewId);
+    if (!currentReview) return;
+
+    const currentUserVote = getUserVoteForReview(reviewId);
+    const isUpvote = type === "up";
+
+    // Calculate optimistic updates
+    let newUpvotes = currentReview.upvotes;
+    let newDownvotes = currentReview.downvotes;
+    let newUserVote: "up" | "down" | null = null;
+
+    if (currentUserVote === null) {
+      // User hasn't voted yet
+      if (isUpvote) {
+        newUpvotes += 1;
+        newUserVote = "up";
+      } else {
+        newDownvotes += 1;
+        newUserVote = "down";
+      }
+    } else if (currentUserVote === type) {
+      // User is removing their vote (clicking same button)
+      if (isUpvote) {
+        newUpvotes -= 1;
+      } else {
+        newDownvotes -= 1;
+      }
+      newUserVote = null;
+    } else {
+      // User is switching their vote
+      if (currentUserVote === "up") {
+        newUpvotes -= 1;
+        newDownvotes += 1;
+      } else {
+        newUpvotes += 1;
+        newDownvotes -= 1;
+      }
+      newUserVote = type;
+    }
+
+    // Optimistically update the UI
+    setReviews((prevReviews) =>
+      prevReviews.map((review) =>
+        review.id === reviewId
+          ? { ...review, upvotes: newUpvotes, downvotes: newDownvotes }
+          : review
+      )
+    );
+
+    // Optimistically update user votes
+    setUserVotes((prevVotes) => {
+      const filteredVotes = prevVotes.filter((v) => v.review_id !== reviewId);
+      if (newUserVote !== null) {
+        filteredVotes.push({
+          id: `temp-${reviewId}`,
+          user_id: user.id,
+          review_id: reviewId,
+          reply_id: undefined,
+          vote_type: newUserVote === "up",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      }
+      return filteredVotes;
+    });
+
     try {
-      await voteAPI.createVote({
-        review_id: reviewId,
-        vote_type: type === "up",
-      });
-      // Refresh votes and reviews
+      if (newUserVote === null) {
+        // User is removing their vote - find and delete the existing vote
+        const existingVote = userVotes.find((v) => v.review_id === reviewId);
+        if (existingVote) {
+          await voteAPI.deleteVote(existingVote.id);
+        }
+      } else {
+        // User is creating or updating their vote
+        await voteAPI.createVote({
+          review_id: reviewId,
+          vote_type: isUpvote,
+        });
+      }
+
+      // Refresh user votes to get the correct vote data
       try {
         const votes = await voteAPI.getMyVotes();
         setUserVotes(votes);
       } catch (error) {
         console.error("Failed to fetch votes:", error);
-        // Set empty votes array as fallback
         setUserVotes([]);
       }
-      await fetchUserReviews();
 
-      // Refresh user data to get updated echo points
-      await refresh();
+      // Only refresh user data for echo points if voting on someone else's review
+      // (users don't get echo points for voting on their own content)
+      if (currentReview.user_id !== user.id) {
+        await refresh();
+      }
     } catch (error) {
       console.error("Failed to vote:", error);
       showError("Failed to vote. Please try again.");
+
+      // Revert optimistic update on error
+      setReviews((prevReviews) =>
+        prevReviews.map((review) =>
+          review.id === reviewId
+            ? {
+                ...review,
+                upvotes: currentReview.upvotes,
+                downvotes: currentReview.downvotes,
+              }
+            : review
+        )
+      );
+
+      // Revert user votes on error
+      try {
+        const votes = await voteAPI.getMyVotes();
+        setUserVotes(votes);
+      } catch (error) {
+        console.error("Error refreshing user votes:", error);
+        setUserVotes([]);
+      }
     }
   };
 
@@ -371,10 +483,11 @@ export default function MyReviewsPage() {
                   <button
                     key={option}
                     onClick={() => setFilterBy(option)}
-                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${filterBy === option
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                      filterBy === option
                         ? "bg-primary text-black"
                         : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                      }`}
+                    }`}
                   >
                     {option.charAt(0).toUpperCase() + option.slice(1)}
                   </button>

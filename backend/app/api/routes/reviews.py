@@ -187,6 +187,10 @@ or course_instructor_id must be provided"
             author_username=current_user.username
         )
 
+    # Award echo points for creating a review (+5 points)
+    from app.core.echo_points import update_user_echo_points
+    await update_user_echo_points(db, current_user.id, notify=True)
+
     await db.commit()
     return review
 
@@ -290,6 +294,7 @@ async def delete_review(
     course_id = getattr(review, "course_id", None)
     professor_id = getattr(review, "professor_id", None)
     course_instructor_id = getattr(review, "course_instructor_id", None)
+    review_user_id = getattr(review, "user_id", None)
 
     try:
         # Delete the review
@@ -303,6 +308,11 @@ async def delete_review(
             await _update_professor_stats(db, professor_id)
         if course_instructor_id is not None:
             await _update_course_instructor_stats(db, course_instructor_id)
+        
+        # Update echo points for review author (subtract 5 points for deleted review)
+        if review_user_id is not None:
+            from app.core.echo_points import update_user_echo_points
+            await update_user_echo_points(db, review_user_id, notify=True)
         
         # Commit the transaction
         await db.commit()

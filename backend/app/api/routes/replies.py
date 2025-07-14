@@ -111,6 +111,10 @@ async def create_reply(
             author_username=current_user.username
         )
 
+    # Award echo points for creating a reply (+1 point)
+    from app.core.echo_points import update_user_echo_points
+    await update_user_echo_points(db, current_user.id, notify=True)
+
     await db.commit()
     return reply
 
@@ -190,6 +194,14 @@ async def delete_reply(
             detail="Not enough permissions"
         )
 
+    # Store reply user ID for echo points update
+    reply_user_id = getattr(reply, "user_id", None)
+
     async with db.begin():
         stmt = delete(ReplyModel).where(ReplyModel.id == reply_id)
         await db.execute(stmt)
+
+        # Update echo points for reply author (subtract 1 point for deleted reply)
+        if reply_user_id is not None:
+            from app.core.echo_points import update_user_echo_points
+            await update_user_echo_points(db, reply_user_id, notify=True)

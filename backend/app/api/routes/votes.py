@@ -149,17 +149,17 @@ async def create_vote(
         # Update target's vote stats
         if vote_in.review_id:
             await _update_review_vote_stats(db, vote_in.review_id)
-            # Update echo points for review author
+            # Update echo points for review author (only if not voting on own content)
             review = await db.execute(select(ReviewModel).where(ReviewModel.id == vote_in.review_id))
             review_obj = review.scalar_one_or_none()
-            if review_obj:
+            if review_obj and review_obj.user_id != current_user.id:
                 await update_user_echo_points(db, review_obj.user_id, notify=False)
         if vote_in.reply_id:
             await _update_reply_vote_stats(db, vote_in.reply_id)
-            # Update echo points for reply author
+            # Update echo points for reply author (only if not voting on own content)
             reply = await db.execute(select(ReplyModel).where(ReplyModel.id == vote_in.reply_id))
             reply_obj = reply.scalar_one_or_none()
-            if reply_obj:
+            if reply_obj and reply_obj.user_id != current_user.id:
                 await update_user_echo_points(db, reply_obj.user_id, notify=False)
 
         # Create notification
@@ -185,17 +185,17 @@ async def create_vote(
     # Update target's vote stats
     if vote_in.review_id:
         await _update_review_vote_stats(db, vote_in.review_id)
-        # Update echo points for review author
+        # Update echo points for review author (only if not voting on own content)
         review = await db.execute(select(ReviewModel).where(ReviewModel.id == vote_in.review_id))
         review_obj = review.scalar_one_or_none()
-        if review_obj:
+        if review_obj and review_obj.user_id != current_user.id:
             await update_user_echo_points(db, review_obj.user_id, notify=False)
     if vote_in.reply_id:
         await _update_reply_vote_stats(db, vote_in.reply_id)
-        # Update echo points for reply author
+        # Update echo points for reply author (only if not voting on own content)
         reply = await db.execute(select(ReplyModel).where(ReplyModel.id == vote_in.reply_id))
         reply_obj = reply.scalar_one_or_none()
-        if reply_obj:
+        if reply_obj and reply_obj.user_id != current_user.id:
             await update_user_echo_points(db, reply_obj.user_id, notify=False)
 
     # Create notification
@@ -247,17 +247,17 @@ async def delete_vote(
     # Update target's vote stats
     if review_id:
         await _update_review_vote_stats(db, review_id)
-        # Update echo points for review author
+        # Update echo points for review author (only if not voting on own content)
         review = await db.execute(select(ReviewModel).where(ReviewModel.id == review_id))
         review_obj = review.scalar_one_or_none()
-        if review_obj:
+        if review_obj and review_obj.user_id != current_user.id:
             await update_user_echo_points(db, review_obj.user_id, notify=False)
     if reply_id:
         await _update_reply_vote_stats(db, reply_id)
-        # Update echo points for reply author
+        # Update echo points for reply author (only if not voting on own content)
         reply = await db.execute(select(ReplyModel).where(ReplyModel.id == reply_id))
         reply_obj = reply.scalar_one_or_none()
-        if reply_obj:
+        if reply_obj and reply_obj.user_id != current_user.id:
             await update_user_echo_points(db, reply_obj.user_id, notify=False)
     
     await db.commit()
