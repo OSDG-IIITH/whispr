@@ -141,32 +141,37 @@ export function FloatingDock() {
       </div>
 
       {/* Notifications Panel */}
-      <AnimatePresence>
-        {showNotifications && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 right-6 z-50 w-80"
-          >
-            <NotificationPanel onClose={() => setShowNotifications(false)} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed bottom-28 left-0 right-0 z-50 flex justify-center">
+        <AnimatePresence>
+          {showNotifications && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="w-80"
+            >
+              <NotificationPanel onClose={() => setShowNotifications(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Profile Menu */}
-      <AnimatePresence>
-        {showProfile && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 right-6 z-50 w-64"
-          >
-            <ProfileMenu onClose={() => setShowProfile(false)} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+      < div className="fixed bottom-28 left-0 right-0 z-50 flex justify-center" >
+        <AnimatePresence>
+          {showProfile && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="w-64"
+            >
+              <ProfileMenu onClose={() => setShowProfile(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </>
   );
 }
