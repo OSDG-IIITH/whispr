@@ -124,6 +124,23 @@ async def update_user_me(
         update_data["hashed_password"] = hashed_password
         del update_data["password"]
 
+    # If username is being changed, delete all notifications that reference the old username
+    # to prevent foreign key constraint violations
+    if "username" in update_data:
+        from app.models.notification import Notification as NotificationModel
+        
+        # Delete notifications where this user is the recipient
+        delete_recipient_notifications = delete(NotificationModel).where(
+            NotificationModel.username == current_user.username
+        )
+        await db.execute(delete_recipient_notifications)
+        
+        # Delete notifications where this user is the actor
+        delete_actor_notifications = delete(NotificationModel).where(
+            NotificationModel.actor_username == current_user.username
+        )
+        await db.execute(delete_actor_notifications)
+
     stmt = update(UserModel).where(
         UserModel.id == current_user.id
     ).values(**update_data).returning(*UserModel.__table__.c)
@@ -286,7 +303,6 @@ async def get_user_following(
     )
     following_result = await db.execute(following_stmt)
     following = following_result.scalars().all()
-    return following
     return following
 
 
