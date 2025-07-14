@@ -12,7 +12,6 @@ import {
   Review,
   Reply,
   Vote,
-  Report,
 } from "./backend-models";
 
 export interface FrontendUser extends User {

@@ -44,10 +44,7 @@ interface FeedReviewCardProps {
 export function FeedReviewCard({
   review,
   onVote,
-  onReply,
-  onFollowChange,
   currentUserId,
-  showVoteButtons = true,
   onEdit,
   onDelete,
   onReport,
@@ -79,8 +76,8 @@ export function FeedReviewCard({
     try {
       await onEdit(review.id, data);
       setIsEditing(false);
-    } catch (e: any) {
-      showError(e?.message || "Failed to update review");
+    } catch (e: unknown) {
+      showError(e instanceof Error ? e.message : "Failed to update review");
     }
   };
 
@@ -89,8 +86,8 @@ export function FeedReviewCard({
     try {
       await onDelete(review.id);
       setShowDeleteConfirm(false);
-    } catch (e: any) {
-      showError(e?.message || "Failed to delete review");
+    } catch (e: unknown) {
+      showError(e instanceof Error ? e.message : "Failed to delete review");
     }
   };
 

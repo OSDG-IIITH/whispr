@@ -18,7 +18,7 @@ export function useAuthState() {
       const userData = await authAPI.getCurrentUser();
       console.log("User data received:", userData);
       setUser(userData);
-    } catch (error) {
+    } catch {
       console.log("Auth check failed, setting user to null");
       setUser(null);
     } finally {

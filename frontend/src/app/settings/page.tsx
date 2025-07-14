@@ -15,7 +15,6 @@ export default function SettingsPage() {
     const router = useRouter();
     const { user, refresh } = useAuth();
     const { showSuccess, showError } = useToast();
-    const [loading, setLoading] = useState(false);
     const [saveLoading, setSaveLoading] = useState(false);
     const [formData, setFormData] = useState({
         bio: "",
@@ -38,7 +37,11 @@ export default function SettingsPage() {
     const handleSave = async () => {
         setSaveLoading(true);
         try {
-            const updateData: any = {
+            const updateData: {
+                bio: string;
+                student_since_year: number;
+                username: string;
+            } = {
                 bio: formData.bio,
                 student_since_year: formData.studentSinceYear,
                 username: formData.username

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Heart, Star, MessageSquare, TrendingUp } from "lucide-react";
+import { Users, Heart } from "lucide-react";
 import { userAPI } from "@/lib/api";
 import { User } from "@/types/backend-models";
 import { FollowListModal } from "./FollowListModal";

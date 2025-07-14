@@ -84,11 +84,11 @@ export default function VerifyPage() {
 
         // Redirect to CAS login
         window.location.href = cas_url;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Verification initiation failed:", error);
         setStatus("error");
         setMessage(
-          error.message || "Failed to initiate verification. Please try again."
+          error instanceof Error ? error.message : "Failed to initiate verification. Please try again."
         );
       }
     }

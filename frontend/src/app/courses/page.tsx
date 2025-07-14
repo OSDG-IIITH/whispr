@@ -4,13 +4,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Search,
-  Filter,
-  Plus,
   Star,
   Users,
   BookOpen,
-  GraduationCap,
-  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 import { courseAPI, Course } from "@/lib/api";
@@ -90,21 +86,6 @@ export default function CoursesPage() {
     ));
   };
 
-  const formatTimeInfo = (course: Course) => {
-    if (!course.course_instructors || course.course_instructors.length === 0) {
-      return null;
-    }
-
-    // Get unique semester/year combinations
-    const timeSlots = new Set<string>();
-    course.course_instructors.forEach((instructor) => {
-      if (instructor.semester && instructor.year) {
-        timeSlots.add(`${instructor.semester} ${instructor.year}`);
-      }
-    });
-
-    return Array.from(timeSlots).join(", ");
-  };
 
   const getProfessors = (course: Course) => {
     if (!course.course_instructors || course.course_instructors.length === 0) {
@@ -240,8 +221,7 @@ export default function CoursesPage() {
         {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedCourses.map((course, index) => {
-            const timeInfo = formatTimeInfo(course);
-            const professors = getProfessors(course);
+            getProfessors(course);
 
             return (
               <motion.div
@@ -306,16 +286,6 @@ export default function CoursesPage() {
             </p>
           </motion.div>
         )}
-
-        {/* Floating Add Button */}
-        <motion.button
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.5 }}
-          className="fixed bottom-24 right-4 sm:bottom-32 sm:right-6 bg-primary text-black p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-6 h-6" />
-        </motion.button>
       </div>
     </div>
   );

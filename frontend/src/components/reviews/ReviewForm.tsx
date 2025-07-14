@@ -17,10 +17,6 @@ interface TimePeriod {
   }>;
 }
 
-interface Professor {
-  id: string;
-  name: string;
-}
 
 export function ReviewForm({
   onSubmit,
@@ -54,24 +50,24 @@ export function ReviewForm({
 
   // Load time periods when courseId is provided
   useEffect(() => {
+    const loadTimePeriods = async () => {
+      if (!courseId) return;
+
+      try {
+        setLoadingPeriods(true);
+        const periods = await courseAPI.getCourseTimePeriods(courseId);
+        setTimePeriods(periods);
+      } catch (error) {
+        console.error("Error loading time periods:", error);
+      } finally {
+        setLoadingPeriods(false);
+      }
+    };
+
     if (courseId) {
       loadTimePeriods();
     }
   }, [courseId]);
-
-  const loadTimePeriods = async () => {
-    if (!courseId) return;
-
-    try {
-      setLoadingPeriods(true);
-      const periods = await courseAPI.getCourseTimePeriods(courseId);
-      setTimePeriods(periods);
-    } catch (error) {
-      console.error("Error loading time periods:", error);
-    } finally {
-      setLoadingPeriods(false);
-    }
-  };
 
   const handlePeriodSelect = (period: TimePeriod) => {
     setSelectedPeriod(period);
@@ -97,7 +93,13 @@ export function ReviewForm({
 
     setIsSubmitting(true);
     try {
-      const reviewData: any = {
+      const reviewData: {
+        content: string;
+        rating: number;
+        semester?: string;
+        year?: number;
+        professor_ids?: string[];
+      } = {
         content: content.trim(),
         rating
       };

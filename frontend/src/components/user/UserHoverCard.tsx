@@ -30,7 +30,7 @@ export function UserHoverCard({
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div
+    <span
       className="relative inline-block"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -88,6 +88,6 @@ export function UserHoverCard({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </span>
   );
 }

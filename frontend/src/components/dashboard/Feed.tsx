@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { RefreshCw, Sparkles } from "lucide-react";
 import { feedAPI, reviewAPI, voteAPI, userAPI } from "@/lib/api";
 import {
@@ -68,7 +67,7 @@ export function Feed() {
       const backendReviews = await feedAPI.getFeed(skipCount, 20);
 
       // Get all user votes for these reviews in one call if logged in
-      let userVotes = new Map();
+      const userVotes = new Map();
       if (user?.id && backendReviews.length > 0) {
         try {
           const reviewIds = backendReviews.map((r) => r.id);
@@ -308,9 +307,9 @@ export function Feed() {
       );
 
       showSuccess("Review updated successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to edit review:", error);
-      showError(error.message || "Failed to edit review. Please try again.");
+      showError(error instanceof Error ? error.message : "Failed to edit review. Please try again.");
     }
   };
 
@@ -327,9 +326,9 @@ export function Feed() {
       setReviews((prev) => prev.filter((review) => review.id !== reviewId));
 
       showSuccess("Review deleted successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to delete review:", error);
-      showError(error.message || "Failed to delete review. Please try again.");
+      showError(error instanceof Error ? error.message : "Failed to delete review. Please try again.");
     }
   };
 

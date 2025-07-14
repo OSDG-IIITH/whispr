@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { X, Settings, Shield, LogOut, User, Star } from "lucide-react";
+import { X, Settings, Shield, LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { RankBadge } from "@/components/user/RankBadge";

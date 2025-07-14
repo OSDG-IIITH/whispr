@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Users, BookOpen, GraduationCap, MessageSquare, UserCheck, ChevronDown } from "lucide-react";
+import { Search, Filter, BookOpen, GraduationCap, MessageSquare, UserCheck, ChevronDown } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { UserAvatar } from "@/components/user/UserAvatar";
-import { RankBadge } from "@/components/user/RankBadge";
 import { searchAPI } from "@/lib/api";
 
 interface SearchResultData {
@@ -16,9 +14,9 @@ interface SearchResultData {
   subtitle?: string;
   description: string;
   rating?: number;
-  metadata?: any;
+  metadata?: unknown;
   relevanceScore: number;
-  rawData: any;
+  rawData: unknown;
 }
 
 export default function SearchPage() {
@@ -50,7 +48,7 @@ export default function SearchPage() {
 
     setLoading(true);
     try {
-      const params: any = {
+      const params: Record<string, unknown> = {
         query: query.trim(),
         deep: deepSearch,
         sort_by: sortBy,
@@ -74,7 +72,7 @@ export default function SearchPage() {
       const response = await searchAPI.search(params);
 
       // Transform API results to our format
-      const transformedResults: SearchResultData[] = response.results.map((result: any) => {
+      const transformedResults: SearchResultData[] = response.results.map((result: unknown) => {
         let transformedResult: SearchResultData;
 
         switch (result.entity_type) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMentions } from "@/hooks/useMentions";
 import { UserAvatar } from "@/components/user/UserAvatar";
@@ -26,7 +26,7 @@ export function MentionInput({
   disabled = false,
 }: MentionInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [cursorPosition, setCursorPosition] = useState(0);
+  const [, setCursorPosition] = useState(0);
   const [mentionPosition, setMentionPosition] = useState<{
     start: number;
     end: number;
@@ -36,7 +36,6 @@ export function MentionInput({
     isOpen,
     mentionUsers,
     selectedIndex,
-    query,
     openMention,
     closeMention,
     selectUser,
@@ -126,33 +125,6 @@ export function MentionInput({
     }, 0);
   };
 
-  const getMentionDropdownPosition = () => {
-    if (!textareaRef.current || !mentionPosition) return { top: 0, left: 0 };
-
-    const textarea = textareaRef.current;
-    const textBeforeMention = value.slice(0, mentionPosition.start);
-
-    // Create a temporary div to measure text position
-    const div = document.createElement("div");
-    div.style.cssText = window.getComputedStyle(textarea).cssText;
-    div.style.position = "absolute";
-    div.style.visibility = "hidden";
-    div.style.height = "auto";
-    div.style.whiteSpace = "pre-wrap";
-    div.textContent = textBeforeMention;
-
-    document.body.appendChild(div);
-    const rect = textarea.getBoundingClientRect();
-    const lineHeight =
-      parseInt(window.getComputedStyle(textarea).lineHeight) || 20;
-
-    document.body.removeChild(div);
-
-    return {
-      top: rect.bottom + 5,
-      left: rect.left,
-    };
-  };
 
   return (
     <div className="relative">

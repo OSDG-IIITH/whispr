@@ -4,12 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Star,
-  Users,
   BookOpen,
-  Calendar,
   Plus,
   ArrowLeft,
-  GraduationCap,
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
@@ -48,7 +45,7 @@ export default function CoursePage() {
     null
   );
   const [replySubmitting, setReplySubmitting] = useState(false);
-  const [repliesByReview, setRepliesByReview] = useState<Record<string, any[]>>(
+  const [repliesByReview, setRepliesByReview] = useState<Record<string, unknown[]>>(
     {}
   );
   const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(
@@ -97,12 +94,12 @@ export default function CoursePage() {
 
   // Fetch replies for all reviews
   const fetchRepliesForReviews = useCallback(async (reviews: Review[]) => {
-    const repliesObj: Record<string, any[]> = {};
+    const repliesObj: Record<string, unknown[]> = {};
     await Promise.all(
       reviews.map(async (review) => {
         const replies = await replyAPI.getReplies({ review_id: review.id });
         // Transform replies to FrontendReply
-        repliesObj[review.id] = replies.map((reply: any) =>
+        repliesObj[review.id] = replies.map((reply: unknown) =>
           convertReplyToFrontendReply(reply)
         );
       })
@@ -305,9 +302,9 @@ export default function CoursePage() {
       if (currentReview.user_id !== user.id) {
         await refresh();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error voting on review:", err);
-      showError(err.message || "Failed to vote. Please try again.");
+      showError(err instanceof Error ? err.message : "Failed to vote. Please try again.");
 
       // Revert optimistic update on error
       setReviews((prevReviews) =>
@@ -345,7 +342,7 @@ export default function CoursePage() {
     }
 
     // Find the current reply
-    let currentReply: any = null;
+    let currentReply: unknown = null;
     let reviewId: string | null = null;
 
     for (const [revId, replies] of Object.entries(repliesByReview)) {
@@ -453,9 +450,9 @@ export default function CoursePage() {
       if (currentReply.user_id !== user.id) {
         await refresh();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error voting on reply:", err);
-      showError(err.message || "Failed to vote. Please try again.");
+      showError(err instanceof Error ? err.message : "Failed to vote. Please try again.");
 
       // Revert optimistic update on error
       setRepliesByReview((prevReplies) => ({
@@ -502,9 +499,9 @@ export default function CoursePage() {
       await fetchReviewsAndReplies();
       showSuccess("Reply submitted successfully!");
       setActiveReplyReviewId(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error creating reply:", err);
-      showError(err.message || "Failed to create reply. Please try again.");
+      showError(err instanceof Error ? err.message : "Failed to create reply. Please try again.");
     } finally {
       setReplySubmitting(false);
     }
@@ -527,7 +524,14 @@ export default function CoursePage() {
     try {
       setSubmittingReview(true);
 
-      const reviewData: any = {
+      const reviewData: {
+        course_id: string;
+        rating: number;
+        content?: string;
+        semester?: string;
+        year?: number;
+        professor_ids?: string[];
+      } = {
         course_id: course.id,
         rating: data.rating,
         content: data.content || undefined,
@@ -569,10 +573,10 @@ export default function CoursePage() {
 
       setShowReviewForm(false);
       showSuccess("Review submitted successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error submitting review:", err);
       const errorMessage =
-        err?.message || "Failed to submit review. Please try again.";
+        err instanceof Error ? err.message : "Failed to submit review. Please try again.";
       showError(errorMessage);
     } finally {
       setSubmittingReview(false);
@@ -614,9 +618,9 @@ export default function CoursePage() {
       await refreshCourseData();
 
       showSuccess("Review updated successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to edit review:", error);
-      showError(error.message || "Failed to edit review. Please try again.");
+      showError(error instanceof Error ? error.message : "Failed to edit review. Please try again.");
     }
   };
 
@@ -646,9 +650,9 @@ export default function CoursePage() {
       await replyAPI.updateReply(replyId, { content });
       await fetchReviewsAndReplies();
       showSuccess("Reply updated successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to edit reply:", error);
-      showError(error?.message || "Failed to edit reply. Please try again.");
+      showError(error instanceof Error ? error.message : "Failed to edit reply. Please try again.");
     }
   };
 
@@ -657,9 +661,9 @@ export default function CoursePage() {
       await replyAPI.deleteReply(replyId);
       await fetchReviewsAndReplies();
       showSuccess("Reply deleted successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to delete reply:", error);
-      showError(error?.message || "Failed to delete reply. Please try again.");
+      showError(error instanceof Error ? error.message : "Failed to delete reply. Please try again.");
     }
   };
 
@@ -675,21 +679,6 @@ export default function CoursePage() {
     ));
   };
 
-  const formatTimeInfo = (course: Course) => {
-    if (!course.course_instructors || course.course_instructors.length === 0) {
-      return null;
-    }
-
-    // Get unique semester/year combinations
-    const timeSlots = new Set<string>();
-    course.course_instructors.forEach((instructor) => {
-      if (instructor.semester && instructor.year) {
-        timeSlots.add(`${instructor.semester} ${instructor.year}`);
-      }
-    });
-
-    return Array.from(timeSlots).join(", ");
-  };
 
   const getProfessors = (course: Course) => {
     if (!course.course_instructors || course.course_instructors.length === 0) {
@@ -735,7 +724,6 @@ export default function CoursePage() {
     );
   }
 
-  const timeInfo = formatTimeInfo(course);
   const professors = getProfessors(course);
 
   return (

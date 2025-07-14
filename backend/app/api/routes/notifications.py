@@ -120,17 +120,17 @@ async def update_notification(
 
     update_data = notification_in.dict(exclude_unset=True)
 
-    async with db.begin():
-        stmt = update(NotificationModel).where(
-            NotificationModel.id == notification_id
-        ).values(**update_data).returning(*NotificationModel.__table__.c)
-        result = await db.execute(stmt)
-        updated_notification = result.fetchone()
+    stmt = update(NotificationModel).where(
+        NotificationModel.id == notification_id
+    ).values(**update_data).returning(*NotificationModel.__table__.c)
+    result = await db.execute(stmt)
+    updated_notification = result.fetchone()
+    await db.commit()
 
     return updated_notification
 
 
-@router.put("/mark-all-read", response_model=dict)
+@router.post("/mark-all-read", response_model=dict)
 async def mark_all_notifications_read(
     db: AsyncSession = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)
@@ -138,14 +138,14 @@ async def mark_all_notifications_read(
     """
     Mark all of the current user's notifications as read.
     """
-    async with db.begin():
-        stmt = update(NotificationModel).where(
-            and_(
-                NotificationModel.username == current_user.username,
-                NotificationModel.is_read.is_(False)
-            )
-        ).values(is_read=True)
-        await db.execute(stmt)
+    stmt = update(NotificationModel).where(
+        and_(
+            NotificationModel.username == current_user.username,
+            NotificationModel.is_read.is_(False)
+        )
+    ).values(is_read=True)
+    await db.execute(stmt)
+    await db.commit()
 
     return {"message": "All notifications marked as read"}
 

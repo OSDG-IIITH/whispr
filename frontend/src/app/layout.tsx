@@ -4,6 +4,7 @@ import "./globals.css";
 import { FloatingDock } from "@/components/layout/FloatingDock";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,8 +23,10 @@ export default function RootLayout({
       <body className={`${inter.className} bg-black text-white antialiased pb-16 px-4 md:px-0`}>
         <AuthProvider>
           <ToastProvider>
-            {children}
-            <FloatingDock />
+            <NotificationProvider>
+              {children}
+              <FloatingDock />
+            </NotificationProvider>
           </ToastProvider>
         </AuthProvider>
       </body>

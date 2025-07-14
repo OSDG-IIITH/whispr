@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Edit, Trash2, Flag } from "lucide-react";
+import { Edit, Trash2, Flag } from "lucide-react";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { UserHoverCard } from "@/components/user/UserHoverCard";
 import { RankBadge } from "@/components/user/RankBadge";
@@ -55,8 +55,8 @@ export function ReplyCard({
     try {
       await onEdit(reply.id, content);
       setIsEditing(false);
-    } catch (e: any) {
-      showError(e?.message || "Failed to update reply");
+    } catch (e: unknown) {
+      showError(e instanceof Error ? e.message : "Failed to update reply");
     }
   };
 

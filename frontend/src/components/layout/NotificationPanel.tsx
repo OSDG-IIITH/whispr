@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { X, MessageSquare, Heart, Users, Shield, CheckCheck } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
-import { FrontendNotification } from "@/types/frontend-models";
 import { reviewAPI, replyAPI, courseAPI } from "@/lib/api";
 import Loader from "@/components/common/Loader";
 

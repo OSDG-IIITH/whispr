@@ -57,7 +57,6 @@ export function ReportModal({
   onClose,
   onSubmit,
   targetType,
-  targetId,
 }: ReportModalProps) {
   const [selectedType, setSelectedType] = useState<string>("");
   const [reason, setReason] = useState("");

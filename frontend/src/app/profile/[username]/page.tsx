@@ -15,7 +15,6 @@ import { UserAvatar } from "@/components/user/UserAvatar";
 import { RankBadge } from "@/components/user/RankBadge";
 import { EchoesDisplay } from "@/components/user/EchoesDisplay";
 import { FollowButton } from "@/components/user/FollowButton";
-import { ReviewList } from "@/components/reviews/ReviewList";
 import { FeedReviewCard } from "@/components/reviews/FeedReviewCard";
 import { KillSwitch } from "@/components/common/KillSwitch";
 import { formatDate } from "@/lib/utils";
@@ -24,7 +23,6 @@ import { useToast } from "@/providers/ToastProvider";
 import { userAPI, reviewAPI, voteAPI, replyAPI } from "@/lib/api";
 import type { User, Review, Vote } from "@/types/backend-models";
 import {
-  FrontendReview,
   convertReviewToFrontendReview,
 } from "@/types/frontend-models";
 import Loader from "@/components/common/Loader";
@@ -43,7 +41,7 @@ export default function ProfilePage() {
   const [filterBy, setFilterBy] = useState("all");
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
+  const [, setFollowingCount] = useState(0);
 
   const username = params.username as string;
   const isOwnProfile = currentUser?.username === username;
@@ -288,9 +286,9 @@ export default function ProfilePage() {
         setReviews(userReviews);
       }
       showSuccess("Reply submitted successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to create reply:", error);
-      showError(error.message || "Failed to create reply. Please try again.");
+      showError(error instanceof Error ? error.message : "Failed to create reply. Please try again.");
     }
   };
 
@@ -319,9 +317,9 @@ export default function ProfilePage() {
         setReviews(userReviews);
       }
       showSuccess("Review updated successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to edit review:", error);
-      showError(error.message || "Failed to edit review. Please try again.");
+      showError(error instanceof Error ? error.message : "Failed to edit review. Please try again.");
     }
   };
 
@@ -346,9 +344,9 @@ export default function ProfilePage() {
         setReviews(userReviews);
       }
       showSuccess("Review deleted successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to delete review:", error);
-      showError(error.message || "Failed to delete review. Please try again.");
+      showError(error instanceof Error ? error.message : "Failed to delete review. Please try again.");
     }
   };
 
@@ -413,7 +411,7 @@ export default function ProfilePage() {
     (sum, review) => sum + (review.upvotes || 0),
     0
   );
-  const totalDownvotes = reviews.reduce(
+  reviews.reduce(
     (sum, review) => sum + (review.downvotes || 0),
     0
   );

@@ -61,7 +61,7 @@ export function UserAvatar({ username, echoes = 0, size = "md", className = "" }
   };
 
   return (
-    <div className={`${sizeClasses[size]} relative ${className}`}>
+    <span className={`${sizeClasses[size]} relative ${className} inline-block`}>
       <Image
         src={avatarUrl}
         alt={`${username}'s avatar`}
@@ -80,7 +80,7 @@ export function UserAvatar({ username, echoes = 0, size = "md", className = "" }
         unoptimized
       />
       {/* Fallback generated avatar (hidden by default) */}
-      <div
+      <span
         className={`
           ${sizeClasses[size]} 
           rounded-full 
@@ -94,14 +94,14 @@ export function UserAvatar({ username, echoes = 0, size = "md", className = "" }
         style={{ backgroundColor: fallbackAvatar.backgroundColor }}
       >
         {fallbackAvatar.initials}
-      </div>
+      </span>
 
       {/* Rank indicator for higher ranks */}
       {echoes >= 1000 && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-xs">
+        <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-xs">
           {rank.icon}
-        </div>
+        </span>
       )}
-    </div>
+    </span>
   );
 }

@@ -19,10 +19,6 @@ import {
   FrontendCourse,
   FrontendProfessor,
   FrontendCourseInstructor,
-  convertUserToFrontendUser,
-  convertNotificationToFrontendNotification,
-  convertReviewToFrontendReview,
-  convertReplyToFrontendReply,
 } from "@/types/frontend-models";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
@@ -456,7 +452,7 @@ export const searchAPI = {
       }
     });
 
-    return apiCall<any>(`/search?${searchParams.toString()}`);
+    return apiCall<unknown>(`/search?${searchParams.toString()}`);
   },
 };
 
@@ -582,7 +578,7 @@ export const notificationAPI = {
 
   markAllAsRead: async () => {
     return apiCall<{ message: string }>("/notifications/mark-all-read", {
-      method: "PUT",
+      method: "POST",
     });
   },
 

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Edit, Trash2, Flag, Star } from "lucide-react";
+import { MessageSquare, Edit, Trash2, Flag, Star, BookOpen, GraduationCap } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { UserHoverCard } from "@/components/user/UserHoverCard";
 import { RankBadge } from "@/components/user/RankBadge";
@@ -37,6 +38,7 @@ export function ReviewCard({
   onReport,
   showReplies = true,
 }: ReviewCardProps) {
+  const router = useRouter();
   const { showError } = useToast();
   const [showActions, setShowActions] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -59,9 +61,17 @@ export function ReviewCard({
     try {
       await onEdit(review.id, data);
       setIsEditing(false);
-    } catch (e: any) {
-      showError(e?.message || "Failed to update review");
+    } catch (e: unknown) {
+      showError(e instanceof Error ? e.message : "Failed to update review");
     }
+  };
+
+  const handleCourseClick = (courseCode: string) => {
+    router.push(`/courses/${courseCode}`);
+  };
+
+  const handleProfessorClick = (professorId: string) => {
+    router.push(`/professors/${professorId}`);
   };
 
   const renderStars = (rating: number) => {
@@ -150,29 +160,42 @@ export function ReviewCard({
                 </span>
               )}
 
-              {/* Professor Tags */}
+              {/* Professor Tags (clickable) */}
               {review.professors && review.professors.length > 0 && (
                 <>
                   {review.professors.map((professor, index) => (
-                    <span key={index} className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30">
+                    <button
+                      key={index}
+                      onClick={() => handleProfessorClick(professor.id)}
+                      className="bg-blue-500/20 text-blue-400 px-2 py-1 text-xs rounded-full border border-blue-500/30 hover:bg-blue-500/30 transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <GraduationCap className="w-3 h-3" />
                       {professor.name}
-                    </span>
+                    </button>
                   ))}
                 </>
               )}
 
-              {/* Single Professor Tag (for direct professor reviews) */}
+              {/* Single Professor Tag (for direct professor reviews) - clickable */}
               {review.professor && !review.professors && (
-                <span className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30">
+                <button
+                  onClick={() => handleProfessorClick(review.professor.id)}
+                  className="bg-blue-500/20 text-blue-400 px-2 py-1 text-xs rounded-full border border-blue-500/30 hover:bg-blue-500/30 transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <GraduationCap className="w-3 h-3" />
                   {review.professor.name}
-                </span>
+                </button>
               )}
 
-              {/* Course Tag (for professor page showing which course was reviewed) */}
+              {/* Course Tag (for professor page showing which course was reviewed) - clickable */}
               {review.course && (
-                <span className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30">
+                <button
+                  onClick={() => handleCourseClick(review.course.code)}
+                  className="bg-orange-500/20 text-orange-400 px-2 py-1 text-xs rounded-full border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <BookOpen className="w-3 h-3" />
                   {review.course.code}
-                </span>
+                </button>
               )}
             </div>
           )}
@@ -190,9 +213,9 @@ export function ReviewCard({
                 onCancel={() => setIsEditing(false)}
               />
             ) : (
-              <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+              <div className="text-foreground leading-relaxed whitespace-pre-wrap">
                 {review.content ? <MentionTextWithHover content={review.content} /> : null}
-              </p>
+              </div>
             )}
           </div>
 

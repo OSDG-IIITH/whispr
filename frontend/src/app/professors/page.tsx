@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Users, Star, GraduationCap, Plus } from "lucide-react";
+import { Search, Users, Star, GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { professorAPI, Professor } from "@/lib/api";
 import Loader from "@/components/common/Loader";
@@ -279,16 +279,6 @@ export default function ProfessorsPage() {
             </p>
           </motion.div>
         )}
-
-        {/* Floating Add Button */}
-        <motion.button
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.5 }}
-          className="fixed bottom-24 right-4 sm:bottom-32 sm:right-6 bg-primary text-black p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-6 h-6" />
-        </motion.button>
       </div>
     </div>
   );
