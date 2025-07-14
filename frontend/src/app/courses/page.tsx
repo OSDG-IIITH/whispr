@@ -82,11 +82,10 @@ export default function CoursesPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${
-          i < Math.floor(rating)
+        className={`w-4 h-4 ${i < Math.floor(rating)
             ? "text-yellow-500 fill-current"
             : "text-secondary"
-        }`}
+          }`}
       />
     ));
   };
@@ -246,7 +245,7 @@ export default function CoursesPage() {
 
             return (
               <motion.div
-                key={course.id}
+                key={course.id + searchQuery}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index }}
