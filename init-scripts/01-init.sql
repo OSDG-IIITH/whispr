@@ -68,10 +68,9 @@ CREATE TABLE reviews (
     course_id UUID REFERENCES courses(id) ON DELETE CASCADE,
     professor_id UUID REFERENCES professors(id) ON DELETE CASCADE,
     course_instructor_id UUID REFERENCES course_instructors(id) ON DELETE CASCADE,
-    rating INTEGER NOT NULL CHECK (
-        rating >= 1
-        AND rating <= 5
-    ),
+    semester VARCHAR(20),
+    year INTEGER,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     content TEXT,
     upvotes INTEGER DEFAULT 0,
     downvotes INTEGER DEFAULT 0,

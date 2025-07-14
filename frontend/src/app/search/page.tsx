@@ -252,7 +252,7 @@ export default function SearchPage() {
   const getResultLink = (result: SearchResultData) => {
     switch (result.type) {
       case "course":
-        return `/courses/${result.metadata?.code || result.id}`;
+        return `/courses/${result.metadata?.code}`;
       case "professor":
         return `/professors/${result.id}`;
       case "course_instructor":
@@ -351,8 +351,8 @@ export default function SearchPage() {
                 key={type}
                 onClick={() => handleEntityTypeToggle(type)}
                 className={`px-4 py-2 text-sm rounded-lg transition-colors ${entityTypes.length === 0 || entityTypes.includes(type)
-                    ? 'bg-primary text-black'
-                    : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
+                  ? 'bg-primary text-black'
+                  : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
                   }`}
               >
                 {label}
@@ -381,8 +381,8 @@ export default function SearchPage() {
                     className="sr-only"
                   />
                   <div className={`w-4 h-4 rounded border-2 transition-colors ${deepSearch
-                      ? 'bg-primary border-primary'
-                      : 'border-border hover:border-primary/50'
+                    ? 'bg-primary border-primary'
+                    : 'border-border hover:border-primary/50'
                     }`}>
                     {deepSearch && (
                       <svg className="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
@@ -535,7 +535,7 @@ export default function SearchPage() {
                         <div className="flex items-center gap-4 text-xs text-secondary justify-end">
                           {result.metadata?.reviewCount !== undefined && (
                             <span className="flex items-center gap-2">
-                              {result.metadata.reviewCount} {result.metadata.reviewCount === 1 ? "review" : "reviews" }
+                              {result.metadata.reviewCount} {result.metadata.reviewCount === 1 ? "review" : "reviews"}
                               {result.rating !== undefined && (
                                 <span className="flex items-center gap-1 ml-2">
                                   {renderStars(result.rating)}

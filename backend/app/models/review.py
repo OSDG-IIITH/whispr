@@ -5,7 +5,7 @@ Review model for storing reviews of courses and professors.
 import uuid
 from datetime import datetime
 from sqlalchemy import (Column, Integer, DateTime, Text,
-                        Boolean, ForeignKey, CheckConstraint)
+                        Boolean, ForeignKey, CheckConstraint, String)
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -28,6 +28,10 @@ class Review(Base):
     course_instructor_id = Column(UUID(as_uuid=True), ForeignKey(
         "course_instructors.id", ondelete="CASCADE"), nullable=True, index=True
     )
+
+    # Time period information for professor selection
+    semester = Column(String(20), nullable=True)
+    year = Column(Integer, nullable=True)
 
     rating = Column(Integer, nullable=False)
     content = Column(Text, nullable=True)
@@ -55,6 +59,8 @@ class Review(Base):
                          cascade="all, delete-orphan")
     reports = relationship("Report", back_populates="review",
                           cascade="all, delete-orphan")
+    review_professors = relationship("ReviewProfessor", back_populates="review",
+                                   cascade="all, delete-orphan")
 
     # Ensure at least one of course_id, professor_id,
     # or course_instructor_id is not null

@@ -73,6 +73,8 @@ export interface Review {
   course_id?: string;
   professor_id?: string;
   course_instructor_id?: string;
+  semester?: string;
+  year?: number;
   rating: number;
   content?: string;
   upvotes: number;
@@ -102,6 +104,11 @@ export interface Review {
       name: string;
     };
   };
+  professors?: Array<{
+    id: string;
+    name: string;
+    lab?: string;
+  }>;
 }
 
 export interface Reply {

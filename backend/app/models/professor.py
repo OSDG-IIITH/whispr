@@ -41,3 +41,5 @@ class Professor(Base):
     )
     reviews = relationship(
         "Review", back_populates="professor", cascade="all, delete-orphan")
+    review_professors = relationship("ReviewProfessor", back_populates="professor",
+                                   cascade="all, delete-orphan")

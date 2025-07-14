@@ -106,7 +106,7 @@ export function ReviewCard({
                 username={review.author.username}
                 echoes={review.author.echoes}
                 size="sm"
-                />
+              />
             </UserHoverCard>
 
             <div className="flex-1">
@@ -115,7 +115,7 @@ export function ReviewCard({
                   username={review.author.username}
                   echoes={review.author.echoes}
                   isVerified={review.author.isVerified}
-                    >
+                >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {review.author.username}
                   </span>
@@ -137,6 +137,45 @@ export function ReviewCard({
               {renderStars(review.rating)}
             </div>
           </div>
+
+          {/* Time Period and Subject Tags */}
+          {(review.semester || review.year || review.professors || review.course || review.professor) && (
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              {/* Time Period Tag */}
+              {(review.semester || review.year) && (
+                <span className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30">
+                  {review.semester && review.year
+                    ? `${review.semester} '${review.year.toString().slice(-2)}`
+                    : review.semester || review.year}
+                </span>
+              )}
+
+              {/* Professor Tags */}
+              {review.professors && review.professors.length > 0 && (
+                <>
+                  {review.professors.map((professor, index) => (
+                    <span key={index} className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30">
+                      {professor.name}
+                    </span>
+                  ))}
+                </>
+              )}
+
+              {/* Single Professor Tag (for direct professor reviews) */}
+              {review.professor && !review.professors && (
+                <span className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30">
+                  {review.professor.name}
+                </span>
+              )}
+
+              {/* Course Tag (for professor page showing which course was reviewed) */}
+              {review.course && (
+                <span className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30">
+                  {review.course.code}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Content or Edit Form */}
           <div className="prose prose-invert prose-sm max-w-none mb-3">

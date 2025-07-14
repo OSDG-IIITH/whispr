@@ -231,6 +231,9 @@ export const reviewAPI = {
     course_instructor_id?: string;
     rating: number;
     content?: string;
+    semester?: string;
+    year?: number;
+    professor_ids?: string[];
   }) => {
     return apiCall<Review>("/reviews", {
       method: "POST",
@@ -463,7 +466,7 @@ export const courseAPI = {
     return apiCall<Course[]>(`/courses/?skip=${skip}&limit=${limit}`);
   },
 
-  getCourse: async (courseCode: string) => {
+  getCourseByCode: async (courseCode: string) => {
     return apiCall<Course>(`/courses/by-code/${courseCode}`);
   },
 
@@ -475,6 +478,17 @@ export const courseAPI = {
     return apiCall<Review[]>(
       `/reviews/?course_id=${courseId}&skip=${skip}&limit=${limit}`
     );
+  },
+
+  getCourseTimePeriods: async (courseId: string) => {
+    return apiCall<Array<{
+      semester: string;
+      year: number;
+      professors: Array<{
+        id: string;
+        name: string;
+      }>;
+    }>>(`/courses/${courseId}/time-periods`);
   },
 
   // Add this function to get fresh course data

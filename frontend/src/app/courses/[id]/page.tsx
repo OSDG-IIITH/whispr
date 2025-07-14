@@ -65,8 +65,8 @@ export default function CoursePage() {
       setLoading(true);
       setError(null);
 
-      // Fetch course details
-      const courseData = await courseAPI.getCourse(courseCode);
+      // Fetch course details using the course code
+      const courseData = await courseAPI.getCourseByCode(courseCode);
       setCourse(courseData);
 
       // Fetch course reviews
@@ -513,6 +513,9 @@ export default function CoursePage() {
   const handleSubmitReview = async (data: {
     content: string;
     rating: number;
+    semester?: string;
+    year?: number;
+    professor_ids?: string[];
   }) => {
     if (!course) return;
 
@@ -524,11 +527,24 @@ export default function CoursePage() {
     try {
       setSubmittingReview(true);
 
-      const newReview = await reviewAPI.createReview({
+      const reviewData: any = {
         course_id: course.id,
         rating: data.rating,
-        content: data.content || undefined, // Handle empty content properly
-      });
+        content: data.content || undefined,
+      };
+
+      // Add time period and professor data if provided
+      if (data.semester) {
+        reviewData.semester = data.semester;
+      }
+      if (data.year) {
+        reviewData.year = data.year;
+      }
+      if (data.professor_ids && data.professor_ids.length > 0) {
+        reviewData.professor_ids = data.professor_ids;
+      }
+
+      const newReview = await reviewAPI.createReview(reviewData);
 
       // Add the new review to the list
       setReviews((prevReviews: Review[]) => [newReview, ...prevReviews]);
@@ -652,8 +668,8 @@ export default function CoursePage() {
       <Star
         key={i}
         className={`w-5 h-5 ${i < Math.floor(rating)
-            ? "text-yellow-500 fill-current"
-            : "text-secondary"
+          ? "text-yellow-500 fill-current"
+          : "text-secondary"
           }`}
       />
     ));
@@ -845,6 +861,7 @@ export default function CoursePage() {
             className="mb-8"
           >
             <ReviewForm
+              courseId={course.id}
               onSubmit={handleSubmitReview}
               onCancel={() => setShowReviewForm(false)}
               placeholder={`Share your experience with ${course.name}...`}
@@ -869,8 +886,8 @@ export default function CoursePage() {
                   key={option}
                   onClick={() => setSortBy(option)}
                   className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${sortBy === option
-                      ? "bg-primary text-black"
-                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                    ? "bg-primary text-black"
+                    : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
                     }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
@@ -897,6 +914,10 @@ export default function CoursePage() {
               userVote: getUserVoteForReview(review.id),
               isOwn: user ? review.user_id === user.id : false,
               isHighlighted: highlightedReviewId === review.id,
+              // Add time period and professor information
+              semester: review.semester,
+              year: review.year,
+              professors: review.professors,
             }))}
             onVote={handleVote}
             onReply={(reviewId) => handleReply(reviewId)}

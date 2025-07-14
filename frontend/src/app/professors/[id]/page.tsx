@@ -315,10 +315,10 @@ export default function ProfessorPage() {
         prevReviews.map((review) =>
           review.id === reviewId
             ? {
-                ...review,
-                upvotes: currentReview.upvotes,
-                downvotes: currentReview.downvotes,
-              }
+              ...review,
+              upvotes: currentReview.upvotes,
+              downvotes: currentReview.downvotes,
+            }
             : review
         )
       );
@@ -461,10 +461,10 @@ export default function ProfessorPage() {
         [reviewId]: prevReplies[reviewId].map((reply) =>
           reply.id === replyId
             ? {
-                ...reply,
-                upvotes: currentReply.upvotes,
-                downvotes: currentReply.downvotes,
-              }
+              ...reply,
+              upvotes: currentReply.upvotes,
+              downvotes: currentReply.downvotes,
+            }
             : reply
         ),
       }));
@@ -536,15 +536,15 @@ export default function ProfessorPage() {
         setProfessor((prevProfessor: Professor | null) =>
           prevProfessor
             ? {
-                ...prevProfessor,
-                review_count: prevProfessor.review_count + 1,
-                average_rating: String(
-                  (parseFloat(prevProfessor.average_rating) *
-                    prevProfessor.review_count +
-                    data.rating) /
-                    (prevProfessor.review_count + 1)
-                ),
-              }
+              ...prevProfessor,
+              review_count: prevProfessor.review_count + 1,
+              average_rating: String(
+                (parseFloat(prevProfessor.average_rating) *
+                  prevProfessor.review_count +
+                  data.rating) /
+                (prevProfessor.review_count + 1)
+              ),
+            }
             : null
         );
       }
@@ -649,11 +649,10 @@ export default function ProfessorPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < Math.floor(rating)
+        className={`w-5 h-5 ${i < Math.floor(rating)
             ? "text-yellow-500 fill-current"
             : "text-secondary"
-        }`}
+          }`}
       />
     ));
   };
@@ -838,8 +837,8 @@ export default function ProfessorPage() {
               {submittingReview
                 ? "Submitting..."
                 : user
-                ? "Rate & Review"
-                : "Login to Review"}
+                  ? "Rate & Review"
+                  : "Login to Review"}
             </button>
           </div>
         </motion.div>
@@ -877,11 +876,10 @@ export default function ProfessorPage() {
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${
-                    sortBy === option
+                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${sortBy === option
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
@@ -907,6 +905,11 @@ export default function ProfessorPage() {
               userVote: getUserVoteForReview(review.id),
               isOwn: user ? review.user_id === user.id : false,
               isHighlighted: highlightedReviewId === review.id,
+              // Add time period and course information for professor page
+              semester: review.semester,
+              year: review.year,
+              professors: review.professors,
+              course: review.course, // Show which course was reviewed
             }))}
             onVote={handleVote}
             onReply={(reviewId) => handleReply(reviewId)}

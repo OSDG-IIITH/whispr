@@ -9,13 +9,15 @@ from pydantic.version import VERSION as PYDANTIC_VERSION
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, delete
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.db.session import get_db
 from app.models.professor import Professor as ProfessorModel
 from app.models.professor_social_media import \
     ProfessorSocialMedia as ProfessorSocialMediaModel
 from app.models.course_instructor import CourseInstructor as CourseInstructorModel
+from app.models.review import Review as ReviewModel
+from app.models.review_professor import ReviewProfessor as ReviewProfessorModel
 from app.schemas.professor import (
     Professor, ProfessorCreate, ProfessorUpdate, ProfessorWithSocialMedia)
 from app.schemas.professor_social_media import (
@@ -26,6 +28,7 @@ from app.schemas.professor_social_media import (
 from app.auth.jwt import get_current_admin_user
 from app.models.user import User as UserModel
 from app.schemas.course import CourseBase
+from app.schemas.review import ReviewWithRelations
 
 router = APIRouter()
 
@@ -313,3 +316,56 @@ async def delete_professor_social_media(
         stmt = delete(ProfessorSocialMediaModel).where(
             ProfessorSocialMediaModel.id == social_media_id)
         await db.execute(stmt)
+
+
+@router.get("/{professor_id}/reviews", response_model=List[ReviewWithRelations])
+async def get_professor_reviews(
+    professor_id: UUID,
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """
+    Get all reviews for a professor, including those linked via review_professors.
+    """
+    # Get reviews where professor_id is set
+    direct_reviews_query = select(ReviewModel).options(
+        selectinload(ReviewModel.user),
+        selectinload(ReviewModel.course),
+        selectinload(ReviewModel.professor),
+        selectinload(ReviewModel.course_instructor).selectinload(CourseInstructorModel.professor),
+        selectinload(ReviewModel.course_instructor).selectinload(CourseInstructorModel.course),
+        selectinload(ReviewModel.review_professors).selectinload(ReviewProfessorModel.professor)
+    ).where(ReviewModel.professor_id == professor_id)
+
+    direct_reviews_result = await db.execute(direct_reviews_query)
+    direct_reviews = direct_reviews_result.unique().scalars().all()
+
+    # Get reviews linked via review_professors
+    linked_review_ids_query = select(ReviewProfessorModel.review_id).where(ReviewProfessorModel.professor_id == professor_id)
+    linked_review_ids_result = await db.execute(linked_review_ids_query)
+    linked_review_ids = [row[0] for row in linked_review_ids_result.fetchall()]
+
+    if linked_review_ids:
+        linked_reviews_query = select(ReviewModel).options(
+            selectinload(ReviewModel.user),
+            selectinload(ReviewModel.course),
+            selectinload(ReviewModel.professor),
+            selectinload(ReviewModel.course_instructor).selectinload(CourseInstructorModel.professor),
+            selectinload(ReviewModel.course_instructor).selectinload(CourseInstructorModel.course),
+            selectinload(ReviewModel.review_professors).selectinload(ReviewProfessorModel.professor)
+        ).where(ReviewModel.id.in_(linked_review_ids))
+        linked_reviews_result = await db.execute(linked_reviews_query)
+        linked_reviews = linked_reviews_result.unique().scalars().all()
+    else:
+        linked_reviews = []
+
+    # Combine and deduplicate reviews
+    all_reviews = {review.id: review for review in direct_reviews}
+    for review in linked_reviews:
+        all_reviews[review.id] = review
+
+    # Sort by created_at desc and apply pagination
+    sorted_reviews = sorted(all_reviews.values(), key=lambda r: r.created_at, reverse=True)
+    paginated_reviews = sorted_reviews[skip:skip+limit]
+    return paginated_reviews
