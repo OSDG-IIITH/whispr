@@ -16,8 +16,9 @@
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 64%;
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 48 94% 68%;
+    /* Vibrant yellow accent */
+    --accent-foreground: 144 9% 10%;
     --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 15%;
@@ -47,7 +48,11 @@
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply bg-green-400 text-primary-foreground hover:bg-primary/90;
+  }
+
+  .btn-accent {
+    @apply bg-green-300 text-primary-foreground hover:bg-primary/90;
   }
 
   .card {

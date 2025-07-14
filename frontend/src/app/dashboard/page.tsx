@@ -187,7 +187,7 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => router.push(`/profile/${user?.username}`)}
-                    className="w-full h-10 btn btn-secondary text-sm"
+                    className="w-full h-10 btn btn-accent text-sm"
                   >
                     View Profile
                   </button>
