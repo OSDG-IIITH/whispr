@@ -43,100 +43,102 @@ export function FloatingDock() {
       </AnimatePresence>
 
       {/* Floating Dock */}
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="fixed bottom-2 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
-      >
-        <div className="bg-card/80 backdrop-blur-xl border border-primary/20 rounded-2xl px-2 py-2 sm:px-4 sm:py-3 shadow-2xl max-w-xs sm:max-w-md w-full pointer-events-auto flex justify-center">
-          <div className="flex items-center gap-4">
-            {/* Logo/Home */}
-            <Link href="/dashboard">
+      <div className="fixed bottom-2 sm:bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
+          <div className="bg-card/80 backdrop-blur-xl border border-primary/20 rounded-2xl px-2 py-2 sm:px-4 sm:py-3 shadow-2xl max-w-xs sm:max-w-md w-full pointer-events-auto flex justify-center">
+            <div className="flex items-center gap-4">
+              {/* Logo/Home */}
+              <Link href="/dashboard">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`p-3 rounded-xl transition-colors ${pathname === '/dashboard'
+                    ? 'bg-primary text-black'
+                    : 'text-primary hover:bg-primary/10'
+                    }`}
+                >
+                  <Home className="w-5 h-5" />
+                </motion.button>
+              </Link>
+
+              {/* Search */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                className={`p-3 rounded-xl transition-colors ${pathname === '/dashboard'
+                onClick={() => {
+                  setShowSearch(!showSearch);
+                  setShowNotifications(false);
+                  setShowProfile(false);
+                }}
+                className={`p-3 rounded-xl transition-colors ${showSearch
                   ? 'bg-primary text-black'
                   : 'text-primary hover:bg-primary/10'
                   }`}
               >
-                <Home className="w-5 h-5" />
+                <Search className="w-5 h-5" />
               </motion.button>
-            </Link>
 
-            {/* Search */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setShowSearch(!showSearch);
-                setShowNotifications(false);
-                setShowProfile(false);
-              }}
-              className={`p-3 rounded-xl transition-colors ${showSearch
-                ? 'bg-primary text-black'
-                : 'text-primary hover:bg-primary/10'
-                }`}
-            >
-              <Search className="w-5 h-5" />
-            </motion.button>
+              {/* Notifications */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  setShowSearch(false);
+                  setShowProfile(false);
+                }}
+                className={`p-3 rounded-xl transition-colors relative ${showNotifications
+                  ? 'bg-primary text-black'
+                  : 'text-primary hover:bg-primary/10'
+                  }`}
+              >
+                <Bell className="w-5 h-5" />
+                {/* Notification badge */}
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full text-xs flex items-center justify-center text-black font-medium">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </motion.button>
 
-            {/* Notifications */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setShowNotifications(!showNotifications);
-                setShowSearch(false);
-                setShowProfile(false);
-              }}
-              className={`p-3 rounded-xl transition-colors relative ${showNotifications
-                ? 'bg-primary text-black'
-                : 'text-primary hover:bg-primary/10'
-                }`}
-            >
-              <Bell className="w-5 h-5" />
-              {/* Notification badge */}
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full text-xs flex items-center justify-center text-black font-medium">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </motion.button>
-
-            {/* Profile */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setShowProfile(!showProfile);
-                setShowSearch(false);
-                setShowNotifications(false);
-              }}
-              className={`p-3 rounded-xl transition-colors ${showProfile
-                ? 'bg-primary text-black'
-                : 'text-primary hover:bg-primary/10'
-                }`}
-            >
-              <User className="w-5 h-5" />
-            </motion.button>
+              {/* Profile */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setShowProfile(!showProfile);
+                  setShowSearch(false);
+                  setShowNotifications(false);
+                }}
+                className={`p-3 rounded-xl transition-colors ${showProfile
+                  ? 'bg-primary text-black'
+                  : 'text-primary hover:bg-primary/10'
+                  }`}
+              >
+                <User className="w-5 h-5" />
+              </motion.button>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
 
       {/* Search Panel */}
-      <AnimatePresence>
-        {showSearch && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 w-96"
-          >
-            <SearchBar onClose={() => setShowSearch(false)} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="fixed bottom-28 left-0 right-0 z-50 flex justify-center">
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+            >
+              <SearchBar onClose={() => setShowSearch(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Notifications Panel */}
       <AnimatePresence>
