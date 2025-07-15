@@ -136,7 +136,7 @@ export default function VerifyPage() {
                 setStep("disclaimer");
                 setAgreed(false);
               }}
-              className="btn btn-primary px-6 py-3"
+              className="btn btn-primary w-24 h-8"
             >
               Try Again
             </button>

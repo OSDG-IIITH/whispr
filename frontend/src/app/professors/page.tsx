@@ -102,7 +102,7 @@ export default function ProfessorsPage() {
           <GraduationCap className="w-16 h-16 text-secondary mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">Error Loading Professors</h3>
           <p className="text-secondary mb-4">{error}</p>
-          <button onClick={fetchProfessors} className="btn btn-primary h-10 w-24">
+          <button onClick={fetchProfessors} className="btn btn-primary w-24 h-8">
             Try Again
           </button>
         </div>

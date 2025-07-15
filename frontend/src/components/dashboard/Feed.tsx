@@ -393,7 +393,7 @@ export function Feed() {
         <div className="text-red-400 text-lg">{error}</div>
         <button
           onClick={handleRefresh}
-          className="btn btn-primary"
+          className="btn btn-primary w-24 h-8"
           disabled={refreshing}
         >
           {refreshing ? "Refreshing..." : "Try Again"}
