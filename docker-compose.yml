@@ -12,7 +12,7 @@ services:
         condition: service_healthy
     networks:
       whispr-network:
-        ipv4_address: 172.25.1.2
+        ipv4_address: 172.25.1.10
 
   frontend:
     build:
@@ -30,6 +30,12 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   backend:
     build:
