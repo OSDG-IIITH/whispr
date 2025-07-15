@@ -14,8 +14,8 @@ COPY package*.json ./
 # ========================
 FROM base AS deps
 
-# Install dependencies (production only)
-RUN npm ci --only=production && npm cache clean --force
+# Install all dependencies (including dev dependencies for build)
+RUN npm ci && npm cache clean --force
 
 # ========================
 # Build stage
@@ -29,7 +29,7 @@ RUN npm ci && npm cache clean --force
 COPY . .
 
 # Create .env.local file for production build
-RUN echo "NEXT_PUBLIC_API_URL=/api/v1" > .env.local
+RUN echo "NEXT_PUBLIC_API_URL=/api" > .env.local
 
 # Build the application
 RUN npm run build
@@ -45,10 +45,16 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy package files and install production dependencies only
+COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy built application from builder stage
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Create .env.local file for production
+RUN echo "NEXT_PUBLIC_API_URL=/api" > .env.local
 
 # Switch to non-root user
 USER nextjs
@@ -58,6 +64,7 @@ EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+ENV NODE_ENV production
 
-# Production command
-CMD ["node", "server.js"]
+# Production command using npm start
+CMD ["npm", "start"]
