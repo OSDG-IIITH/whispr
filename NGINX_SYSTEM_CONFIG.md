@@ -12,7 +12,7 @@ location = /whispr {
     return 301 /whispr/;
 }
 location /whispr/ {
-    proxy_pass http://172.25.1.2:8080/;  # This will proxy to your whispr nginx container
+    proxy_pass http://172.25.1.10:8080/;  # This will proxy to your whispr nginx container
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -53,6 +53,6 @@ location /whispr/ {
 ## Network Details
 
 - **Subnet**: 172.25.1.0/24
-- **Nginx Container IP**: 172.25.1.2
+- **Nginx Container IP**: 172.25.1.10
 - **Internal Communication**: All containers communicate via Docker network names
 - **External Access**: Only through the system nginx proxy at the assigned IP
