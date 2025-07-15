@@ -71,7 +71,7 @@ export default function DashboardPage() {
           <p className="text-secondary mb-4">
             Please log in to view your dashboard
           </p>
-          <a href="/auth/login" className="btn btn-primary">
+          <a href="/auth/login" className="btn btn-primary h-8 w-24">
             Sign In
           </a>
         </div>
