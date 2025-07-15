@@ -718,7 +718,7 @@ export function SearchClientContent() {
 
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <span className="text-xs text-secondary bg-muted px-2 py-1 rounded whitespace-nowrap">
-                              {(result.relevanceScore * 100).toFixed(0)}% match
+                              {(result.relevanceScore).toFixed(0)}% match
                             </span>
                           </div>
                         </div>

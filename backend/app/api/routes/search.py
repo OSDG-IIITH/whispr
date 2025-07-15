@@ -47,62 +47,84 @@ def preprocess_query(query: str) -> str:
     return query
 
 
-def calculate_relevance_score(
-        query_tokens: List[str], text: str, field_weight: float = 1.0
-) -> float:
+def calculate_relevance_score(query_tokens: List[str], text: str) -> float:
     """
-    Calculate relevance score based on token matches.
-
-    Uses a simple TF-IDF style algorithm:
-    - More matched tokens means higher score
-    - Exact phrase matches get a bonus
-    - Field weights allow prioritizing certain fields
+    Calculate a simple relevance score as a percentage (0-100) based on token matches.
+    
+    Simple algorithm:
+    - Each matching token adds points
+    - Exact phrase match gets bonus
+    - Score is normalized to 0-100 range
     """
     if not text or not query_tokens:
         return 0.0
 
-    text = text.lower()
-
-    # Token frequency
-    score = 0.0
+    text_lower = text.lower()
+    query_lower = " ".join(query_tokens).lower()
+    
+    # Check for exact phrase match (gets 100%)
+    if query_lower in text_lower:
+        return 100.0
+    
+    # Count matching tokens
+    matching_tokens = 0
     for token in query_tokens:
-        if token in text:
-            # Count occurrences of token
-            token_count = text.count(token)
-            # Add to score
-            # (logarithmic scaling to prevent large texts from dominating)
-            score += math.log(1 + token_count) * field_weight
-
-    # Exact phrase bonus for multi-word queries
-    query = " ".join(query_tokens)
-    if len(query_tokens) > 1 and query in text:
-        score *= 1.5  # 50% bonus for exact phrase match
-
-    return score
+        if token in text_lower:
+            matching_tokens += 1
+    
+    if matching_tokens == 0:
+        return 0.0
+    
+    # Simple percentage based on how many tokens matched
+    match_percentage = (matching_tokens / len(query_tokens)) * 100
+    
+    # Cap at 95% for partial matches (reserve 100% for exact phrase)
+    return min(95.0, match_percentage)
 
 
 def combine_relevance_scores(scores: Dict[str, float]) -> float:
     """
-    Combine relevance scores from multiple fields into a single score.
+    Combine relevance scores from multiple fields using simple weighted average.
+    Returns a score between 1 and 100.
     """
-    # Different field types have different weights
+    if not scores:
+        return 1.0
+    
+    # Simple field weights
     field_weights = {
-        "name": 5.0,       # High priority
-        "code": 5.0,       # High priority
-        "title": 3.0,      # Medium-high priority
-        "description": 2.0,  # Medium priority
-        "content": 1.0,     # Standard priority
-        "lab": 2.0,         # Medium priority
-        "summary": 1.5      # Medium-low priority
+        "name": 2.0,
+        "code": 2.0,  
+        "title": 1.5,
+        "course_name": 1.5,
+        "course_code": 1.5,
+        "professor_name": 1.5,
+        "description": 1.0,
+        "content": 1.0,
+        "lab": 1.0,
+        "summary": 1.0,
+        "semester": 1.0,
+        "course_description": 1.0,
+        "professor_lab": 1.0,
     }
-
-    # Sum weighted scores
+    
+    # Calculate simple weighted average
     total_score = 0.0
+    total_weight = 0.0
+    
     for field, score in scores.items():
-        weight = field_weights.get(field, 1.0)
-        total_score += score * weight
-
-    return total_score # TODO: normalize this score if needed
+        if score > 0:  # Only count fields with matches
+            weight = field_weights.get(field, 1.0)
+            total_score += score * weight
+            total_weight += weight
+    
+    if total_weight == 0:
+        return 1.0
+    
+    # Simple average
+    final_score = total_score / total_weight
+    
+    # Ensure between 1 and 100
+    return max(1.0, min(100.0, round(final_score, 1)))
 
 
 @router.post("/", response_model=SearchResponse)
@@ -296,15 +318,15 @@ async def search_courses(
         # Calculate scores for each field
         scores = {
             "name": calculate_relevance_score(
-                query_tokens, getattr(course, "name", ""), 5.0
+                query_tokens, getattr(course, "name", "")
             ),
             "code": calculate_relevance_score(
-                query_tokens, getattr(course, "code", ""), 5.0)
+                query_tokens, getattr(course, "code", ""))
         }
 
         if params.deep and getattr(course, "description", None):
             scores["description"] = calculate_relevance_score(
-                query_tokens, getattr(course, "description", ""), 2.0
+                query_tokens, getattr(course, "description", "")
             )
 
         # Combine scores
@@ -388,7 +410,7 @@ async def search_professors(
         # Calculate scores for each field
         scores = {
             "name": calculate_relevance_score(query_tokens, getattr(
-                professor, "name", ""), 5.0
+                professor, "name", "")
             )
         }
 
@@ -397,10 +419,10 @@ async def search_professors(
             summary = getattr(professor, "review_summary", None)
             if lab is not None:
                 scores["lab"] = calculate_relevance_score(
-                    query_tokens, lab, 2.0)
+                    query_tokens, lab)
             if summary is not None:
                 scores["summary"] = calculate_relevance_score(
-                    query_tokens, summary, 1.5)
+                    query_tokens, summary)
 
         # Combine scores
         relevance_score = combine_relevance_scores(scores)
@@ -517,35 +539,35 @@ async def search_course_instructors(
         # Calculate scores for each field
         scores = {
             "course_name": calculate_relevance_score(
-                query_tokens, course.name, 4.0
+                query_tokens, course.name
             ),
             "course_code": calculate_relevance_score(
-                query_tokens, course.code, 4.0
+                query_tokens, course.code
             ),
             "professor_name": calculate_relevance_score(
-                query_tokens, professor.name, 4.0
+                query_tokens, professor.name
             ),
             "semester": calculate_relevance_score(
-                query_tokens, course_instructor.semester, 3.0
+                query_tokens, course_instructor.semester
             )
         }
 
         if params.deep:
             if course.description:
                 scores["course_description"] = calculate_relevance_score(
-                    query_tokens, course.description, 1.5
+                    query_tokens, course.description
                 )
             if professor.lab:
                 scores["professor_lab"] = calculate_relevance_score(
-                    query_tokens, professor.lab, 1.5
+                    query_tokens, professor.lab
                 )
             if course_instructor.summary:
                 scores["summary"] = calculate_relevance_score(
-                    query_tokens, course_instructor.summary, 2.0
+                    query_tokens, course_instructor.summary
                 )
 
         # Combine scores
-        relevance_score = sum(scores.values())
+        relevance_score = combine_relevance_scores(scores)
 
         # Create course instructor with details
         from app.schemas.course_instructor import CourseInstructorDetail
@@ -664,7 +686,7 @@ async def search_reviews(
     results = []
     for review, user in rows:
         # Calculate score for content
-        score = calculate_relevance_score(query_tokens, review.content, 1.0)
+        score = calculate_relevance_score(query_tokens, review.content)
 
         # Create review with user
         from app.schemas.review import ReviewWithUser
@@ -762,7 +784,7 @@ async def search_replies(
     results = []
     for reply, user in rows:
         # Calculate score for content
-        score = calculate_relevance_score(query_tokens, reply.content, 1.0)
+        score = calculate_relevance_score(query_tokens, reply.content)
 
         # Create reply with user
         from app.schemas.reply import ReplyWithUser
