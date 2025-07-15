@@ -51,9 +51,9 @@ COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 # Copy built application from builder stage
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
 
 # Create .env.local file for production
 RUN echo "NEXT_PUBLIC_API_URL=/api" > .env.local
@@ -64,9 +64,9 @@ USER nextjs
 # Expose port
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-ENV NODE_ENV production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+ENV NODE_ENV=production
 
-# Production command using the standalone server
-CMD ["node", "server.js"]
+# Production command using npm start
+CMD ["npm", "start"]
