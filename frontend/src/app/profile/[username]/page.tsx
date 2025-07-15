@@ -613,18 +613,18 @@ export default function ProfilePage() {
           </div>
 
           {/* Stats Grid - Always shown */}
-            <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {stats.map((stat, index) => (
               <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-              className="bg-muted/50 rounded-lg p-4 text-center hover:bg-muted/70 transition-colors"
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index }}
+                className="bg-muted/50 rounded-lg p-4 text-center hover:bg-muted/70 transition-colors"
               >
-              <div className="flex justify-center mb-2">{stat.icon}</div>
-              <div className="text-xl lg:text-2xl font-bold">{stat.value}</div>
-              <div className="text-sm text-secondary">{stat.label}</div>
+                <div className="flex justify-center mb-2">{stat.icon}</div>
+                <div className="text-xl lg:text-2xl font-bold">{stat.value}</div>
+                <div className="text-sm text-secondary">{stat.label}</div>
               </motion.div>
             ))}
 
@@ -640,7 +640,7 @@ export default function ProfilePage() {
             </motion.div>
 
             {/* Reviews Section */}
-            </div>
+          </div>
         </motion.div>
 
 

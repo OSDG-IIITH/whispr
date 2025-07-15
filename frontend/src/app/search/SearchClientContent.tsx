@@ -60,25 +60,25 @@ interface UserMetadata {
 interface SearchResultData {
   id: string;
   type:
-    | "course"
-    | "professor"
-    | "review"
-    | "reply"
-    | "course_instructor"
-    | "user"
-    | "unknown";
+  | "course"
+  | "professor"
+  | "review"
+  | "reply"
+  | "course_instructor"
+  | "user"
+  | "unknown";
   title: string;
   subtitle?: string;
   description: string;
   rating?: number;
   metadata?:
-    | CourseMetadata
-    | ProfessorMetadata
-    | CourseInstructorMetadata
-    | ReviewMetadata
-    | ReplyMetadata
-    | UserMetadata
-    | Record<string, unknown>;
+  | CourseMetadata
+  | ProfessorMetadata
+  | CourseInstructorMetadata
+  | ReviewMetadata
+  | ReplyMetadata
+  | UserMetadata
+  | Record<string, unknown>;
   relevanceScore: number;
   rawData: unknown;
 }
@@ -445,9 +445,8 @@ export function SearchClientContent() {
     return Array.from({ length: 5 }, (_, i) => (
       <span
         key={i}
-        className={`text-sm ${
-          i < Math.floor(numRating) ? "text-yellow-500" : "text-secondary"
-        }`}
+        className={`text-sm ${i < Math.floor(numRating) ? "text-yellow-500" : "text-secondary"
+          }`}
       >
         ★
       </span>
@@ -458,8 +457,8 @@ export function SearchClientContent() {
     course: "Courses",
     professor: "Professors",
     course_instructor: "Course Offerings",
-    review: "Reviews",
-    reply: "Replies",
+    // review: "Reviews",
+    // reply: "Replies",
   };
 
   const sortOptions = [
@@ -472,27 +471,27 @@ export function SearchClientContent() {
 
   return (
     <div className="min-h-screen bg-black pb-24">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Search Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-5 h-5" />
+          <div className="relative mb-4 sm:mb-6">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary w-4 h-4 sm:w-5 sm:h-5" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onBlur={updateURL}
               placeholder="Search courses, professors, reviews..."
-              className="w-full pl-10 pr-4 py-4 bg-card border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-lg"
+              className="w-full pl-9 sm:pl-10 pr-4 py-3 sm:py-4 bg-card border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-base sm:text-lg"
             />
           </div>
 
           {query && (
-            <p className="text-secondary">
+            <p className="text-secondary text-sm sm:text-base">
               {loading
                 ? "Searching..."
                 : `${totalResults} results for "${query}"`}
@@ -505,28 +504,29 @@ export function SearchClientContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
           {/* Entity Type Filters */}
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <Filter className="w-4 h-4 text-secondary" />
-            {Object.entries(entityTypeLabels).map(([type, label]) => (
-              <button
-                key={type}
-                onClick={() => handleEntityTypeToggle(type)}
-                className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                  entityTypes.length === 0 || entityTypes.includes(type)
-                    ? "bg-primary text-black"
-                    : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="flex items-start sm:items-center gap-2 mb-4 flex-wrap">
+            <Filter className="w-4 h-4 text-secondary mt-2 sm:mt-0 flex-shrink-0" />
+            <div className="flex flex-wrap gap-2 flex-1">
+              {Object.entries(entityTypeLabels).map(([type, label]) => (
+                <button
+                  key={type}
+                  onClick={() => handleEntityTypeToggle(type)}
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg transition-colors ${entityTypes.length === 0 || entityTypes.includes(type)
+                      ? "bg-primary text-black"
+                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                    }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Sort and Advanced Filters */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className="flex items-center gap-2 text-sm text-secondary hover:text-primary transition-colors"
@@ -534,13 +534,12 @@ export function SearchClientContent() {
               <Filter className="w-4 h-4" />
               Advanced Filters
               <ChevronDown
-                className={`w-4 h-4 transition-transform ${
-                  showAdvancedFilters ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transition-transform ${showAdvancedFilters ? "rotate-180" : ""
+                  }`}
               />
             </button>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <div className="relative">
                   <input
@@ -550,11 +549,10 @@ export function SearchClientContent() {
                     className="sr-only"
                   />
                   <div
-                    className={`w-4 h-4 rounded border-2 transition-colors ${
-                      deepSearch
+                    className={`w-4 h-4 rounded border-2 transition-colors ${deepSearch
                         ? "bg-primary border-primary"
                         : "border-border hover:border-primary/50"
-                    }`}
+                      }`}
                   >
                     {deepSearch && (
                       <svg
@@ -581,7 +579,7 @@ export function SearchClientContent() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-muted text-sm px-3 py-1.5 rounded-lg border-none focus:outline-none"
+                  className="bg-muted text-sm px-2 sm:px-3 py-1.5 rounded-lg border-none focus:outline-none min-w-0"
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -610,7 +608,7 @@ export function SearchClientContent() {
               exit={{ opacity: 0, height: 0 }}
               className="mt-4 pt-4 border-t border-border"
             >
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-secondary mb-1">
                     Min Rating
@@ -659,20 +657,20 @@ export function SearchClientContent() {
         </motion.div>
 
         {/* Results */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {loading && results.length === 0 ? (
             // Loading skeleton
             Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-card border border-border rounded-xl p-6"
+                className="bg-card border border-border rounded-xl p-4 sm:p-6"
               >
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-muted rounded-lg animate-pulse" />
-                  <div className="flex-1 space-y-3">
-                    <div className="w-3/4 h-6 bg-muted rounded animate-pulse" />
-                    <div className="w-1/2 h-4 bg-muted rounded animate-pulse" />
-                    <div className="w-full h-4 bg-muted rounded animate-pulse" />
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-lg animate-pulse flex-shrink-0" />
+                  <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
+                    <div className="w-3/4 h-5 sm:h-6 bg-muted rounded animate-pulse" />
+                    <div className="w-1/2 h-3 sm:h-4 bg-muted rounded animate-pulse" />
+                    <div className="w-full h-3 sm:h-4 bg-muted rounded animate-pulse" />
                   </div>
                 </div>
               </div>
@@ -681,11 +679,11 @@ export function SearchClientContent() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12"
+              className="text-center py-8 sm:py-12 px-4"
             >
-              <Search className="w-16 h-16 text-secondary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No results found</h3>
-              <p className="text-secondary">
+              <Search className="w-12 h-12 sm:w-16 sm:h-16 text-secondary mx-auto mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">No results found</h3>
+              <p className="text-secondary text-sm sm:text-base">
                 Try different keywords, enable deep search, or adjust your
                 filters
               </p>
@@ -699,38 +697,38 @@ export function SearchClientContent() {
                 transition={{ delay: 0.05 * index }}
               >
                 <Link href={getResultLink(result)}>
-                  <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 bg-muted/50 rounded-lg flex items-center justify-center">
+                  <div className="bg-card border border-border rounded-xl p-4 sm:p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-muted/50 rounded-lg flex items-center justify-center">
                         {getResultIcon(result.type)}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-base sm:text-lg mb-1 hover:text-primary transition-colors truncate sm:whitespace-normal">
                               {result.title}
                             </h3>
                             {result.subtitle && (
-                              <p className="text-secondary text-sm mb-2">
+                              <p className="text-secondary text-xs sm:text-sm mb-2 truncate sm:whitespace-normal">
                                 {result.subtitle}
                               </p>
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 ml-4">
-                            <span className="text-xs text-secondary bg-muted px-2 py-1 rounded">
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-xs text-secondary bg-muted px-2 py-1 rounded whitespace-nowrap">
                               {(result.relevanceScore * 100).toFixed(0)}% match
                             </span>
                           </div>
                         </div>
 
-                        <p className="text-secondary mb-3 line-clamp-2">
+                        <p className="text-secondary text-sm sm:text-base mb-3 line-clamp-2 sm:line-clamp-3">
                           {result.description}
                         </p>
 
                         {/* Metadata */}
-                        <div className="flex items-center gap-4 text-xs text-secondary justify-end">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-secondary">
                           {(result.type === "course" ||
                             result.type === "professor" ||
                             result.type === "course_instructor") &&
@@ -738,24 +736,28 @@ export function SearchClientContent() {
                               | CourseMetadata
                               | ProfessorMetadata
                               | CourseInstructorMetadata)?.reviewCount !==
-                              undefined && (
-                              <span className="flex items-center gap-2">
-                                {(result.metadata as
-                                  | CourseMetadata
-                                  | ProfessorMetadata
-                                  | CourseInstructorMetadata).reviewCount}{" "}
-                                {(result.metadata as
-                                  | CourseMetadata
-                                  | ProfessorMetadata
-                                  | CourseInstructorMetadata).reviewCount ===
-                                1
-                                  ? "review"
-                                  : "reviews"}
+                            undefined && (
+                              <span className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                                <span className="whitespace-nowrap">
+                                  {(result.metadata as
+                                    | CourseMetadata
+                                    | ProfessorMetadata
+                                    | CourseInstructorMetadata).reviewCount}{" "}
+                                  {(result.metadata as
+                                    | CourseMetadata
+                                    | ProfessorMetadata
+                                    | CourseInstructorMetadata).reviewCount ===
+                                    1
+                                    ? "review"
+                                    : "reviews"}
+                                </span>
                                 {result.rating !== undefined && (
-                                  <span className="flex items-center gap-1 ml-2">
-                                    {renderStars(result.rating)}
-                                    <span className="text-sm text-secondary">
-                                      {result.rating.toFixed(1)}
+                                  <span className="flex items-center gap-1 whitespace-nowrap">
+                                    <span className="hidden sm:flex">
+                                      {renderStars(result.rating)}
+                                    </span>
+                                    <span className="text-xs text-secondary">
+                                      {result.rating.toFixed(1)}★
                                     </span>
                                   </span>
                                 )}
@@ -765,7 +767,7 @@ export function SearchClientContent() {
                             result.type === "reply") &&
                             (result.metadata as ReviewMetadata | ReplyMetadata)
                               ?.upvotes !== undefined && (
-                              <span>
+                              <span className="whitespace-nowrap">
                                 {(result.metadata as
                                   | ReviewMetadata
                                   | ReplyMetadata).upvotes}{" "}
@@ -776,7 +778,7 @@ export function SearchClientContent() {
                             result.type === "reply") &&
                             (result.metadata as ReviewMetadata | ReplyMetadata)
                               ?.createdAt && (
-                              <span>
+                              <span className="whitespace-nowrap">
                                 {(result.metadata as
                                   | ReviewMetadata
                                   | ReplyMetadata).createdAt}
@@ -784,7 +786,7 @@ export function SearchClientContent() {
                             )}
                           {result.type === "user" &&
                             (result.metadata as UserMetadata)?.joinedAt && (
-                              <span>
+                              <span className="whitespace-nowrap">
                                 {(result.metadata as UserMetadata).joinedAt}
                               </span>
                             )}
@@ -793,7 +795,7 @@ export function SearchClientContent() {
                               ?.semester &&
                             (result.metadata as CourseInstructorMetadata)
                               ?.year && (
-                              <span>
+                              <span className="whitespace-nowrap">
                                 {(result.metadata as CourseInstructorMetadata)
                                   .semester}{" "}
                                 {(result.metadata as CourseInstructorMetadata)
@@ -816,11 +818,11 @@ export function SearchClientContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-center mt-8"
+            className="text-center mt-6 sm:mt-8 px-4"
           >
             <button
               onClick={handleLoadMore}
-              className="btn btn-secondary px-6 py-3"
+              className="btn btn-secondary px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base w-full sm:w-auto"
             >
               Load More Results ({results.length} of {totalResults})
             </button>
@@ -828,8 +830,8 @@ export function SearchClientContent() {
         )}
 
         {loading && results.length > 0 && (
-          <div className="text-center mt-4">
-            <div className="text-secondary">Loading more results...</div>
+          <div className="text-center mt-4 px-4">
+            <div className="text-secondary text-sm sm:text-base">Loading more results...</div>
           </div>
         )}
       </div>
