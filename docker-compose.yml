@@ -21,7 +21,7 @@ services:
     container_name: whispr-frontend
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=/api
+      - NEXT_PUBLIC_API_URL=/whispr/api
     networks:
       - whispr-network
     depends_on:

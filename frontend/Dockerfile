@@ -30,7 +30,7 @@ RUN npm ci && npm cache clean --force
 COPY . .
 
 # Create .env.local file for production build
-RUN echo "NEXT_PUBLIC_API_URL=/api" > .env.local
+RUN echo "NEXT_PUBLIC_API_URL=/whispr/api" > .env.local
 
 # Build the application
 RUN npm run build
@@ -56,7 +56,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
 
 # Create .env.local file for production
-RUN echo "NEXT_PUBLIC_API_URL=/api" > .env.local
+RUN echo "NEXT_PUBLIC_API_URL=/whispr/api" > .env.local
 
 # Switch to non-root user
 USER nextjs
