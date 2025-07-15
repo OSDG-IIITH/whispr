@@ -77,9 +77,8 @@ CREATE TABLE reviews (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CHECK (
-        (course_id IS NOT NULL)
-        OR (professor_id IS NOT NULL)
-        OR (course_instructor_id IS NOT NULL)
+        (course_id IS NULL)
+        OR (professor_id IS NULL)
     )
 );
 -- Create course_instructor-review table
