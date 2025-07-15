@@ -103,10 +103,11 @@ export function FeedReviewCard({
     } else if (review.professor_id && review.professor?.id) {
       router.push(`/professors/${review.professor.id}`);
     } else if (
-      review.course_instructor_id &&
-      review.course_instructor?.course?.code
+      review.course_instructors &&
+      review.course_instructors.length > 0 &&
+      review.course_instructors[0]?.course?.code
     ) {
-      router.push(`/courses/${review.course_instructor.course.code}`);
+      router.push(`/courses/${review.course_instructors[0].course.code}`);
     } else {
       console.warn("Cannot navigate: missing course/professor data", review);
     }
@@ -135,22 +136,26 @@ export function FeedReviewCard({
           )}
         </div>
       );
-    } else if (review.course_instructor_id && review.course_instructor) {
+    } else if (review.course_instructors && review.course_instructors.length > 0) {
+      const firstInstructor = review.course_instructors[0];
       return (
         <div className="flex items-center gap-2 text-sm text-secondary mb-3">
           <BookOpen className="w-4 h-4 text-primary" />
           <span className="font-medium">
-            {review.course_instructor.course?.code || "Unknown Course"}
+            {firstInstructor.course?.code || "Unknown Course"}
           </span>
           <span>•</span>
           <span>
-            {review.course_instructor.course?.name || "Unknown Course Name"}
+            {firstInstructor.course?.name || "Unknown Course Name"}
           </span>
           <span>•</span>
           <GraduationCap className="w-4 h-4 text-primary" />
           <span>
-            {review.course_instructor.professor?.name || "Unknown Professor"}
+            {firstInstructor.professor?.name || "Unknown Professor"}
           </span>
+          {review.course_instructors.length > 1 && (
+            <span className="text-muted">+{review.course_instructors.length - 1} more</span>
+          )}
         </div>
       );
     } else {

@@ -72,7 +72,6 @@ export interface Review {
   user_id: string;
   course_id?: string;
   professor_id?: string;
-  course_instructor_id?: string;
   rating: number;
   content?: string;
   upvotes: number;
@@ -90,7 +89,7 @@ export interface Review {
     id: string;
     name: string;
   };
-  course_instructor?: {
+  course_instructors?: {
     id: string;
     course: {
       id: string;
@@ -101,7 +100,7 @@ export interface Review {
       id: string;
       name: string;
     };
-  };
+  }[];
 }
 
 export interface Reply {

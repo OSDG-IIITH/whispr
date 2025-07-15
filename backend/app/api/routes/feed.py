@@ -19,6 +19,7 @@ from app.models.review import Review as ReviewModel
 from app.models.course import Course as CourseModel
 from app.models.professor import Professor as ProfessorModel
 from app.models.course_instructor import CourseInstructor as CourseInstructorModel
+from app.models.course_instructor_review import CourseInstructorReview as CourseInstructorReviewModel
 from app.schemas.review import ReviewWithRelations
 from app.auth.jwt import get_current_user
 
@@ -62,8 +63,12 @@ async def get_feed(
                 joinedload(ReviewModel.user),
                 joinedload(ReviewModel.course),
                 joinedload(ReviewModel.professor),
-                joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.course),
-                joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.professor)
+                joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                    CourseInstructorReviewModel.course_instructor).joinedload(
+                    CourseInstructorModel.course),
+                joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                    CourseInstructorReviewModel.course_instructor).joinedload(
+                    CourseInstructorModel.professor)
             )
             .where(
                 and_(
@@ -85,7 +90,7 @@ async def get_feed(
     # Phase 2: Reviews of courses/professors that followed users have reviewed
     if followed_user_ids and len(feed_reviews) < limit:
         # Get courses/professors that followed users have reviewed
-        stmt = select(ReviewModel.course_id, ReviewModel.professor_id, ReviewModel.course_instructor_id).where(
+        stmt = select(ReviewModel.course_id, ReviewModel.professor_id).where(
             ReviewModel.user_id.in_(followed_user_ids)
         ).distinct()
         
@@ -94,7 +99,16 @@ async def get_feed(
         
         course_ids = [str(row.course_id) for row in followed_subjects if row.course_id]
         professor_ids = [str(row.professor_id) for row in followed_subjects if row.professor_id]
-        course_instructor_ids = [str(row.course_instructor_id) for row in followed_subjects if row.course_instructor_id]
+        
+        # Get course_instructor_ids from followed users' reviews
+        stmt = select(CourseInstructorReviewModel.course_instructor_id).join(
+            ReviewModel
+        ).where(
+            ReviewModel.user_id.in_(followed_user_ids)
+        ).distinct()
+        
+        result = await db.execute(stmt)
+        course_instructor_ids = [str(row.course_instructor_id) for row in result.fetchall()]
         
         if course_ids or professor_ids or course_instructor_ids:
             conditions = []
@@ -103,27 +117,58 @@ async def get_feed(
             if professor_ids:
                 conditions.append(ReviewModel.professor_id.in_(professor_ids))
             if course_instructor_ids:
-                conditions.append(ReviewModel.course_instructor_id.in_(course_instructor_ids))
+                conditions.append(CourseInstructorReviewModel.course_instructor_id.in_(course_instructor_ids))
             
-            stmt = (
-                select(ReviewModel)
-                .options(
-                    joinedload(ReviewModel.user),
-                    joinedload(ReviewModel.course),
-                    joinedload(ReviewModel.professor),
-                    joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.course),
-                    joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.professor)
-                )
-                .where(
-                    and_(
-                        or_(*conditions),
-                        ReviewModel.user_id.notin_(followed_user_ids),  # Don't duplicate
-                        ReviewModel.user_id != current_user.id  # Don't include own reviews
+            if course_instructor_ids:
+                # If we have course_instructor conditions, need to join
+                stmt = (
+                    select(ReviewModel)
+                    .join(CourseInstructorReviewModel, isouter=True)
+                    .options(
+                        joinedload(ReviewModel.user),
+                        joinedload(ReviewModel.course),
+                        joinedload(ReviewModel.professor),
+                        joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                            CourseInstructorReviewModel.course_instructor).joinedload(
+                            CourseInstructorModel.course),
+                        joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                            CourseInstructorReviewModel.course_instructor).joinedload(
+                            CourseInstructorModel.professor)
                     )
+                    .where(
+                        and_(
+                            or_(*conditions),
+                            ReviewModel.user_id.notin_(followed_user_ids),  # Don't duplicate
+                            ReviewModel.user_id != current_user.id  # Don't include own reviews
+                        )
+                    )
+                    .order_by(ReviewModel.created_at.desc())
+                    .limit(50)  # Get more to sample from
                 )
-                .order_by(ReviewModel.created_at.desc())
-                .limit(50)  # Get more to sample from
-            )
+            else:
+                stmt = (
+                    select(ReviewModel)
+                    .options(
+                        joinedload(ReviewModel.user),
+                        joinedload(ReviewModel.course),
+                        joinedload(ReviewModel.professor),
+                        joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                            CourseInstructorReviewModel.course_instructor).joinedload(
+                            CourseInstructorModel.course),
+                        joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                            CourseInstructorReviewModel.course_instructor).joinedload(
+                            CourseInstructorModel.professor)
+                    )
+                    .where(
+                        and_(
+                            or_(*conditions),
+                            ReviewModel.user_id.notin_(followed_user_ids),  # Don't duplicate
+                            ReviewModel.user_id != current_user.id  # Don't include own reviews
+                        )
+                    )
+                    .order_by(ReviewModel.created_at.desc())
+                    .limit(50)  # Get more to sample from
+                )
             
             result = await db.execute(stmt)
             subject_reviews = result.scalars().unique().all()
@@ -156,8 +201,12 @@ async def get_feed(
                 joinedload(ReviewModel.user),
                 joinedload(ReviewModel.course),
                 joinedload(ReviewModel.professor),
-                joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.course),
-                joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.professor)
+                joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                    CourseInstructorReviewModel.course_instructor).joinedload(
+                    CourseInstructorModel.course),
+                joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                    CourseInstructorReviewModel.course_instructor).joinedload(
+                    CourseInstructorModel.professor)
             )
             .where(
                 and_(
@@ -192,6 +241,10 @@ async def get_feed(
     
     # Apply pagination
     paginated_reviews = feed_reviews[skip:skip + limit]
+    
+    # Transform the data to include course_instructors list
+    for review in paginated_reviews:
+        review.course_instructors = [cir.course_instructor for cir in review.course_instructor_reviews]
     
     return paginated_reviews
 

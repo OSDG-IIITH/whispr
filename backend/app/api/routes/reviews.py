@@ -16,6 +16,8 @@ from app.models.course import Course as CourseModel
 from app.models.professor import Professor as ProfessorModel
 from app.models.course_instructor import \
     CourseInstructor as CourseInstructorModel
+from app.models.course_instructor_review import \
+    CourseInstructorReview as CourseInstructorReviewModel
 from app.schemas.review import (
     Review, ReviewCreate, ReviewUpdate, ReviewWithUser, ReviewWithRelations)
 from app.auth.jwt import get_current_unmuffled_user
@@ -43,8 +45,12 @@ async def read_reviews(
         joinedload(ReviewModel.user),
         joinedload(ReviewModel.course),
         joinedload(ReviewModel.professor),
-        joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.course),
-        joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.professor)
+        joinedload(ReviewModel.course_instructor_reviews).joinedload(
+            CourseInstructorReviewModel.course_instructor).joinedload(
+            CourseInstructorModel.course),
+        joinedload(ReviewModel.course_instructor_reviews).joinedload(
+            CourseInstructorReviewModel.course_instructor).joinedload(
+            CourseInstructorModel.professor)
     )
 
     # Apply filters
@@ -54,8 +60,9 @@ async def read_reviews(
     if professor_id:
         filters.append(ReviewModel.professor_id == professor_id)
     if course_instructor_id:
-        filters.append(ReviewModel.course_instructor_id ==
-                       course_instructor_id)
+        # Join with course_instructor_reviews to filter by course_instructor_id
+        query = query.join(CourseInstructorReviewModel)
+        filters.append(CourseInstructorReviewModel.course_instructor_id == course_instructor_id)
     if user_id:
         filters.append(ReviewModel.user_id == user_id)
 
@@ -65,6 +72,10 @@ async def read_reviews(
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     reviews = result.unique().scalars().all()
+
+    # Transform the data to include course_instructors list
+    for review in reviews:
+        review.course_instructors = [cir.course_instructor for cir in review.course_instructor_reviews]
 
     return reviews
 
@@ -83,8 +94,12 @@ async def read_review(
             joinedload(ReviewModel.user),
             joinedload(ReviewModel.course),
             joinedload(ReviewModel.professor),
-            joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.course),
-            joinedload(ReviewModel.course_instructor).joinedload(CourseInstructorModel.professor)
+            joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                CourseInstructorReviewModel.course_instructor).joinedload(
+                CourseInstructorModel.course),
+            joinedload(ReviewModel.course_instructor_reviews).joinedload(
+                CourseInstructorReviewModel.course_instructor).joinedload(
+                CourseInstructorModel.professor)
         )
         .where(ReviewModel.id == review_id)
     )
@@ -96,6 +111,9 @@ async def read_review(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Review not found"
         )
+
+    # Transform the data to include course_instructors list
+    review.course_instructors = [cir.course_instructor for cir in review.course_instructor_reviews]
 
     return review
 
@@ -111,12 +129,12 @@ async def create_review(
     """
     # Validate that at least one target is provided
     targets = [review_in.course_id, review_in.professor_id,
-               review_in.course_instructor_id]
+               review_in.course_instructor_ids]
     if not any(targets):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="At least one of course_id, professor_id, \
-or course_instructor_id must be provided"
+or course_instructor_ids must be provided"
         )
 
     # Check if targets exist
@@ -141,54 +159,78 @@ or course_instructor_id must be provided"
                 detail="Professor not found"
             )
 
-    if review_in.course_instructor_id:
-        stmt = select(CourseInstructorModel).where(
-            CourseInstructorModel.id == review_in.course_instructor_id)
-        result = await db.execute(stmt)
-        course_instructor = result.scalar_one_or_none()
-        if course_instructor is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Course instructor not found"
-            )
+    if review_in.course_instructor_ids:
+        for course_instructor_id in review_in.course_instructor_ids:
+            stmt = select(CourseInstructorModel).where(
+                CourseInstructorModel.id == course_instructor_id)
+            result = await db.execute(stmt)
+            course_instructor = result.scalar_one_or_none()
+            if course_instructor is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Course instructor {course_instructor_id} not found"
+                )
 
     # Check if user already reviewed this target
+    # For course_instructor reviews, check if user has already reviewed any of the specified course instructors
     filters = [ReviewModel.user_id == current_user.id]
     if review_in.course_id:
         filters.append(ReviewModel.course_id == review_in.course_id)
     if review_in.professor_id:
         filters.append(ReviewModel.professor_id == review_in.professor_id)
-    if review_in.course_instructor_id:
-        filters.append(ReviewModel.course_instructor_id ==
-                       review_in.course_instructor_id)
+    
+    if review_in.course_instructor_ids:
+        # Check if user has already reviewed any of these course instructors
+        for course_instructor_id in review_in.course_instructor_ids:
+            stmt = select(ReviewModel).join(CourseInstructorReviewModel).where(
+                and_(
+                    ReviewModel.user_id == current_user.id,
+                    CourseInstructorReviewModel.course_instructor_id == course_instructor_id
+                )
+            )
+            result = await db.execute(stmt)
+            existing_review = result.scalar_one_or_none()
+            if existing_review:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"You have already reviewed course instructor {course_instructor_id}"
+                )
+    elif filters:  # Only check for course/professor if no course_instructor_ids
+        stmt = select(ReviewModel).where(and_(*filters))
+        result = await db.execute(stmt)
+        existing_review = result.scalar_one_or_none()
+        if existing_review:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You have already reviewed"
+            )
 
-    stmt = select(ReviewModel).where(and_(*filters))
-    result = await db.execute(stmt)
-    existing_review = result.scalar_one_or_none()
-
-    if existing_review:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have already reviewed"
-        )
-
-    # Remove transaction context, just use db directly
+    # Create the review without course_instructor_ids
+    review_data = review_in.dict(exclude={"course_instructor_ids"})
     stmt = insert(ReviewModel).values(
-        **review_in.dict(),
+        **review_data,
         user_id=current_user.id
     ).returning(*ReviewModel.__table__.c)
     result = await db.execute(stmt)
     review = result.fetchone()
+    
+    # Create course_instructor_reviews entries if provided
+    if review_in.course_instructor_ids:
+        for course_instructor_id in review_in.course_instructor_ids:
+            stmt = insert(CourseInstructorReviewModel).values(
+                review_id=review.id,
+                course_instructor_id=course_instructor_id
+            )
+            await db.execute(stmt)
 
     # Update target's review stats
     if review_in.course_id:
         await _update_course_stats(db, review_in.course_id)
     if review_in.professor_id:
         await _update_professor_stats(db, review_in.professor_id)
-    if review_in.course_instructor_id:
-        await _update_course_instructor_stats(
-            db, review_in.course_instructor_id
-        )
+    if review_in.course_instructor_ids:
+        for course_instructor_id in review_in.course_instructor_ids:
+            await _update_course_instructor_stats(db, course_instructor_id)
 
     # Check for mentions in the review content and send notifications
     if review_in.content:
@@ -248,8 +290,14 @@ async def update_review(
     # Get the values we'll need for stats updates
     course_id = getattr(review, "course_id", None)
     professor_id = getattr(review, "professor_id", None)
-    course_instructor_id = getattr(review, "course_instructor_id", None)
     rating_changed = "rating" in update_data
+    
+    # Get course_instructor_ids from related records
+    stmt = select(CourseInstructorReviewModel.course_instructor_id).where(
+        CourseInstructorReviewModel.review_id == review_id
+    )
+    result = await db.execute(stmt)
+    course_instructor_ids = [row.course_instructor_id for row in result.fetchall()]
 
     # Perform the update without explicitly starting a new transaction
     stmt = update(ReviewModel).where(
@@ -264,7 +312,7 @@ async def update_review(
             await _update_course_stats(db, course_id)
         if professor_id is not None:
             await _update_professor_stats(db, professor_id)
-        if course_instructor_id is not None:
+        for course_instructor_id in course_instructor_ids:
             await _update_course_instructor_stats(db, course_instructor_id)
 
     # Commit the transaction
@@ -306,8 +354,14 @@ async def delete_review(
     # Store IDs for stats updates
     course_id = getattr(review, "course_id", None)
     professor_id = getattr(review, "professor_id", None)
-    course_instructor_id = getattr(review, "course_instructor_id", None)
     review_user_id = getattr(review, "user_id", None)
+    
+    # Get course_instructor_ids from related records
+    stmt = select(CourseInstructorReviewModel.course_instructor_id).where(
+        CourseInstructorReviewModel.review_id == review_id
+    )
+    result = await db.execute(stmt)
+    course_instructor_ids = [row.course_instructor_id for row in result.fetchall()]
 
     try:
         # Delete the review
@@ -319,7 +373,7 @@ async def delete_review(
             await _update_course_stats(db, course_id)
         if professor_id is not None:
             await _update_professor_stats(db, professor_id)
-        if course_instructor_id is not None:
+        for course_instructor_id in course_instructor_ids:
             await _update_course_instructor_stats(db, course_instructor_id)
         
         # Update echo points for review author (subtract 5 points for deleted review)
@@ -400,16 +454,22 @@ async def _update_course_instructor_stats(
         db: AsyncSession, course_instructor_id: UUID
 ) -> None:
     """Update course instructor review stats."""
-    # Get review count
-    stmt = select(func.count()).where(
-        ReviewModel.course_instructor_id == course_instructor_id)
+    # Get review count through junction table
+    stmt = select(func.count()).select_from(
+        CourseInstructorReviewModel.join(ReviewModel)
+    ).where(
+        CourseInstructorReviewModel.course_instructor_id == course_instructor_id
+    )
     result = await db.execute(stmt)
     review_count = result.scalar_one()
 
-    # Get average rating
+    # Get average rating through junction table
     if review_count > 0:
-        stmt = select(func.avg(ReviewModel.rating)).where(
-            ReviewModel.course_instructor_id == course_instructor_id)
+        stmt = select(func.avg(ReviewModel.rating)).select_from(
+            CourseInstructorReviewModel.join(ReviewModel)
+        ).where(
+            CourseInstructorReviewModel.course_instructor_id == course_instructor_id
+        )
         result = await db.execute(stmt)
         avg_rating = result.scalar_one()
     else:

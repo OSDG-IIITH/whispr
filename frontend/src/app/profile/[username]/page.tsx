@@ -400,9 +400,9 @@ export default function ProfilePage() {
   const filteredReviews = transformedReviews.filter((review) => {
     if (filterBy === "all") return true;
     if (filterBy === "courses")
-      return review.course_id || review.course_instructor_id;
+      return review.course_id || (review.course_instructors && review.course_instructors.length > 0);
     if (filterBy === "professors")
-      return review.professor_id || review.course_instructor_id;
+      return review.professor_id || (review.course_instructors && review.course_instructors.length > 0);
     return true;
   });
 

@@ -114,8 +114,14 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                         actionUrl = `/courses/${course.code}`;
                       } else if (review.professor_id) {
                         actionUrl = `/professors/${review.professor_id}`;
-                      } else if (review.course_instructor_id) {
-                        actionUrl = `/dashboard`; // Fallback for now  
+                      } else if (review.course_instructors && review.course_instructors.length > 0) {
+                        // Use the first course instructor's course code
+                        const firstInstructor = review.course_instructors[0];
+                        if (firstInstructor.course?.code) {
+                          actionUrl = `/courses/${firstInstructor.course.code}`;
+                        } else {
+                          actionUrl = `/dashboard`; // Fallback
+                        }
                       }
                     } else if (
                       notification.source_type === "reply" &&
@@ -134,8 +140,14 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                         actionUrl = `/courses/${course.code}`;
                       } else if (review.professor_id) {
                         actionUrl = `/professors/${review.professor_id}`;
-                      } else if (review.course_instructor_id) {
-                        actionUrl = `/dashboard`; // Fallback for now
+                      } else if (review.course_instructors && review.course_instructors.length > 0) {
+                        // Use the first course instructor's course code
+                        const firstInstructor = review.course_instructors[0];
+                        if (firstInstructor.course?.code) {
+                          actionUrl = `/courses/${firstInstructor.course.code}`;
+                        } else {
+                          actionUrl = `/dashboard`; // Fallback
+                        }
                       }
                     } else if (
                       notification.source_type === "user" &&

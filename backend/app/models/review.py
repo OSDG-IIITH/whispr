@@ -25,9 +25,6 @@ class Review(Base):
         "courses.id", ondelete="CASCADE"), nullable=True, index=True)
     professor_id = Column(UUID(as_uuid=True), ForeignKey(
         "professors.id", ondelete="CASCADE"), nullable=True, index=True)
-    course_instructor_id = Column(UUID(as_uuid=True), ForeignKey(
-        "course_instructors.id", ondelete="CASCADE"), nullable=True, index=True
-    )
 
     rating = Column(Integer, nullable=False)
     content = Column(Text, nullable=True)
@@ -47,8 +44,9 @@ class Review(Base):
     user = relationship("User", back_populates="reviews")
     course = relationship("Course", back_populates="reviews")
     professor = relationship("Professor", back_populates="reviews")
-    course_instructor = relationship(
-        "CourseInstructor", back_populates="reviews")
+    course_instructor_reviews = relationship(
+        "CourseInstructorReview", back_populates="review",
+        cascade="all, delete-orphan")
     replies = relationship("Reply", back_populates="review",
                            cascade="all, delete-orphan")
     votes = relationship("Vote", back_populates="review",
@@ -56,13 +54,11 @@ class Review(Base):
     reports = relationship("Report", back_populates="review",
                           cascade="all, delete-orphan")
 
-    # Ensure at least one of course_id, professor_id,
-    # or course_instructor_id is not null
+    # Ensure at least one of course_id or professor_id is not null
     # Also ensure that rating is between 1 and 5
     __table_args__ = (
         CheckConstraint(
-            "(course_id IS NOT NULL) OR (professor_id IS NOT NULL) \
-OR (course_instructor_id IS NOT NULL)",
+            "(course_id IS NOT NULL) OR (professor_id IS NOT NULL)",
             name="check_review_target"
         ),
         CheckConstraint(

@@ -2,7 +2,7 @@
 Schemas for review data.
 """
 
-from typing import Optional, Any
+from typing import Optional, Any, List
 from datetime import datetime
 from pydantic import BaseModel, UUID4, Field, validator
 from pydantic.version import VERSION as PYDANTIC_VERSION
@@ -28,15 +28,15 @@ class ReviewCreate(ReviewBase):
     """
     course_id: Optional[UUID4] = None
     professor_id: Optional[UUID4] = None
-    course_instructor_id: Optional[UUID4] = None
+    course_instructor_ids: Optional[List[UUID4]] = None
 
-    @validator('course_id', 'professor_id', 'course_instructor_id')
+    @validator('course_id', 'professor_id', 'course_instructor_ids')
     def check_at_least_one_target(cls, v, values):
         if v is None and not any(values.get(field) for field in [
-                'course_id', 'professor_id', 'course_instructor_id']):
+                'course_id', 'professor_id', 'course_instructor_ids']):
             raise ValueError(
                 'At least one of course_id, professor_id, \
-or course_instructor_id must be provided')
+or course_instructor_ids must be provided')
         return v
 
 
@@ -56,7 +56,6 @@ class ReviewInDBBase(ReviewBase):
     user_id: UUID4
     course_id: Optional[UUID4] = None
     professor_id: Optional[UUID4] = None
-    course_instructor_id: Optional[UUID4] = None
     upvotes: int = 0
     downvotes: int = 0
     is_edited: bool = False
@@ -100,4 +99,4 @@ class ReviewWithRelations(Review):
     user: Optional[User] = None
     course: Optional[Course] = None
     professor: Optional[Professor] = None
-    course_instructor: Optional[CourseInstructorDetail] = None
+    course_instructors: Optional[List[CourseInstructorDetail]] = None

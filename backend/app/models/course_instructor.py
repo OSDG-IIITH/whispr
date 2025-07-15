@@ -35,7 +35,9 @@ class CourseInstructor(Base):
     # Relationships
     professor = relationship("Professor", back_populates="course_instructors")
     course = relationship("Course", back_populates="course_instructors")
-    reviews = relationship("Review", back_populates="course_instructor")
+    course_instructor_reviews = relationship(
+        "CourseInstructorReview", back_populates="course_instructor",
+        cascade="all, delete-orphan")
 
     # Ensure uniqueness of professor-course-semester-year combination
     __table_args__ = (

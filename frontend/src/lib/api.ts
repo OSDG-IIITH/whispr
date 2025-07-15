@@ -224,7 +224,7 @@ export const reviewAPI = {
   createReview: async (reviewData: {
     course_id?: string;
     professor_id?: string;
-    course_instructor_id?: string;
+    course_instructor_ids?: string[];
     rating: number;
     content?: string;
   }) => {

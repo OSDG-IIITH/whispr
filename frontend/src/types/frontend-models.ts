@@ -42,11 +42,10 @@ export interface FrontendReview {
   user_id?: string;
   course_id?: string;
   professor_id?: string;
-  course_instructor_id?: string;
   user?: FrontendUser;
   course?: FrontendCourse;
   professor?: FrontendProfessor;
-  course_instructor?: FrontendCourseInstructor;
+  course_instructors?: FrontendCourseInstructor[];
   author: {
     username: string;
     echoes: number;
@@ -195,13 +194,12 @@ export function convertReviewToFrontendReview(
     user_id: review.user_id,
     course_id: review.course_id,
     professor_id: review.professor_id,
-    course_instructor_id: review.course_instructor_id,
     user: review.user
       ? convertUserToFrontendUser(review.user, false)
       : undefined,
     course: review.course as FrontendCourse,
     professor: review.professor as FrontendProfessor,
-    course_instructor: review.course_instructor as FrontendCourseInstructor,
+    course_instructors: review.course_instructors?.map(ci => ci as FrontendCourseInstructor) || [],
     author: {
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,
