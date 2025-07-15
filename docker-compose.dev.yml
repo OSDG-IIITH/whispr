@@ -1,5 +1,9 @@
 # Development overrides for docker-compose.yml
 services:
+  nginx:
+    ports:
+      - "8080:80" # For local development access
+
   frontend:
     build:
       context: ./frontend
@@ -10,7 +14,7 @@ services:
       - /app/.next
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost/api
+      - NEXT_PUBLIC_API_URL=/api
     ports:
       - "3000:3000" # Expose port for direct access in development
     depends_on:
@@ -24,6 +28,12 @@ services:
       - ENVIRONMENT=development
       - DEBUG=True
       - RELOAD=True
+      - CORS_ORIGINS=http://localhost:8080,http://localhost:3000
+      - FRONTEND_URL=http://localhost:8080
+      - COOKIE_DOMAIN=localhost
+      - COOKIE_SECURE=false
+      - COOKIE_SAMESITE=lax
+      - CAS_SERVICE_URL=http://localhost:8080/whispr/api/verify/callback
     ports:
       - "8000:8000" # Expose port for direct access in development
     depends_on:
