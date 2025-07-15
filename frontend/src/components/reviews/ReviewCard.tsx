@@ -307,7 +307,7 @@ export function ReviewCard({
                   setShowDeleteConfirm(false);
                   await onDelete?.(review.id);
                 }}
-                className="btn btn-danger px-6 py-2"
+                className="px-4 py-2 bg-red-500/10 text-red-500 font-medium rounded-lg hover:bg-red-500 hover:text-white transition-colors"
               >
                 Delete
               </button>
