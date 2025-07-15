@@ -156,53 +156,56 @@ async def search(
     ]
 
     # Build search results
-    results = []
-    total_count = 0
+    all_results = []
 
     # Search courses
     if EntityType.COURSE in entity_types:
-        course_results, course_count = await search_courses(
+        course_results, _ = await search_courses(
             db, query_tokens, params
         )
-        results.extend(course_results)
-        total_count += course_count
+        all_results.extend(course_results)
 
     # Search professors
     if EntityType.PROFESSOR in entity_types:
-        professor_results, professor_count = await search_professors(
+        professor_results, _ = await search_professors(
             db, query_tokens, params
         )
-        results.extend(professor_results)
-        total_count += professor_count
+        all_results.extend(professor_results)
 
     # Search course instructors
     if EntityType.COURSE_INSTRUCTOR in entity_types:
-        course_instructor_results, course_instructor_count = await \
+        course_instructor_results, _ = await \
             search_course_instructors(db, query_tokens, params)
-        results.extend(course_instructor_results)
-        total_count += course_instructor_count
+        all_results.extend(course_instructor_results)
 
     # Search reviews (only in deep search)
     if params.deep and EntityType.REVIEW in entity_types:
-        review_results, review_count = await search_reviews(
+        review_results, _ = await search_reviews(
             db, query_tokens, params
         )
-        results.extend(review_results)
-        total_count += review_count
+        all_results.extend(review_results)
 
     # Search replies (only in deep search)
     if params.deep and EntityType.REPLY in entity_types:
-        reply_results, reply_count = await search_replies(
+        reply_results, _ = await search_replies(
             db, query_tokens, params
         )
-        results.extend(reply_results)
-        total_count += reply_count
+        all_results.extend(reply_results)
 
-    # Sort combined results
-    results.sort(key=lambda x: x.relevance_score, reverse=True)
+    # Sort combined results by relevance
+    if params.sort_by == SortField.RELEVANCE:
+        order_multiplier = 1 if params.sort_order == SortOrder.ASC else -1
+        all_results.sort(key=lambda x: x.relevance_score * order_multiplier)
+    else:
+        # For other sorting, sort by created_at as fallback
+        all_results.sort(key=lambda x: getattr(x.data, 'created_at', None) or '', 
+                        reverse=(params.sort_order == SortOrder.DESC))
+
+    # Get total count
+    total_count = len(all_results)
 
     # Apply pagination to final sorted list
-    paginated_results = results[params.skip:params.skip + params.limit]
+    paginated_results = all_results[params.skip:params.skip + params.limit]
 
     return SearchResponse(
         total=total_count,
@@ -280,36 +283,10 @@ async def search_courses(
                 CourseModel.description.ilike(f"%{token}%"))
 
     # Build query
-    query = select(CourseModel).where(or_(*like_expressions))
+    sql_query = select(CourseModel).where(or_(*like_expressions))
 
-    # Apply sorting
-    if params.sort_by == SortField.NAME:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(CourseModel.name))
-    elif params.sort_by == SortField.CODE:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(CourseModel.code))
-    elif params.sort_by == SortField.CREATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(CourseModel.created_at))
-    elif params.sort_by == SortField.UPDATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(CourseModel.updated_at))
-
-    # Get total count
-    count_query = select(func.count()).select_from(query.subquery())
-    count_result = await db.execute(count_query)
-    total_count = count_result.scalar() or 0
-
-    # Apply pagination if RELEVANCE sorting
-    if params.sort_by == SortField.RELEVANCE:
-        # For relevance sorting, retrieve all results and sort them by score
-        pass
-    else:
-        query = query.offset(params.skip).limit(params.limit)
-
-    # Execute query
-    result = await db.execute(query)
+    # Execute query - get all results for relevance sorting
+    result = await db.execute(sql_query)
     courses = result.scalars().all()
 
     # Calculate relevance scores
@@ -339,15 +316,7 @@ async def search_courses(
             data=course
         ))
 
-    # Sort by relevance if requested
-    if params.sort_by == SortField.RELEVANCE:
-        order_multiplier = 1 if params.sort_order == SortOrder.ASC else -1
-        results.sort(key=lambda x: x.relevance_score * order_multiplier)
-
-        # Apply pagination after sorting
-        results = results[params.skip:params.skip + params.limit]
-
-    return results, total_count
+    return results, len(results)
 
 
 async def search_professors(
@@ -372,36 +341,10 @@ async def search_professors(
             ])
 
     # Build query
-    query = select(ProfessorModel).where(or_(*like_expressions))
+    sql_query = select(ProfessorModel).where(or_(*like_expressions))
 
-    # Apply sorting
-    if params.sort_by == SortField.NAME:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ProfessorModel.name))
-    elif params.sort_by == SortField.RATING:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ProfessorModel.average_rating))
-    elif params.sort_by == SortField.CREATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ProfessorModel.created_at))
-    elif params.sort_by == SortField.UPDATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ProfessorModel.updated_at))
-
-    # Get total count
-    count_query = select(func.count()).select_from(query.subquery())
-    count_result = await db.execute(count_query)
-    total_count = count_result.scalar() or 0
-
-    # Apply pagination if not RELEVANCE sorting
-    if params.sort_by == SortField.RELEVANCE:
-        # For relevance sorting, retrieve all results and sort them by score
-        pass
-    else:
-        query = query.offset(params.skip).limit(params.limit)
-
-    # Execute query
-    result = await db.execute(query)
+    # Execute query - get all results for relevance sorting
+    result = await db.execute(sql_query)
     professors = result.scalars().all()
 
     # Calculate relevance scores
@@ -434,15 +377,7 @@ async def search_professors(
             data=professor
         ))
 
-    # Sort by relevance if requested
-    if params.sort_by == SortField.RELEVANCE:
-        order_multiplier = 1 if params.sort_order == SortOrder.ASC else -1
-        results.sort(key=lambda x: x.relevance_score * order_multiplier)
-
-        # Apply pagination after sorting
-        results = results[params.skip:params.skip + params.limit]
-
-    return results, total_count
+    return results, len(results)
 
 
 async def search_course_instructors(
@@ -454,7 +389,7 @@ async def search_course_instructors(
     Search course instructors based on query.
     """
     # We need to join with courses and professors to search in their fields
-    query = (
+    sql_query = (
         select(
             CourseInstructorModel,
             CourseModel,
@@ -501,36 +436,10 @@ async def search_course_instructors(
         filter_conditions.append(or_(*search_conditions))
 
     if filter_conditions:
-        query = query.where(and_(*filter_conditions))
+        sql_query = sql_query.where(and_(*filter_conditions))
 
-    # Apply sorting (note: sorting is handled differently for joined tables)
-    if params.sort_by == SortField.NAME:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ProfessorModel.name))
-    elif params.sort_by == SortField.CODE:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(CourseModel.code))
-    elif params.sort_by == SortField.CREATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(CourseInstructorModel.created_at))
-    elif params.sort_by == SortField.UPDATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(CourseInstructorModel.updated_at))
-
-    # Get total count
-    count_query = select(func.count()).select_from(query.subquery())
-    count_result = await db.execute(count_query)
-    total_count = count_result.scalar() or 0
-
-    # Apply pagination if not RELEVANCE sorting
-    if params.sort_by == SortField.RELEVANCE:
-        # For relevance sorting, retrieve all results and sort them by score
-        pass
-    else:
-        query = query.offset(params.skip).limit(params.limit)
-
-    # Execute query
-    result = await db.execute(query)
+    # Execute query - get all results for relevance sorting
+    result = await db.execute(sql_query)
     rows = result.all()
 
     # Calculate relevance scores and prepare results
@@ -597,15 +506,7 @@ async def search_course_instructors(
             data=course_instructor_with_details
         ))
 
-    # Sort by relevance if requested
-    if params.sort_by == SortField.RELEVANCE:
-        order_multiplier = 1 if params.sort_order == SortOrder.ASC else -1
-        results.sort(key=lambda x: x.relevance_score * order_multiplier)
-
-        # Apply pagination after sorting
-        results = results[params.skip:params.skip + params.limit]
-
-    return results, total_count
+    return results, len(results)
 
 
 async def search_reviews(
@@ -617,7 +518,7 @@ async def search_reviews(
     Search reviews based on query (deep search only).
     """
     # Join with users to get user data
-    query = (
+    sql_query = (
         select(
             ReviewModel,
             UserModel
@@ -653,33 +554,10 @@ async def search_reviews(
         filter_conditions.append(or_(*search_conditions))
 
     if filter_conditions:
-        query = query.where(and_(*filter_conditions))
+        sql_query = sql_query.where(and_(*filter_conditions))
 
-    # Apply sorting
-    if params.sort_by == SortField.RATING:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ReviewModel.rating))
-    elif params.sort_by == SortField.CREATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ReviewModel.created_at))
-    elif params.sort_by == SortField.UPDATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ReviewModel.updated_at))
-
-    # Get total count
-    count_query = select(func.count()).select_from(query.subquery())
-    count_result = await db.execute(count_query)
-    total_count = count_result.scalar() or 0
-
-    # Apply pagination if not RELEVANCE sorting
-    if params.sort_by == SortField.RELEVANCE:
-        # For relevance sorting, retrieve all results and sort them by score
-        pass
-    else:
-        query = query.offset(params.skip).limit(params.limit)
-
-    # Execute query
-    result = await db.execute(query)
+    # Execute query - get all results for relevance sorting
+    result = await db.execute(sql_query)
     rows = result.all()
 
     # Calculate relevance scores and prepare results
@@ -713,15 +591,7 @@ async def search_reviews(
             data=review_with_user
         ))
 
-    # Sort by relevance if requested
-    if params.sort_by == SortField.RELEVANCE:
-        order_multiplier = 1 if params.sort_order == SortOrder.ASC else -1
-        results.sort(key=lambda x: x.relevance_score * order_multiplier)
-
-        # Apply pagination after sorting
-        results = results[params.skip:params.skip + params.limit]
-
-    return results, total_count
+    return results, len(results)
 
 
 async def search_replies(
@@ -733,7 +603,7 @@ async def search_replies(
     Search replies based on query (deep search only).
     """
     # Join with users to get user data
-    query = (
+    sql_query = (
         select(
             ReplyModel,
             UserModel
@@ -754,30 +624,10 @@ async def search_replies(
         filter_conditions.append(or_(*search_conditions))
 
     if filter_conditions:
-        query = query.where(and_(*filter_conditions))
+        sql_query = sql_query.where(and_(*filter_conditions))
 
-    # Apply sorting
-    if params.sort_by == SortField.CREATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ReplyModel.created_at))
-    elif params.sort_by == SortField.UPDATED_AT:
-        order_func = asc if params.sort_order == SortOrder.ASC else desc
-        query = query.order_by(order_func(ReplyModel.updated_at))
-
-    # Get total count
-    count_query = select(func.count()).select_from(query.subquery())
-    count_result = await db.execute(count_query)
-    total_count = count_result.scalar() or 0
-
-    # Apply pagination if not RELEVANCE sorting
-    if params.sort_by == SortField.RELEVANCE:
-        # For relevance sorting, retrieve all results and sort them by score
-        pass
-    else:
-        query = query.offset(params.skip).limit(params.limit)
-
-    # Execute query
-    result = await db.execute(query)
+    # Execute query - get all results for relevance sorting
+    result = await db.execute(sql_query)
     rows = result.all()
 
     # Calculate relevance scores and prepare results
@@ -811,12 +661,4 @@ async def search_replies(
             data=reply_with_user
         ))
 
-    # Sort by relevance if requested
-    if params.sort_by == SortField.RELEVANCE:
-        order_multiplier = 1 if params.sort_order == SortOrder.ASC else -1
-        results.sort(key=lambda x: x.relevance_score * order_multiplier)
-
-        # Apply pagination after sorting
-        results = results[params.skip:params.skip + params.limit]
-
-    return results, total_count
+    return results, len(results)
