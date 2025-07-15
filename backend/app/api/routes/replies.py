@@ -162,12 +162,16 @@ async def update_reply(
     if "content" in update_data:
         update_data["is_edited"] = True
 
-    async with db.begin():
-        stmt = update(ReplyModel).where(
-            ReplyModel.id == reply_id
-        ).values(**update_data).returning(*ReplyModel.__table__.c)
-        result = await db.execute(stmt)
-        updated_reply = result.fetchone()
+    result = await db.execute(stmt)
+
+    # async with db.begin():
+    stmt = update(ReplyModel).where(
+        ReplyModel.id == reply_id
+    ).values(**update_data).returning(*ReplyModel.__table__.c)
+    result = await db.execute(stmt)
+    updated_reply = result.fetchone()
+
+    await db.commit()
 
     return updated_reply
 
@@ -204,11 +208,15 @@ async def delete_reply(
     # Store reply user ID for echo points update
     reply_user_id = getattr(reply, "user_id", None)
 
-    async with db.begin():
-        stmt = delete(ReplyModel).where(ReplyModel.id == reply_id)
-        await db.execute(stmt)
+    result = await db.execute(stmt)
 
-        # Update echo points for reply author (subtract 1 point for deleted reply)
-        if reply_user_id is not None:
-            from app.core.echo_points import update_user_echo_points
-            await update_user_echo_points(db, reply_user_id, notify=True)
+    stmt = delete(ReplyModel).where(ReplyModel.id == reply_id)
+    await db.execute(stmt)
+
+    # Update echo points for reply author (subtract 1 point for deleted reply)
+    if reply_user_id is not None:
+        from app.core.echo_points import update_user_echo_points
+        await update_user_echo_points(db, reply_user_id, notify=True)
+    
+    await db.commit()
+    return None
