@@ -113,15 +113,15 @@ export default function AnonymityPage() {
                                 <div className="space-y-3 text-sm text-secondary">
                                     <div className="flex items-start gap-3">
                                         <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">1</span>
-                                        <p>You click "Verify with CAS" (optional, only when you want full access)</p>
+                                        <p>You click &quot;Verify with CAS&quot; (optional, only when you want full access)</p>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">2</span>
-                                        <p>You're redirected to the official college authentication system</p>
+                                        <p>You&apos;re redirected to the official college authentication system</p>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">3</span>
-                                        <p>CAS confirms you're a valid student (using your college email)</p>
+                                        <p>CAS confirms you&apos;re a valid student (using your college email)</p>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <span className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">4</span>
@@ -236,7 +236,7 @@ export default function AnonymityPage() {
                                     <li>• <strong>User Table:</strong> Contains usernames, passwords, and profile data (no emails)</li>
                                     <li>• <strong>Used Emails Table:</strong> Tracks which emails have been verified (no user links)</li>
                                     <li>• <strong>Zero Cross-Reference:</strong> No database connections between these tables</li>
-                                    <li>• <strong>Verification Flag:</strong> Users have a simple "verified" status without email details</li>
+                                    <li>• <strong>Verification Flag:</strong> Users have a simple &quot;verified&quot; status without email details</li>
                                 </ul>
                             </div>
 
@@ -307,8 +307,8 @@ export default function AnonymityPage() {
                             <div className="border-l-2 border-primary/30 pl-4">
                                 <h3 className="font-semibold mb-2">Can my reviews be traced back to me?</h3>
                                 <p className="text-sm text-secondary">
-                                    No. Your reviews are only associated with your anonymous username. Since we don't store
-                                    which email belongs to which username, there's no way to trace reviews to your real identity.
+                                    No. Your reviews are only associated with your anonymous username. Since we don&apos;t store
+                                    which email belongs to which username, there&apos;s no way to trace reviews to your real identity.
                                 </p>
                             </div>
 
@@ -323,7 +323,7 @@ export default function AnonymityPage() {
                             <div className="border-l-2 border-primary/30 pl-4">
                                 <h3 className="font-semibold mb-2">What happens if I lose access to my account?</h3>
                                 <p className="text-sm text-secondary">
-                                    Since we don't store your email with your account, account recovery is not possible.
+                                    Since we don&apos;t store your email with your account, account recovery is not possible.
                                     We recommend securely storing your username and password. This is a trade-off for complete anonymity.
                                 </p>
                             </div>
@@ -332,7 +332,7 @@ export default function AnonymityPage() {
                                 <h3 className="font-semibold mb-2">Can I verify multiple accounts with the same email?</h3>
                                 <p className="text-sm text-secondary">
                                     No. Each email can only be used once for verification to prevent abuse. However,
-                                    we don't track which account was verified with which email.
+                                    we don&apos;t track which account was verified with which email.
                                 </p>
                             </div>
                         </div>
