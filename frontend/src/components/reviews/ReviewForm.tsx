@@ -41,11 +41,11 @@ export function ReviewForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // New state for time periods and professor selection
-  const [timePeriods, setTimePeriods] = useState<TimePeriod[]>([]);
-  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod | null>(null);
-  const [selectedProfessors, setSelectedProfessors] = useState<Set<string>>(new Set());
-  const [loadingPeriods, setLoadingPeriods] = useState(false);
-  const [showProfessorDropdown, setShowProfessorDropdown] = useState(false);
+  // const [timePeriods, setTimePeriods] = useState<TimePeriod[]>([]);
+  const [selectedPeriod, ] = useState<TimePeriod | null>(null);
+  const [selectedProfessors, ] = useState<Set<string>>(new Set());
+  // const [loadingPeriods, setLoadingPeriods] = useState(false);
+  // const [showProfessorDropdown, setShowProfessorDropdown] = useState(false);
 
   // Load time periods when courseId is provided
   useEffect(() => {
@@ -53,13 +53,13 @@ export function ReviewForm({
       if (!courseId) return;
 
       try {
-        setLoadingPeriods(true);
-        const periods = await courseAPI.getCourseTimePeriods(courseId);
-        setTimePeriods(periods);
+        // setLoadingPeriods(true);
+        // const periods = await courseAPI.getCourseTimePeriods(courseId);
+        // setTimePeriods(periods);
       } catch (error) {
         console.error("Error loading time periods:", error);
       } finally {
-        setLoadingPeriods(false);
+        // setLoadingPeriods(false);
       }
     };
 
@@ -68,6 +68,7 @@ export function ReviewForm({
     }
   }, [courseId]);
 
+  /*
   const handlePeriodSelect = (period: TimePeriod) => {
     setSelectedPeriod(period);
     // Auto-select all professors for the period
@@ -85,6 +86,7 @@ export function ReviewForm({
     }
     setSelectedProfessors(newSelected);
   };
+  */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

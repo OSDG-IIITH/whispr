@@ -2,12 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import {
-  Star,
-  BookOpen,
-  Plus,
-  ArrowLeft,
-} from "lucide-react";
+import { Star, BookOpen, Plus, ArrowLeft } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
@@ -45,9 +40,9 @@ export default function CoursePage() {
     null
   );
   const [replySubmitting, setReplySubmitting] = useState(false);
-  const [repliesByReview, setRepliesByReview] = useState<Record<string, unknown[]>>(
-    {}
-  );
+  const [repliesByReview, setRepliesByReview] = useState<
+    Record<string, unknown[]>
+  >({});
   const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(
     null
   );
@@ -304,17 +299,19 @@ export default function CoursePage() {
       }
     } catch (err: unknown) {
       console.error("Error voting on review:", err);
-      showError(err instanceof Error ? err.message : "Failed to vote. Please try again.");
+      showError(
+        err instanceof Error ? err.message : "Failed to vote. Please try again."
+      );
 
       // Revert optimistic update on error
       setReviews((prevReviews) =>
         prevReviews.map((review) =>
           review.id === reviewId
             ? {
-              ...review,
-              upvotes: currentReview.upvotes,
-              downvotes: currentReview.downvotes,
-            }
+                ...review,
+                upvotes: currentReview.upvotes,
+                downvotes: currentReview.downvotes,
+              }
             : review
         )
       );
@@ -452,7 +449,9 @@ export default function CoursePage() {
       }
     } catch (err: unknown) {
       console.error("Error voting on reply:", err);
-      showError(err instanceof Error ? err.message : "Failed to vote. Please try again.");
+      showError(
+        err instanceof Error ? err.message : "Failed to vote. Please try again."
+      );
 
       // Revert optimistic update on error
       setRepliesByReview((prevReplies) => ({
@@ -460,10 +459,10 @@ export default function CoursePage() {
         [reviewId]: prevReplies[reviewId].map((reply) =>
           reply.id === replyId
             ? {
-              ...reply,
-              upvotes: currentReply.upvotes,
-              downvotes: currentReply.downvotes,
-            }
+                ...reply,
+                upvotes: currentReply.upvotes,
+                downvotes: currentReply.downvotes,
+              }
             : reply
         ),
       }));
@@ -501,7 +500,11 @@ export default function CoursePage() {
       setActiveReplyReviewId(null);
     } catch (err: unknown) {
       console.error("Error creating reply:", err);
-      showError(err instanceof Error ? err.message : "Failed to create reply. Please try again.");
+      showError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create reply. Please try again."
+      );
     } finally {
       setReplySubmitting(false);
     }
@@ -545,15 +548,15 @@ export default function CoursePage() {
         setCourse((prevCourse: Course | null) =>
           prevCourse
             ? {
-              ...prevCourse,
-              review_count: prevCourse.review_count + 1,
-              average_rating: String(
-                (parseFloat(prevCourse.average_rating) *
-                  prevCourse.review_count +
-                  data.rating) /
-                (prevCourse.review_count + 1)
-              ),
-            }
+                ...prevCourse,
+                review_count: prevCourse.review_count + 1,
+                average_rating: String(
+                  (parseFloat(prevCourse.average_rating) *
+                    prevCourse.review_count +
+                    data.rating) /
+                    (prevCourse.review_count + 1)
+                ),
+              }
             : null
         );
       }
@@ -563,7 +566,9 @@ export default function CoursePage() {
     } catch (err: unknown) {
       console.error("Error submitting review:", err);
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to submit review. Please try again.";
+        err instanceof Error
+          ? err.message
+          : "Failed to submit review. Please try again.";
       showError(errorMessage);
     } finally {
       setSubmittingReview(false);
@@ -607,27 +612,29 @@ export default function CoursePage() {
       showSuccess("Review updated successfully!");
     } catch (error: unknown) {
       console.error("Failed to edit review:", error);
-      showError(error instanceof Error ? error.message : "Failed to edit review. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to edit review. Please try again."
+      );
     }
   };
 
   // Update handleDelete to refresh course data
   const handleDelete = async (reviewId: string) => {
-    if (confirm("Are you sure you want to delete this review?")) {
-      try {
-        await reviewAPI.deleteReview(reviewId);
+    try {
+      await reviewAPI.deleteReview(reviewId);
 
-        // Remove from local state
-        setReviews(reviews.filter((review) => review.id !== reviewId));
+      // Remove from local state
+      setReviews(reviews.filter((review) => review.id !== reviewId));
 
-        // Refresh the course data to update rating
-        await refreshCourseData();
+      // Refresh the course data to update rating
+      await refreshCourseData();
 
-        showSuccess("Review deleted successfully!");
-      } catch (error) {
-        console.error("Failed to delete review:", error);
-        showError("Failed to delete review. Please try again.");
-      }
+      showSuccess("Review deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete review:", error);
+      showError("Failed to delete review. Please try again.");
     }
   };
 
@@ -639,7 +646,11 @@ export default function CoursePage() {
       showSuccess("Reply updated successfully!");
     } catch (error: unknown) {
       console.error("Failed to edit reply:", error);
-      showError(error instanceof Error ? error.message : "Failed to edit reply. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to edit reply. Please try again."
+      );
     }
   };
 
@@ -650,7 +661,11 @@ export default function CoursePage() {
       showSuccess("Reply deleted successfully!");
     } catch (error: unknown) {
       console.error("Failed to delete reply:", error);
-      showError(error instanceof Error ? error.message : "Failed to delete reply. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete reply. Please try again."
+      );
     }
   };
 
@@ -658,14 +673,14 @@ export default function CoursePage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${i < Math.floor(rating)
-          ? "text-yellow-500 fill-current"
-          : "text-secondary"
-          }`}
+        className={`w-5 h-5 ${
+          i < Math.floor(rating)
+            ? "text-yellow-500 fill-current"
+            : "text-secondary"
+        }`}
       />
     ));
   };
-
 
   const getProfessors = (course: Course) => {
     if (!course.course_instructors || course.course_instructors.length === 0) {
@@ -735,8 +750,6 @@ export default function CoursePage() {
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
             <div className="flex-1">
-
-
               {/* Course Info Row: code, credits, name */}
               <div className="flex items-center justify-between mb-2 w-full">
                 <h1 className="text-xl sm:text-3xl font-bold text-primary">
@@ -822,8 +835,8 @@ export default function CoursePage() {
               {submittingReview
                 ? "Submitting..."
                 : user
-                  ? "Rate & Review"
-                  : "Login to Review"}
+                ? "Rate & Review"
+                : "Login to Review"}
             </button>
           </div>
         </motion.div>
@@ -859,10 +872,11 @@ export default function CoursePage() {
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${sortBy === option
-                    ? "bg-primary text-black"
-                    : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                    }`}
+                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${
+                    sortBy === option
+                      ? "bg-primary text-black"
+                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                  }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

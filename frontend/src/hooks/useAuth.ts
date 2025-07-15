@@ -10,6 +10,11 @@ export function useAuthState() {
 
   useEffect(() => {
     checkAuth();
+
+    // Add a focus event listener to re-fetch user data when the user
+    // returns to the tab
+    window.addEventListener("focus", checkAuth);
+    return () => window.removeEventListener("focus", checkAuth);
   }, []);
 
   const checkAuth = async () => {

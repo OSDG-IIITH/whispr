@@ -329,10 +329,6 @@ export default function ProfilePage() {
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this review?")) {
-      return;
-    }
-
     try {
       await reviewAPI.deleteReview(reviewId);
 

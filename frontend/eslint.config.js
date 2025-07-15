@@ -13,4 +13,12 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 
-export default eslintConfig;
+// Ignore build and output folders
+const config = [
+  {
+    ignores: ["node_modules", ".next", "out", "dist", "build", "coverage"],
+  },
+  ...eslintConfig,
+];
+
+export default config;

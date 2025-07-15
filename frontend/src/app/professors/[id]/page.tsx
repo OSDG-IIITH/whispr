@@ -47,9 +47,9 @@ export default function ProfessorPage() {
     null
   );
   const [replySubmitting, setReplySubmitting] = useState(false);
-  const [repliesByReview, setRepliesByReview] = useState<Record<string, unknown[]>>(
-    {}
-  );
+  const [repliesByReview, setRepliesByReview] = useState<
+    Record<string, unknown[]>
+  >({});
   const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(
     null
   );
@@ -308,7 +308,9 @@ export default function ProfessorPage() {
       }
     } catch (err: unknown) {
       console.error("Error voting on review:", err);
-      showError(err instanceof Error ? err.message : "Failed to vote. Please try again.");
+      showError(
+        err instanceof Error ? err.message : "Failed to vote. Please try again."
+      );
 
       // Revert optimistic update on error
       setReviews((prevReviews) =>
@@ -453,7 +455,9 @@ export default function ProfessorPage() {
       await refresh();
     } catch (err: unknown) {
       console.error("Error voting on reply:", err);
-      showError(err instanceof Error ? err.message : "Failed to vote. Please try again.");
+      showError(
+        err instanceof Error ? err.message : "Failed to vote. Please try again."
+      );
 
       // Revert optimistic update on error
       setRepliesByReview((prevReplies) => ({
@@ -502,7 +506,11 @@ export default function ProfessorPage() {
       setActiveReplyReviewId(null);
     } catch (err: unknown) {
       console.error("Error creating reply:", err);
-      showError(err instanceof Error ? err.message : "Failed to create reply. Please try again.");
+      showError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create reply. Please try again."
+      );
     } finally {
       setReplySubmitting(false);
     }
@@ -554,7 +562,9 @@ export default function ProfessorPage() {
     } catch (err: unknown) {
       console.error("Error submitting review:", err);
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to submit review. Please try again.";
+        err instanceof Error
+          ? err.message
+          : "Failed to submit review. Please try again.";
       showError(errorMessage);
     } finally {
       setSubmittingReview(false);
@@ -598,27 +608,29 @@ export default function ProfessorPage() {
       showSuccess("Review updated successfully!");
     } catch (error: unknown) {
       console.error("Failed to edit review:", error);
-      showError(error instanceof Error ? error.message : "Failed to edit review. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to edit review. Please try again."
+      );
     }
   };
 
   // Update handleDelete to refresh professor data
   const handleDelete = async (reviewId: string) => {
-    if (confirm("Are you sure you want to delete this review?")) {
-      try {
-        await reviewAPI.deleteReview(reviewId);
+    try {
+      await reviewAPI.deleteReview(reviewId);
 
-        // Remove from local state
-        setReviews(reviews.filter((review) => review.id !== reviewId));
+      // Remove from local state
+      setReviews(reviews.filter((review) => review.id !== reviewId));
 
-        // Refresh the professor data to update rating
-        await refreshProfessorData();
+      // Refresh the professor data to update rating
+      await refreshProfessorData();
 
-        showSuccess("Review deleted successfully!");
-      } catch (error) {
-        console.error("Failed to delete review:", error);
-        showError("Failed to delete review. Please try again.");
-      }
+      showSuccess("Review deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete review:", error);
+      showError("Failed to delete review. Please try again.");
     }
   };
 
@@ -630,7 +642,11 @@ export default function ProfessorPage() {
       showSuccess("Reply updated successfully!");
     } catch (error: unknown) {
       console.error("Failed to edit reply:", error);
-      showError(error instanceof Error ? error.message : "Failed to edit reply. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to edit reply. Please try again."
+      );
     }
   };
 
@@ -641,7 +657,11 @@ export default function ProfessorPage() {
       showSuccess("Reply deleted successfully!");
     } catch (error: unknown) {
       console.error("Failed to delete reply:", error);
-      showError(error instanceof Error ? error.message : "Failed to delete reply. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete reply. Please try again."
+      );
     }
   };
 
