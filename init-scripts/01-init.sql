@@ -86,7 +86,7 @@ CREATE TABLE course_instructor_reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
     course_instructor_id UUID REFERENCES course_instructors(id) ON DELETE CASCADE,
-)
+);
 -- Create replies table
 CREATE TABLE replies (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
