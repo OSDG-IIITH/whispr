@@ -13,12 +13,8 @@ import {
   reviewAPI,
   voteAPI,
   replyAPI,
-  Course,
-  Review,
-  Vote,
-  Reply,
-  User,
 } from "@/lib/api";
+import { Course, Review, Vote, Reply, User } from "@/types/backend-models";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
 import {

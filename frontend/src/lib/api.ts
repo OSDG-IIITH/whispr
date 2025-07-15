@@ -31,6 +31,7 @@ export interface UserUpdate {
 }
 
 // Re-export types for convenience
+
 export type {
   User,
   Review,
@@ -476,7 +477,15 @@ export const reportAPI = {
   },
 };
 
-// Search API
+export interface SearchApiResponse {
+  results: {
+    entity_type: string;
+    data: User | Review | Reply | Professor | Course | CourseInstructor;
+    relevance_score: number;
+  }[];
+  total: number;
+}
+
 export const searchAPI = {
   search: async (params: {
     query: string;
@@ -502,7 +511,7 @@ export const searchAPI = {
       }
     });
 
-    return apiCall<unknown>(`/search?${searchParams.toString()}`);
+    return apiCall<SearchApiResponse>(`/search?${searchParams.toString()}`);
   },
 };
 

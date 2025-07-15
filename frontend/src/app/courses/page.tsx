@@ -9,7 +9,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import Link from "next/link";
-import { courseAPI, Course } from "@/lib/api";
+import { courseAPI } from "@/lib/api";
+import { Course } from "@/types/backend-models";
 import Loader from "@/components/common/Loader";
 
 export default function CoursesPage() {

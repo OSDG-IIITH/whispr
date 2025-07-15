@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -58,6 +59,23 @@ export default function LandingPage() {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
+            {/* Logo */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-2"
+            >
+              <Image
+                src="/logo.png"
+                alt="Whispr Logo"
+                width={120}
+                height={120}
+                className="mx-auto drop-shadow-2xl"
+                priority
+              />
+            </motion.div>
+
             <h1 className="text-7xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-primary text-glow">
               Whispr
             </h1>
@@ -100,7 +118,8 @@ export default function LandingPage() {
           >
             <Link href={user ? "/dashboard" : "/auth/register"}>
               <button className="btn btn-primary px-8 py-3 text-lg glow-green">
-                {user ? "Go to Dashboard" : "Get Started"} <ArrowRight className="ml-2 h-5 w-5" />
+                {user ? "Go to Dashboard" : "Get Started"}{" "}
+                <ArrowRight className="ml-2 h-5 w-5" />
               </button>
             </Link>
             <Link href="/design-doc.pdf" target="_blank">
@@ -134,7 +153,9 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.1 }}
                 className="card p-6 h-full bg-card/50 backdrop-blur-xl border-primary/20 hover:border-primary/50 transition-all duration-300"
               >
-                <div className="text-4xl mb-4">{React.createElement(feature.icon, { className: "w-8 h-8" })}</div>
+                <div className="text-4xl mb-4">
+                  {React.createElement(feature.icon, { className: "w-8 h-8" })}
+                </div>
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-secondary">{feature.description}</p>
               </motion.div>
@@ -257,7 +278,8 @@ export default function LandingPage() {
           </p>
           <Link href={user ? "/dashboard" : "/auth/register"}>
             <button className="btn btn-primary px-8 py-3 text-lg glow-green">
-              {user ? "Go to Dashboard" : "Start Whispering"} <ArrowRight className="ml-2 h-5 w-5" />
+              {user ? "Go to Dashboard" : "Start Whispering"}{" "}
+              <ArrowRight className="ml-2 h-5 w-5" />
             </button>
           </Link>
         </motion.div>

@@ -114,6 +114,22 @@ export interface Reply {
   created_at: string;
   updated_at: string;
   user?: User;
+  review?: {
+    id: string;
+    course?: {
+      id: string;
+      code: string;
+      name: string;
+    };
+    course_instructors?: {
+      id: string;
+      course: {
+        id: string;
+        code: string;
+        name: string;
+      };
+    }[];
+  };
 }
 
 export interface Vote {

@@ -148,38 +148,29 @@ export function ReviewCard({
             </div>
           </div>
 
-          {/* Time Period and Subject Tags */}
-          {(review.semester || review.year || review.professors || review.course || review.professor) && (
+          {(review.course_instructors && review.course_instructors.length > 0 || review.professor || review.course) && (
             <div className="flex flex-wrap items-center gap-2 mb-3">
-              {/* Time Period Tag */}
-              {(review.semester || review.year) && (
-                <span className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30">
-                  {review.semester && review.year
-                    ? `${review.semester} '${review.year.toString().slice(-2)}`
-                    : review.semester || review.year}
+              {/* Course Instructor Tags (Time Period and Professor) */}
+              {review.course_instructors && review.course_instructors.map((ci, index) => (
+                <span key={index} className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30 flex items-center gap-1">
+                  {ci.semester && ci.year
+                    ? `${ci.semester} '${ci.year.toString().slice(-2)}`
+                    : ci.semester || ci.year}
+                  {ci.professor && (
+                    <button
+                      onClick={() => ci.professor?.id && handleProfessorClick(ci.professor.id)}
+                      className="text-green-400 hover:text-green-300 transition-colors"
+                    >
+                      ({ci.professor.name || 'Unknown'})
+                    </button>
+                  )}
                 </span>
-              )}
+              ))}
 
               {/* Professor Tags (clickable) */}
-              {review.professors && review.professors.length > 0 && (
-                <>
-                  {review.professors.map((professor, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleProfessorClick(professor.id)}
-                      className="bg-blue-500/20 text-blue-400 px-2 py-1 text-xs rounded-full border border-blue-500/30 hover:bg-blue-500/30 transition-colors cursor-pointer flex items-center gap-1"
-                    >
-                      <GraduationCap className="w-3 h-3" />
-                      {professor.name}
-                    </button>
-                  ))}
-                </>
-              )}
-
-              {/* Single Professor Tag (for direct professor reviews) - clickable */}
-              {review.professor && !review.professors && (
+              {review.professor && (
                 <button
-                  onClick={() => handleProfessorClick(review.professor.id)}
+                  onClick={() => review.professor?.id && handleProfessorClick(review.professor.id)}
                   className="bg-blue-500/20 text-blue-400 px-2 py-1 text-xs rounded-full border border-blue-500/30 hover:bg-blue-500/30 transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <GraduationCap className="w-3 h-3" />
@@ -190,13 +181,15 @@ export function ReviewCard({
               {/* Course Tag (for professor page showing which course was reviewed) - clickable */}
               {review.course && (
                 <button
-                  onClick={() => handleCourseClick(review.course.code)}
+                  onClick={() => review.course?.code && handleCourseClick(review.course.code)}
                   className="bg-orange-500/20 text-orange-400 px-2 py-1 text-xs rounded-full border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <BookOpen className="w-3 h-3" />
                   {review.course.code}
                 </button>
               )}
+
+              
             </div>
           )}
 
