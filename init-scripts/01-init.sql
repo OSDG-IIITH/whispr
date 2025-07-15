@@ -71,14 +71,20 @@ CREATE TABLE reviews (
         AND rating <= 5
     ),
     content TEXT,
+    semester TEXT,
+    year INTEGER,
     upvotes INTEGER DEFAULT 0,
     downvotes INTEGER DEFAULT 0,
     is_edited BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CHECK (
-        (course_id IS NULL)
-        OR (professor_id IS NULL)
+        (course_id IS NOT NULL)
+        OR (professor_id IS NOT NULL)
+        OR EXISTS (
+            SELECT 1 FROM course_instructor_reviews cir 
+            WHERE cir.review_id = reviews.id
+        )
     )
 );
 -- Create course_instructor-review table

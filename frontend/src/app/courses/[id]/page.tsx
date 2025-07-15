@@ -513,6 +513,9 @@ export default function CoursePage() {
   const handleSubmitReview = async (data: {
     content: string;
     rating: number;
+    semester?: string;
+    year?: number;
+    course_instructor_ids?: string[];
   }) => {
     if (!course) return;
 
@@ -530,11 +533,14 @@ export default function CoursePage() {
         content?: string;
         semester?: string;
         year?: number;
-        professor_ids?: string[];
+        course_instructor_ids?: string[];
       } = {
         course_id: course.id,
         rating: data.rating,
-        content: data.content || undefined, // Handle empty content properly
+        content: data.content || undefined,
+        semester: data.semester,
+        year: data.year,
+        course_instructor_ids: data.course_instructor_ids,
       };
 
       // Create the review via API and get the new review object
@@ -853,6 +859,7 @@ export default function CoursePage() {
               onCancel={() => setShowReviewForm(false)}
               placeholder={`Share your experience with ${course.name}...`}
               disabled={submittingReview}
+              courseId={course.id}
             />
           </motion.div>
         )}
@@ -902,6 +909,12 @@ export default function CoursePage() {
               userVote: getUserVoteForReview(review.id),
               isOwn: user ? review.user_id === user.id : false,
               isHighlighted: highlightedReviewId === review.id,
+              semester: review.semester,
+              year: review.year,
+              professors: review.course_instructors?.map(ci => ({
+                id: ci.professor?.id || '',
+                name: ci.professor?.name || ''
+              })) || [],
             }))}
             onVote={handleVote}
             onReply={(reviewId) => handleReply(reviewId)}

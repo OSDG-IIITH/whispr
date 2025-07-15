@@ -6,6 +6,7 @@ import { Star, Send, X } from "lucide-react";
 import { ReviewFormProps } from "@/types/frontend-models";
 import { MentionInput } from "@/components/common/MentionInput";
 import Loader from "@/components/common/Loader";
+import { courseAPI } from "@/lib/api";
 
 interface TimePeriod {
   semester: string;
@@ -13,6 +14,7 @@ interface TimePeriod {
   professors: Array<{
     id: string;
     name: string;
+    course_instructor_id: string;
   }>;
 }
 
@@ -41,11 +43,11 @@ export function ReviewForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // New state for time periods and professor selection
-  // const [timePeriods, setTimePeriods] = useState<TimePeriod[]>([]);
-  const [selectedPeriod, ] = useState<TimePeriod | null>(null);
-  const [selectedProfessors, ] = useState<Set<string>>(new Set());
-  // const [loadingPeriods, setLoadingPeriods] = useState(false);
-  // const [showProfessorDropdown, setShowProfessorDropdown] = useState(false);
+  const [timePeriods, setTimePeriods] = useState<TimePeriod[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod | null>(null);
+  const [selectedProfessors, setSelectedProfessors] = useState<Set<string>>(new Set());
+  const [loadingPeriods, setLoadingPeriods] = useState(false);
+  const [showProfessorDropdown, setShowProfessorDropdown] = useState(false);
 
   // Load time periods when courseId is provided
   useEffect(() => {
@@ -53,13 +55,13 @@ export function ReviewForm({
       if (!courseId) return;
 
       try {
-        // setLoadingPeriods(true);
-        // const periods = await courseAPI.getCourseTimePeriods(courseId);
-        // setTimePeriods(periods);
+        setLoadingPeriods(true);
+        const periods = await courseAPI.getCourseTimePeriods(courseId);
+        setTimePeriods(periods);
       } catch (error) {
         console.error("Error loading time periods:", error);
       } finally {
-        // setLoadingPeriods(false);
+        setLoadingPeriods(false);
       }
     };
 
@@ -68,29 +70,33 @@ export function ReviewForm({
     }
   }, [courseId]);
 
-  /*
   const handlePeriodSelect = (period: TimePeriod) => {
     setSelectedPeriod(period);
     // Auto-select all professors for the period
-    const professorIds = new Set(period.professors.map(p => p.id));
+    const professorIds = new Set(period.professors.map(p => p.course_instructor_id));
     setSelectedProfessors(professorIds);
     setShowProfessorDropdown(true);
   };
 
-  const handleProfessorToggle = (professorId: string) => {
+  const handleProfessorToggle = (courseInstructorId: string) => {
     const newSelected = new Set(selectedProfessors);
-    if (newSelected.has(professorId)) {
-      newSelected.delete(professorId);
+    if (newSelected.has(courseInstructorId)) {
+      newSelected.delete(courseInstructorId);
     } else {
-      newSelected.add(professorId);
+      newSelected.add(courseInstructorId);
     }
     setSelectedProfessors(newSelected);
   };
-  */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0 || isSubmitting) return;
+    
+    // For course reviews, require time period selection
+    if (courseId && timePeriods.length > 0 && !selectedPeriod) {
+      alert("Please select a time period for this course review.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -99,7 +105,7 @@ export function ReviewForm({
         rating: number;
         semester?: string;
         year?: number;
-        professor_ids?: string[];
+        course_instructor_ids?: string[];
       } = {
         content: content.trim(),
         rating
@@ -111,13 +117,16 @@ export function ReviewForm({
         reviewData.year = selectedPeriod.year;
 
         if (selectedProfessors.size > 0) {
-          reviewData.professor_ids = Array.from(selectedProfessors);
+          reviewData.course_instructor_ids = Array.from(selectedProfessors);
         }
       }
 
       await onSubmit(reviewData);
       setContent("");
       setRating(0);
+      setSelectedPeriod(null);
+      setSelectedProfessors(new Set());
+      setShowProfessorDropdown(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -182,6 +191,66 @@ export function ReviewForm({
           </div>
         </div>
 
+        {/* Time Period Selection (only show for course reviews) */}
+        {courseId && timePeriods.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Time Period <span className="text-red-400">*</span>
+            </label>
+            {loadingPeriods ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader size="sm" />
+              </div>
+            ) : (
+              <select
+                value={selectedPeriod ? `${selectedPeriod.semester}-${selectedPeriod.year}` : ''}
+                onChange={(e) => {
+                  const [semester, year] = e.target.value.split('-');
+                  if (semester && year) {
+                    const period = timePeriods.find(p => p.semester === semester && p.year === parseInt(year));
+                    if (period) {
+                      handlePeriodSelect(period);
+                    }
+                  }
+                }}
+                className="w-full bg-input border border-border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+              >
+                <option value="">Select a time period...</option>
+                {timePeriods.map((period) => (
+                  <option key={`${period.semester}-${period.year}`} value={`${period.semester}-${period.year}`}>
+                    {period.semester} {period.year}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
+
+        {/* Professor Selection (only show when time period is selected) */}
+        {selectedPeriod && showProfessorDropdown && (
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Professors <span className="text-secondary">(select all that apply)</span>
+            </label>
+            <div className="space-y-2 max-h-40 overflow-y-auto border border-border rounded-lg p-3 bg-input">
+              {selectedPeriod.professors.map((professor) => (
+                <label key={professor.course_instructor_id} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedProfessors.has(professor.course_instructor_id)}
+                    onChange={() => handleProfessorToggle(professor.course_instructor_id)}
+                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm">{professor.name}</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-secondary mt-1">
+              {selectedProfessors.size} of {selectedPeriod.professors.length} professors selected
+            </p>
+          </div>
+        )}
+
         {/* Content */}
         <div>
           <label className="block text-sm font-medium mb-2">
@@ -220,7 +289,12 @@ export function ReviewForm({
           )}
           <button
             type="submit"
-            disabled={rating === 0 || isSubmitting || disabled}
+            disabled={
+              rating === 0 || 
+              isSubmitting || 
+              disabled || 
+              (courseId && timePeriods.length > 0 && !selectedPeriod)
+            }
             className="btn btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting ? (

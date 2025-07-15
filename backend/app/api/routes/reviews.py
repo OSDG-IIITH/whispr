@@ -7,7 +7,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, update, delete, func, and_
+from sqlalchemy import select, insert, update, delete, func, and_, or_
 from sqlalchemy.orm import joinedload
 
 from app.db.session import get_db
@@ -20,6 +20,7 @@ from app.models.course_instructor_review import \
     CourseInstructorReview as CourseInstructorReviewModel
 from app.schemas.review import (
     Review, ReviewCreate, ReviewUpdate, ReviewWithUser, ReviewWithRelations)
+from app.schemas.course_instructor import CourseInstructorDetail
 from app.auth.jwt import get_current_unmuffled_user
 from app.models.user import User as UserModel
 from app.core.notifications import notify_on_mention, notify_followers_on_review
@@ -47,18 +48,44 @@ async def read_reviews(
         joinedload(ReviewModel.professor),
         joinedload(ReviewModel.course_instructor_reviews).joinedload(
             CourseInstructorReviewModel.course_instructor).joinedload(
-            CourseInstructorModel.course),
+                CourseInstructorModel.course),
         joinedload(ReviewModel.course_instructor_reviews).joinedload(
             CourseInstructorReviewModel.course_instructor).joinedload(
-            CourseInstructorModel.professor)
+                CourseInstructorModel.professor)
     )
 
     # Apply filters
     filters = []
     if course_id:
-        filters.append(ReviewModel.course_id == course_id)
+        # Include reviews that directly reference the course OR reviews that reference course_instructors for that course
+        course_filter = or_(
+            ReviewModel.course_id == course_id,
+            and_(
+                ReviewModel.id.in_(
+                    select(CourseInstructorReviewModel.review_id).where(
+                        CourseInstructorReviewModel.course_instructor_id.in_(
+                            select(CourseInstructorModel.id).where(CourseInstructorModel.course_id == course_id)
+                        )
+                    )
+                )
+            )
+        )
+        filters.append(course_filter)
     if professor_id:
-        filters.append(ReviewModel.professor_id == professor_id)
+        # Include reviews that directly reference the professor OR reviews that reference course_instructors for that professor
+        professor_filter = or_(
+            ReviewModel.professor_id == professor_id,
+            and_(
+                ReviewModel.id.in_(
+                    select(CourseInstructorReviewModel.review_id).where(
+                        CourseInstructorReviewModel.course_instructor_id.in_(
+                            select(CourseInstructorModel.id).where(CourseInstructorModel.professor_id == professor_id)
+                        )
+                    )
+                )
+            )
+        )
+        filters.append(professor_filter)
     if course_instructor_id:
         # Join with course_instructor_reviews to filter by course_instructor_id
         query = query.join(CourseInstructorReviewModel)
@@ -73,11 +100,32 @@ async def read_reviews(
     result = await db.execute(query)
     reviews = result.unique().scalars().all()
 
-    # Transform the data to include course_instructors list
+    # Transform reviews to populate effective course and handle relationships properly
+    transformed_reviews = []
     for review in reviews:
-        review.course_instructors = [cir.course_instructor for cir in review.course_instructor_reviews]
-
-    return reviews
+        # Create a ReviewWithRelations object using the schema
+        review_data = ReviewWithRelations(
+            id=review.id,
+            user_id=review.user_id,
+            course_id=review.course_id,
+            professor_id=review.professor_id,
+            rating=review.rating,
+            content=review.content,
+            semester=review.semester,
+            year=review.year,
+            upvotes=review.upvotes,
+            downvotes=review.downvotes,
+            is_edited=review.is_edited,
+            created_at=review.created_at,
+            updated_at=review.updated_at,
+            user=review.user,
+            course=review.effective_course,  # Use effective course
+            professor=review.professor,
+            course_instructors=review.course_instructors,
+        )
+        transformed_reviews.append(review_data)
+    
+    return transformed_reviews
 
 
 @router.get("/{review_id}", response_model=ReviewWithRelations)
@@ -96,10 +144,10 @@ async def read_review(
             joinedload(ReviewModel.professor),
             joinedload(ReviewModel.course_instructor_reviews).joinedload(
                 CourseInstructorReviewModel.course_instructor).joinedload(
-                CourseInstructorModel.course),
+                    CourseInstructorModel.course),
             joinedload(ReviewModel.course_instructor_reviews).joinedload(
                 CourseInstructorReviewModel.course_instructor).joinedload(
-                CourseInstructorModel.professor)
+                    CourseInstructorModel.professor)
         )
         .where(ReviewModel.id == review_id)
     )
@@ -112,10 +160,28 @@ async def read_review(
             detail="Review not found"
         )
 
-    # Transform the data to include course_instructors list
-    review.course_instructors = [cir.course_instructor for cir in review.course_instructor_reviews]
-
-    return review
+    # Transform review to populate effective course and handle relationships properly
+    review_data = ReviewWithRelations(
+        id=review.id,
+        user_id=review.user_id,
+        course_id=review.course_id,
+        professor_id=review.professor_id,
+        rating=review.rating,
+        content=review.content,
+        semester=review.semester,
+        year=review.year,
+        upvotes=review.upvotes,
+        downvotes=review.downvotes,
+        is_edited=review.is_edited,
+        created_at=review.created_at,
+        updated_at=review.updated_at,
+        user=review.user,
+        course=review.effective_course,  # Use effective course
+        professor=review.professor,
+        course_instructors=review.course_instructors,
+    )
+    
+    return review_data
 
 
 @router.post("/", response_model=Review, status_code=status.HTTP_201_CREATED)
@@ -207,6 +273,11 @@ or course_instructor_ids must be provided"
 
     # Create the review without course_instructor_ids
     review_data = review_in.dict(exclude={"course_instructor_ids"})
+    
+    # If course_instructor_ids are provided, set course_id to None
+    if review_in.course_instructor_ids:
+        review_data["course_id"] = None
+    
     stmt = insert(ReviewModel).values(
         **review_data,
         user_id=current_user.id
@@ -405,17 +476,48 @@ async def delete_review(
 # Helper functions to update review statistics
 async def _update_course_stats(db: AsyncSession, course_id: UUID) -> None:
     """Update course review stats."""
-    # Get review count
-    stmt = select(func.count()).where(ReviewModel.course_id == course_id)
-    result = await db.execute(stmt)
-    review_count = result.scalar_one()
+    # Get review count including course_instructor_reviews
+    direct_reviews_stmt = select(func.count()).where(ReviewModel.course_id == course_id)
+    direct_reviews_result = await db.execute(direct_reviews_stmt)
+    direct_review_count = direct_reviews_result.scalar_one()
 
-    # Get average rating
+    # Get course_instructor reviews count
+    course_instructor_reviews_stmt = select(func.count()).select_from(
+        CourseInstructorReviewModel.join(CourseInstructorModel).join(ReviewModel)
+    ).where(CourseInstructorModel.course_id == course_id)
+    course_instructor_reviews_result = await db.execute(course_instructor_reviews_stmt)
+    course_instructor_review_count = course_instructor_reviews_result.scalar_one()
+
+    review_count = direct_review_count + course_instructor_review_count
+
+    # Get average rating including course_instructor_reviews
     if review_count > 0:
-        stmt = select(func.avg(ReviewModel.rating)).where(
-            ReviewModel.course_id == course_id)
-        result = await db.execute(stmt)
-        avg_rating = result.scalar_one()
+        # Direct reviews average
+        if direct_review_count > 0:
+            direct_avg_stmt = select(func.avg(ReviewModel.rating)).where(
+                ReviewModel.course_id == course_id)
+            direct_avg_result = await db.execute(direct_avg_stmt)
+            direct_avg = direct_avg_result.scalar_one()
+        else:
+            direct_avg = 0
+
+        # Course instructor reviews average
+        if course_instructor_review_count > 0:
+            course_instructor_avg_stmt = select(func.avg(ReviewModel.rating)).select_from(
+                CourseInstructorReviewModel.join(CourseInstructorModel).join(ReviewModel)
+            ).where(CourseInstructorModel.course_id == course_id)
+            course_instructor_avg_result = await db.execute(course_instructor_avg_stmt)
+            course_instructor_avg = course_instructor_avg_result.scalar_one()
+        else:
+            course_instructor_avg = 0
+
+        # Calculate weighted average
+        if direct_review_count > 0 and course_instructor_review_count > 0:
+            avg_rating = (direct_avg * direct_review_count + course_instructor_avg * course_instructor_review_count) / review_count
+        elif direct_review_count > 0:
+            avg_rating = direct_avg
+        else:
+            avg_rating = course_instructor_avg
     else:
         avg_rating = 0
 
@@ -433,17 +535,48 @@ async def _update_professor_stats(
         db: AsyncSession, professor_id: UUID
 ) -> None:
     """Update professor review stats."""
-    # Get review count
-    stmt = select(func.count()).where(ReviewModel.professor_id == professor_id)
-    result = await db.execute(stmt)
-    review_count = result.scalar_one()
+    # Get review count including course_instructor_reviews
+    direct_reviews_stmt = select(func.count()).where(ReviewModel.professor_id == professor_id)
+    direct_reviews_result = await db.execute(direct_reviews_stmt)
+    direct_review_count = direct_reviews_result.scalar_one()
 
-    # Get average rating
+    # Get course_instructor reviews count
+    course_instructor_reviews_stmt = select(func.count()).select_from(
+        CourseInstructorReviewModel.join(CourseInstructorModel).join(ReviewModel)
+    ).where(CourseInstructorModel.professor_id == professor_id)
+    course_instructor_reviews_result = await db.execute(course_instructor_reviews_stmt)
+    course_instructor_review_count = course_instructor_reviews_result.scalar_one()
+
+    review_count = direct_review_count + course_instructor_review_count
+
+    # Get average rating including course_instructor_reviews
     if review_count > 0:
-        stmt = select(func.avg(ReviewModel.rating)).where(
-            ReviewModel.professor_id == professor_id)
-        result = await db.execute(stmt)
-        avg_rating = result.scalar_one()
+        # Direct reviews average
+        if direct_review_count > 0:
+            direct_avg_stmt = select(func.avg(ReviewModel.rating)).where(
+                ReviewModel.professor_id == professor_id)
+            direct_avg_result = await db.execute(direct_avg_stmt)
+            direct_avg = direct_avg_result.scalar_one()
+        else:
+            direct_avg = 0
+
+        # Course instructor reviews average
+        if course_instructor_review_count > 0:
+            course_instructor_avg_stmt = select(func.avg(ReviewModel.rating)).select_from(
+                CourseInstructorReviewModel.join(CourseInstructorModel).join(ReviewModel)
+            ).where(CourseInstructorModel.professor_id == professor_id)
+            course_instructor_avg_result = await db.execute(course_instructor_avg_stmt)
+            course_instructor_avg = course_instructor_avg_result.scalar_one()
+        else:
+            course_instructor_avg = 0
+
+        # Calculate weighted average
+        if direct_review_count > 0 and course_instructor_review_count > 0:
+            avg_rating = (direct_avg * direct_review_count + course_instructor_avg * course_instructor_review_count) / review_count
+        elif direct_review_count > 0:
+            avg_rating = direct_avg
+        else:
+            avg_rating = course_instructor_avg
     else:
         avg_rating = 0
 
@@ -462,9 +595,7 @@ async def _update_course_instructor_stats(
 ) -> None:
     """Update course instructor review stats."""
     # Get review count through junction table
-    stmt = select(func.count()).select_from(
-        CourseInstructorReviewModel.join(ReviewModel)
-    ).where(
+    stmt = select(func.count()).select_from(CourseInstructorReviewModel).where(
         CourseInstructorReviewModel.course_instructor_id == course_instructor_id
     )
     result = await db.execute(stmt)
@@ -472,8 +603,9 @@ async def _update_course_instructor_stats(
 
     # Get average rating through junction table
     if review_count > 0:
-        stmt = select(func.avg(ReviewModel.rating)).select_from(
-            CourseInstructorReviewModel.join(ReviewModel)
+        stmt = select(func.avg(ReviewModel.rating)).join(
+            CourseInstructorReviewModel, 
+            ReviewModel.id == CourseInstructorReviewModel.review_id
         ).where(
             CourseInstructorReviewModel.course_instructor_id == course_instructor_id
         )

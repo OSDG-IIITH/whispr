@@ -120,3 +120,39 @@ class CourseWithInstructors(Course):
     Schema for course response with instructor information.
     """
     course_instructors: List[CourseInstructorWithProfessor] = []
+
+
+class TimePeriodProfessor(BaseModel):
+    """
+    Schema for professor in time period context.
+    """
+    id: str
+    name: str
+    course_instructor_id: str
+
+    class Config:
+        """
+        Configuration for Pydantic models.
+        """
+        if PYDANTIC_VERSION.startswith('2.'):
+            from_attributes = True
+        else:
+            orm_mode = True
+
+
+class TimePeriod(BaseModel):
+    """
+    Schema for time period with professors.
+    """
+    semester: str
+    year: int
+    professors: List[TimePeriodProfessor]
+
+    class Config:
+        """
+        Configuration for Pydantic models.
+        """
+        if PYDANTIC_VERSION.startswith('2.'):
+            from_attributes = True
+        else:
+            orm_mode = True

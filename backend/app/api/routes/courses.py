@@ -14,7 +14,7 @@ from app.db.session import get_db
 from app.models.course import Course as CourseModel
 from app.models.course_instructor import CourseInstructor as CourseInstructorModel
 from app.models.professor import Professor as ProfessorModel
-from app.schemas.course import Course, CourseCreate, CourseUpdate, CourseWithInstructors, CourseInstructorWithProfessor, ProfessorBase
+from app.schemas.course import Course, CourseCreate, CourseUpdate, CourseWithInstructors, CourseInstructorWithProfessor, ProfessorBase, TimePeriod, TimePeriodProfessor
 from app.auth.jwt import get_current_admin_user
 from app.models.user import User as UserModel
 
@@ -197,6 +197,52 @@ async def update_course(
         updated_course = result.fetchone()
 
     return updated_course
+
+
+@router.get("/{course_id}/time-periods", response_model=List[TimePeriod])
+async def get_course_time_periods(
+    course_id: UUID,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """
+    Get time periods for a specific course with professors.
+    """
+    stmt = (
+        select(CourseInstructorModel)
+        .options(joinedload(CourseInstructorModel.professor))
+        .where(CourseInstructorModel.course_id == course_id)
+        .order_by(CourseInstructorModel.year.desc(), CourseInstructorModel.semester.desc())
+    )
+    result = await db.execute(stmt)
+    course_instructors = result.unique().scalars().all()
+
+    # Group by semester and year
+    time_periods = {}
+    for instructor in course_instructors:
+        period_key = f"{instructor.semester} {instructor.year}"
+        if period_key not in time_periods:
+            time_periods[period_key] = {
+                'semester': instructor.semester,
+                'year': instructor.year,
+                'professors': []
+            }
+        
+        if instructor.professor:
+            professor_data = TimePeriodProfessor(
+                id=str(instructor.professor.id),
+                name=instructor.professor.name,
+                course_instructor_id=str(instructor.id)
+            )
+            time_periods[period_key]['professors'].append(professor_data)
+
+    return [
+        TimePeriod(
+            semester=period['semester'],
+            year=period['year'],
+            professors=period['professors']
+        )
+        for period in time_periods.values()
+    ]
 
 
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)

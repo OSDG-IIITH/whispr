@@ -112,7 +112,7 @@ export default function VerifyPage() {
             <p className="text-secondary mb-6">{message}</p>
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
               <p className="text-sm text-primary">
-                Redirecting to dashboard in 3 seconds...
+                Redirecting to dashboard...
               </p>
             </div>
           </motion.div>

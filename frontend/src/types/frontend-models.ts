@@ -46,6 +46,9 @@ export interface FrontendReview {
   course?: FrontendCourse;
   professor?: FrontendProfessor;
   course_instructors?: FrontendCourseInstructor[];
+  semester?: string;
+  year?: number;
+  professors?: { id: string; name: string }[];
   author: {
     username: string;
     echoes: number;
@@ -86,7 +89,13 @@ export interface FrontendReply {
 
 // Component Props Interfaces
 export interface ReviewFormProps {
-  onSubmit: (data: { content: string; rating: number }) => Promise<void> | void;
+  onSubmit: (data: { 
+    content: string; 
+    rating: number; 
+    semester?: string; 
+    year?: number; 
+    course_instructor_ids?: string[] 
+  }) => Promise<void> | void;
   onCancel: () => void;
   placeholder: string;
   disabled?: boolean;
@@ -200,6 +209,12 @@ export function convertReviewToFrontendReview(
     course: review.course as FrontendCourse,
     professor: review.professor as FrontendProfessor,
     course_instructors: review.course_instructors?.map(ci => ci as FrontendCourseInstructor) || [],
+    semester: review.semester,
+    year: review.year,
+    professors: review.course_instructors?.map(ci => ({
+      id: ci.professor?.id || '',
+      name: ci.professor?.name || ''
+    })) || [],
     author: {
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,

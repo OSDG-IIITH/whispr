@@ -4,7 +4,7 @@ Schemas for review data.
 
 from typing import Optional, Any, List
 from datetime import datetime
-from pydantic import BaseModel, UUID4, Field, validator
+from pydantic import BaseModel, UUID4, Field, validator, computed_field
 from pydantic.version import VERSION as PYDANTIC_VERSION
 
 config_dict = {}
@@ -29,6 +29,8 @@ class ReviewCreate(ReviewBase):
     course_id: Optional[UUID4] = None
     professor_id: Optional[UUID4] = None
     course_instructor_ids: Optional[List[UUID4]] = None
+    semester: Optional[str] = None
+    year: Optional[int] = None
 
     @validator('course_id', 'professor_id', 'course_instructor_ids')
     def check_at_least_one_target(cls, v, values):
@@ -56,6 +58,8 @@ class ReviewInDBBase(ReviewBase):
     user_id: UUID4
     course_id: Optional[UUID4] = None
     professor_id: Optional[UUID4] = None
+    semester: Optional[str] = None
+    year: Optional[int] = None
     upvotes: int = 0
     downvotes: int = 0
     is_edited: bool = False

@@ -72,6 +72,8 @@ export interface Review {
   user_id: string;
   course_id?: string;
   professor_id?: string;
+  semester?: string;
+  year?: number;
   rating: number;
   content?: string;
   upvotes: number;

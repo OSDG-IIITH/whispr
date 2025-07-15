@@ -278,6 +278,8 @@ export const reviewAPI = {
     course_id?: string;
     professor_id?: string;
     course_instructor_ids?: string[];
+    semester?: string;
+    year?: number;
     rating: number;
     content?: string;
   }) => {
@@ -529,6 +531,19 @@ export const courseAPI = {
   // Add this function to get fresh course data
   refreshCourse: async (courseId: string) => {
     return apiCall<Course>(`/courses/${courseId}?refresh=true`);
+  },
+
+  // Get time periods for a course
+  getCourseTimePeriods: async (courseId: string) => {
+    return apiCall<{
+      semester: string;
+      year: number;
+      professors: {
+        id: string;
+        name: string;
+        course_instructor_id: string;
+      }[];
+    }[]>(`/courses/${courseId}/time-periods`);
   },
 };
 

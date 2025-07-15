@@ -28,6 +28,8 @@ class Review(Base):
 
     rating = Column(Integer, nullable=False)
     content = Column(Text, nullable=True)
+    semester = Column(Text, nullable=True)
+    year = Column(Integer, nullable=True)
 
     # Stats
     upvotes = Column(Integer, default=0)
@@ -54,13 +56,36 @@ class Review(Base):
     reports = relationship("Report", back_populates="review",
                           cascade="all, delete-orphan")
 
-    # Ensure at least one of course_id or professor_id is not null
+    @property
+    def course_instructors(self):
+        """
+        Get the course instructors associated with this review.
+        Returns a list of course instructor objects with their course and professor details.
+        """
+        if not self.course_instructor_reviews:
+            return []
+        
+        instructors = []
+        for cir in self.course_instructor_reviews:
+            if cir.course_instructor:
+                instructors.append(cir.course_instructor)
+        return instructors
+
+    @property
+    def effective_course(self):
+        """
+        Get the effective course for this review.
+        If course_id is null but course_instructors exist, return the course from the first instructor.
+        """
+        if self.course:
+            return self.course
+        elif self.course_instructors:
+            return self.course_instructors[0].course
+        return None
+
+    # Ensure at least one of course_id, professor_id, or course_instructor_reviews is not null
     # Also ensure that rating is between 1 and 5
     __table_args__ = (
-        CheckConstraint(
-            "(course_id IS NOT NULL) OR (professor_id IS NOT NULL)",
-            name="check_review_target"
-        ),
         CheckConstraint(
             "rating >= 1 AND rating <= 5",
             name="check_rating_range"
