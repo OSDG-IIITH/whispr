@@ -28,12 +28,13 @@ services:
       - ENVIRONMENT=development
       - DEBUG=True
       - RELOAD=True
-      - CORS_ORIGINS=http://localhost:8080,http://localhost:3000
+      - CORS_ORIGINS=["http://localhost:8080", "http://localhost:3000"]
       - FRONTEND_URL=http://localhost:8080
       - COOKIE_DOMAIN=localhost
       - COOKIE_SECURE=false
       - COOKIE_SAMESITE=lax
       - CAS_SERVICE_URL=http://localhost:8080/whispr/api/verify/callback
+      - ALLOWED_EMAIL_DOMAINS=["students.iiit.ac.in", "research.iiit.ac.in"]
     ports:
       - "8000:8000" # Expose port for direct access in development
     depends_on:

@@ -45,12 +45,13 @@ services:
       - JWT_SECRET=change_me_in_production
       - JWT_ALGORITHM=HS256
       - JWT_EXPIRATION=86400
-      - CORS_ORIGINS=https://osdg.iiit.ac.in
+      - CORS_ORIGINS=["https://osdg.iiit.ac.in"]
       - FRONTEND_URL=https://osdg.iiit.ac.in
       - COOKIE_DOMAIN=osdg.iiit.ac.in
       - COOKIE_SECURE=true
       - COOKIE_SAMESITE=lax
       - CAS_SERVICE_URL=https://osdg.iiit.ac.in/whispr/api/verify/callback
+      - ALLOWED_EMAIL_DOMAINS=["students.iiit.ac.in", "research.iiit.ac.in"]
     networks:
       - whispr-network
       - backend-db-network
