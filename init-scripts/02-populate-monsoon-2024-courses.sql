@@ -35,21 +35,18 @@ DECLARE
     professor_id UUID;
     faculty_array TEXT[];
 BEGIN
-    -- Check if course exists
-    SELECT id INTO course_id FROM courses WHERE code = course_code;
-
-    -- If course doesn't exist, create new one
-    IF course_id IS NULL THEN
-        course_id := uuid_generate_v4();
-        INSERT INTO courses (id, code, name, credits, description, review_count, average_rating)
-        VALUES (course_id, course_code, course_name, course_credits, 
-                'Monsoon course: ' || course_name, 0, 0.0);
-    END IF;
+    -- Create course
+    course_id := uuid_generate_v4();
+    INSERT INTO courses (id, code, name, credits, description, review_count, average_rating)
+    VALUES (course_id, course_code, course_name, course_credits, 
+            'Monsoon 2024 course: ' || course_name, 0, 0.0);
     
     -- Split faculty list by '+' and process each faculty member
     faculty_array := string_to_array(faculty_list, '+');
+    
     FOREACH faculty_name IN ARRAY faculty_array
     LOOP
+        -- Clean faculty name
         faculty_name := trim(faculty_name);
         faculty_name := replace(faculty_name, '(Coordinator)', '');
         faculty_name := replace(faculty_name, '(Guest Faculty)', '');
@@ -189,4 +186,4 @@ SELECT create_course_with_instructors('EC5.407', 'Wireless Communications', 4, '
 
 -- Clean up functions
 DROP FUNCTION IF EXISTS get_or_create_professor(VARCHAR);
-DROP FUNCTION IF EXISTS create_course_with_instructors(VARCHAR, VARCHAR, INTEGER, TEXT);
+DROP FUNCTION IF EXISTS create_course_with_instructors(VARCHAR, VARCHAR, INTEGER, TEXT); 

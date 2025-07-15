@@ -62,8 +62,8 @@ export default function CoursePage() {
       setLoading(true);
       setError(null);
 
-      // Fetch course details using the course code
-      const courseData = await courseAPI.getCourseByCode(courseCode);
+      // Fetch course details
+      const courseData = await courseAPI.getCourse(courseCode);
       setCourse(courseData);
 
       // Fetch course reviews
@@ -510,9 +510,6 @@ export default function CoursePage() {
   const handleSubmitReview = async (data: {
     content: string;
     rating: number;
-    semester?: string;
-    year?: number;
-    professor_ids?: string[];
   }) => {
     if (!course) return;
 
@@ -534,20 +531,10 @@ export default function CoursePage() {
       } = {
         course_id: course.id,
         rating: data.rating,
-        content: data.content || undefined,
+        content: data.content || undefined, // Handle empty content properly
       };
 
-      // Add time period and professor data if provided
-      if (data.semester) {
-        reviewData.semester = data.semester;
-      }
-      if (data.year) {
-        reviewData.year = data.year;
-      }
-      if (data.professor_ids && data.professor_ids.length > 0) {
-        reviewData.professor_ids = data.professor_ids;
-      }
-
+      // Create the review via API and get the new review object
       const newReview = await reviewAPI.createReview(reviewData);
 
       // Add the new review to the list
@@ -849,7 +836,6 @@ export default function CoursePage() {
             className="mb-8"
           >
             <ReviewForm
-              courseId={course.id}
               onSubmit={handleSubmitReview}
               onCancel={() => setShowReviewForm(false)}
               placeholder={`Share your experience with ${course.name}...`}
@@ -902,10 +888,6 @@ export default function CoursePage() {
               userVote: getUserVoteForReview(review.id),
               isOwn: user ? review.user_id === user.id : false,
               isHighlighted: highlightedReviewId === review.id,
-              // Add time period and professor information
-              semester: review.semester,
-              year: review.year,
-              professors: review.professors,
             }))}
             onVote={handleVote}
             onReply={(reviewId) => handleReply(reviewId)}

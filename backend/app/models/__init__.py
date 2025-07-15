@@ -8,7 +8,6 @@ from app.models.professor_social_media import ProfessorSocialMedia
 from app.models.course import Course
 from app.models.course_instructor import CourseInstructor
 from app.models.review import Review
-from app.models.review_professor import ReviewProfessor
 from app.models.reply import Reply
 from app.models.vote import Vote
 from app.models.notification import Notification

@@ -39,40 +39,33 @@ export interface FrontendCourseInstructor
 
 export interface FrontendReview {
   id: string;
-  user_id: string;
+  user_id?: string;
   course_id?: string;
   professor_id?: string;
   course_instructor_id?: string;
-  semester?: string;
-  year?: number;
   user?: FrontendUser;
   course?: FrontendCourse;
   professor?: FrontendProfessor;
   course_instructor?: FrontendCourseInstructor;
-  professors?: Array<{
-    id: string;
-    name: string;
-    lab?: string;
-  }>;
   author: {
     username: string;
     echoes: number;
     isVerified: boolean;
   };
-  content: string;
+  content?: string;
   rating: number;
   upvotes: number;
   downvotes: number;
   replyCount: number;
   createdAt: string;
-  created_at: string;
+  created_at?: string;
   isEdited: boolean;
   userVote: "up" | "down" | null;
   user_vote?: Vote;
   isOwn: boolean;
-  isHighlighted?: boolean;
   courseName?: string;
   professorName?: string;
+  isHighlighted?: boolean;
 }
 
 export interface FrontendReply {
@@ -203,8 +196,6 @@ export function convertReviewToFrontendReview(
     course_id: review.course_id,
     professor_id: review.professor_id,
     course_instructor_id: review.course_instructor_id,
-    semester: review.semester,
-    year: review.year,
     user: review.user
       ? convertUserToFrontendUser(review.user, false)
       : undefined,

@@ -116,7 +116,7 @@ export function ReviewCard({
                 username={review.author.username}
                 echoes={review.author.echoes}
                 size="sm"
-              />
+                />
             </UserHoverCard>
 
             <div className="flex-1">
@@ -125,7 +125,7 @@ export function ReviewCard({
                   username={review.author.username}
                   echoes={review.author.echoes}
                   isVerified={review.author.isVerified}
-                >
+                    >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {review.author.username}
                   </span>

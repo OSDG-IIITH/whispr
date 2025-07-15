@@ -91,6 +91,27 @@ async def read_courses(
     return [convert_course_to_with_instructors(course) for course in courses]
 
 
+@router.get("/{course_id}", response_model=Course)
+async def read_course(
+    course_id: UUID,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """
+    Get a specific course by id.
+    """
+    stmt = select(CourseModel).where(CourseModel.id == course_id)
+    result = await db.execute(stmt)
+    course = result.scalar_one_or_none()
+
+    if course is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Course not found"
+        )
+
+    return course
+
+
 @router.get("/by-code/{code}", response_model=CourseWithInstructors)
 async def read_course_by_code(
     code: str,
@@ -114,27 +135,6 @@ async def read_course_by_code(
         )
 
     return convert_course_to_with_instructors(course)
-
-
-@router.get("/{course_id}", response_model=Course)
-async def read_course(
-    course_id: UUID,
-    db: AsyncSession = Depends(get_db)
-) -> Any:
-    """
-    Get a specific course by id.
-    """
-    stmt = select(CourseModel).where(CourseModel.id == course_id)
-    result = await db.execute(stmt)
-    course = result.scalar_one_or_none()
-
-    if course is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Course not found"
-        )
-
-    return course
 
 
 @router.post("/", response_model=Course, status_code=status.HTTP_201_CREATED)
@@ -197,56 +197,6 @@ async def update_course(
         updated_course = result.fetchone()
 
     return updated_course
-
-
-@router.get("/{course_id}/time-periods", response_model=List[dict])
-async def get_course_time_periods(
-    course_id: UUID,
-    db: AsyncSession = Depends(get_db)
-) -> Any:
-    """
-    Get available time periods and professors for a course.
-    """
-    stmt = (
-        select(CourseInstructorModel)
-        .options(joinedload(CourseInstructorModel.professor))
-        .where(CourseInstructorModel.course_id == course_id)
-        .where(CourseInstructorModel.semester.isnot(None))
-        .where(CourseInstructorModel.year.isnot(None))
-    )
-    result = await db.execute(stmt)
-    instructors = result.unique().scalars().all()
-
-    # Group by semester and year
-    time_periods = {}
-    for instructor in instructors:
-        key = f"{instructor.semester} {instructor.year}"
-        if key not in time_periods:
-            time_periods[key] = {
-                "semester": instructor.semester,
-                "year": instructor.year,
-                "professors": []
-            }
-        
-        if instructor.professor:
-            time_periods[key]["professors"].append({
-                "id": str(instructor.professor.id),
-                "name": instructor.professor.name
-            })
-
-    # Sort time periods by year and semester
-    sorted_periods = []
-    for period_data in time_periods.values():
-        sorted_periods.append(period_data)
-    
-    # Sort by year (descending) then by semester
-    semester_order = {"MONSOON": 2, "SPRING": 1}
-    sorted_periods.sort(
-        key=lambda x: (x["year"], semester_order.get(x["semester"], 0)), 
-        reverse=True
-    )
-
-    return sorted_periods
 
 
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)

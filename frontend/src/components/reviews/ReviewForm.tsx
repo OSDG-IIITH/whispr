@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Star, Send, X, ChevronDown } from "lucide-react";
+import { Star, Send, X } from "lucide-react";
 import { ReviewFormProps } from "@/types/frontend-models";
 import { MentionInput } from "@/components/common/MentionInput";
-import { courseAPI } from "@/lib/api";
 import Loader from "@/components/common/Loader";
 
 interface TimePeriod {
@@ -21,20 +20,20 @@ interface TimePeriod {
 export function ReviewForm({
   onSubmit,
   onCancel,
-  courseId,
   initialContent = "",
   initialRating = 0,
   placeholder = "Share your honest thoughts about this course/professor...",
   submitText = "Submit Rating",
   title = "Rate & Review",
   disabled = false,
+  courseId,
 }: ReviewFormProps & {
-  courseId?: string;
   initialContent?: string;
   initialRating?: number;
   submitText?: string;
   title?: string;
   onCancel?: () => void;
+  courseId?: string;
 }) {
   const [content, setContent] = useState(initialContent);
   const [rating, setRating] = useState(initialRating);
@@ -117,9 +116,6 @@ export function ReviewForm({
       await onSubmit(reviewData);
       setContent("");
       setRating(0);
-      setSelectedPeriod(null);
-      setSelectedProfessors(new Set());
-      setShowProfessorDropdown(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -150,10 +146,6 @@ export function ReviewForm({
     });
   };
 
-  const formatPeriodLabel = (period: TimePeriod) => {
-    return `${period.semester} '${period.year.toString().slice(-2)}`;
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -173,91 +165,6 @@ export function ReviewForm({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Time Period Selection */}
-        {courseId && timePeriods.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Time Period <span className="text-secondary">(optional)</span>
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedPeriod ? JSON.stringify(selectedPeriod) : ""}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const period = JSON.parse(e.target.value);
-                      handlePeriodSelect(period);
-                    } else {
-                      setSelectedPeriod(null);
-                      setSelectedProfessors(new Set());
-                      setShowProfessorDropdown(false);
-                    }
-                  }}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 pr-8 appearance-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                  disabled={loadingPeriods}
-                >
-                  <option value="">Select time period...</option>
-                  {timePeriods.map((period, index) => (
-                    <option key={index} value={JSON.stringify(period)}>
-                      {formatPeriodLabel(period)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Professor Selection */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Professors{" "}
-                <span className="text-secondary">
-                  {selectedPeriod ? "(select/deselect)" : "(select time period first)"}
-                </span>
-              </label>
-              <div className="relative">
-                <button
-                  type="button"
-                  disabled={!selectedPeriod}
-                  onClick={() => setShowProfessorDropdown(!showProfessorDropdown)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-left focus:ring-2 focus:ring-primary focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
-                >
-                  <span className="truncate">
-                    {selectedPeriod
-                      ? selectedProfessors.size === 0
-                        ? "No professors selected"
-                        : selectedProfessors.size === selectedPeriod.professors.length
-                          ? "All professors selected"
-                          : `${selectedProfessors.size} professor${selectedProfessors.size === 1 ? '' : 's'} selected`
-                      : "Select time period first"
-                    }
-                  </span>
-                  <ChevronDown className="w-4 h-4 text-secondary ml-2 flex-shrink-0" />
-                </button>
-
-                {showProfessorDropdown && selectedPeriod && (
-                  <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                    {selectedPeriod.professors.map((professor) => (
-                      <label
-                        key={professor.id}
-                        className="flex items-center px-3 py-2 hover:bg-muted cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedProfessors.has(professor.id)}
-                          onChange={() => handleProfessorToggle(professor.id)}
-                          className="mr-2 rounded border-border"
-                        />
-                        <span className="text-sm">{professor.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Rating */}
         <div>
           <label className="block text-sm font-medium mb-2">
@@ -298,27 +205,6 @@ export function ReviewForm({
           </div>
         </div>
 
-        {/* Review Target Summary */}
-        {selectedPeriod && (
-          <div className="bg-muted/50 rounded-lg p-3 text-sm">
-            <div className="font-medium mb-1">Review will be associated with:</div>
-            <div className="text-secondary space-y-1">
-              <div>• Time Period: {formatPeriodLabel(selectedPeriod)}</div>
-              {selectedProfessors.size > 0 ? (
-                <div>
-                  • Professors: {selectedPeriod.professors
-                    .filter(p => selectedProfessors.has(p.id))
-                    .map(p => p.name)
-                    .join(", ")
-                  }
-                </div>
-              ) : (
-                <div>• Course only (no specific professors)</div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Actions */}
         <div className="flex items-center justify-end gap-3">
           {onCancel && (
@@ -344,14 +230,6 @@ export function ReviewForm({
           </button>
         </div>
       </form>
-
-      {/* Click outside to close professor dropdown */}
-      {showProfessorDropdown && (
-        <div
-          className="fixed inset-0 z-0"
-          onClick={() => setShowProfessorDropdown(false)}
-        />
-      )}
     </motion.div>
   );
 }
