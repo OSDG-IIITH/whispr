@@ -23,9 +23,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { userAPI, reviewAPI, voteAPI, replyAPI } from "@/lib/api";
 import type { User, Review, Vote } from "@/types/backend-models";
-import {
-  convertReviewToFrontendReview,
-} from "@/types/frontend-models";
+import { convertReviewToFrontendReview } from "@/types/frontend-models";
 import Loader from "@/components/common/Loader";
 
 export default function ProfilePage() {
@@ -41,7 +39,6 @@ export default function ProfilePage() {
   const [showKillSwitch, setShowKillSwitch] = useState(false);
   const [filterBy, setFilterBy] = useState("all");
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followersCount, setFollowersCount] = useState(0);
   const [, setFollowingCount] = useState(0);
 
   const username = params.username as string;
@@ -74,7 +71,6 @@ export default function ProfilePage() {
           try {
             const followStatus = await userAPI.getFollowStatus(userData.id);
             setIsFollowing(followStatus.is_following);
-            setFollowersCount(followStatus.followers_count);
             setFollowingCount(followStatus.following_count);
           } catch (error) {
             console.error("Failed to fetch follow status:", error);
@@ -215,10 +211,10 @@ export default function ProfilePage() {
         prevReviews.map((review) =>
           review.id === reviewId
             ? {
-              ...review,
-              upvotes: currentReview.upvotes,
-              downvotes: currentReview.downvotes,
-            }
+                ...review,
+                upvotes: currentReview.upvotes,
+                downvotes: currentReview.downvotes,
+              }
             : review
         )
       );
@@ -245,9 +241,6 @@ export default function ProfilePage() {
     try {
       // Update local state optimistically
       setIsFollowing(newIsFollowing);
-      setFollowersCount((prev: number) =>
-        newIsFollowing ? prev + 1 : prev - 1
-      );
 
       // The FollowButton component handles the actual API call
       showSuccess(newIsFollowing ? "User followed!" : "User unfollowed!");
@@ -255,9 +248,6 @@ export default function ProfilePage() {
       console.error("Failed to update follow status:", error);
       // Revert optimistic update
       setIsFollowing(!newIsFollowing);
-      setFollowersCount((prev: number) =>
-        newIsFollowing ? prev - 1 : prev + 1
-      );
       showError("Failed to update follow status. Please try again.");
     }
   };
@@ -289,7 +279,11 @@ export default function ProfilePage() {
       showSuccess("Reply submitted successfully!");
     } catch (error: unknown) {
       console.error("Failed to create reply:", error);
-      showError(error instanceof Error ? error.message : "Failed to create reply. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to create reply. Please try again."
+      );
     }
   };
 
@@ -320,7 +314,11 @@ export default function ProfilePage() {
       showSuccess("Review updated successfully!");
     } catch (error: unknown) {
       console.error("Failed to edit review:", error);
-      showError(error instanceof Error ? error.message : "Failed to edit review. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to edit review. Please try again."
+      );
     }
   };
 
@@ -343,7 +341,11 @@ export default function ProfilePage() {
       showSuccess("Review deleted successfully!");
     } catch (error: unknown) {
       console.error("Failed to delete review:", error);
-      showError(error instanceof Error ? error.message : "Failed to delete review. Please try again.");
+      showError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete review. Please try again."
+      );
     }
   };
 
@@ -397,9 +399,15 @@ export default function ProfilePage() {
   const filteredReviews = transformedReviews.filter((review) => {
     if (filterBy === "all") return true;
     if (filterBy === "courses")
-      return review.course_id || (review.course_instructors && review.course_instructors.length > 0);
+      return (
+        review.course_id ||
+        (review.course_instructors && review.course_instructors.length > 0)
+      );
     if (filterBy === "professors")
-      return review.professor_id || (review.course_instructors && review.course_instructors.length > 0);
+      return (
+        review.professor_id ||
+        (review.course_instructors && review.course_instructors.length > 0)
+      );
     return true;
   });
 
@@ -408,10 +416,7 @@ export default function ProfilePage() {
     (sum, review) => sum + (review.upvotes || 0),
     0
   );
-  reviews.reduce(
-    (sum, review) => sum + (review.downvotes || 0),
-    0
-  );
+  reviews.reduce((sum, review) => sum + (review.downvotes || 0), 0);
   const profileViews = 0; // TODO: Implement profile views when backend supports it
 
   const stats = [
@@ -574,10 +579,11 @@ export default function ProfilePage() {
                 <button
                   key={option}
                   onClick={() => setFilterBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${filterBy === option
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    filterBy === option
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                    }`}
+                  }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

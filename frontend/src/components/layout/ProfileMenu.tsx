@@ -95,16 +95,6 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={handleProfiles}
-          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
-        >
-          <Users className="w-5 h-5 text-secondary" />
-          <span>Browse Profiles</span>
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
           onClick={handleSettings}
           className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
         >

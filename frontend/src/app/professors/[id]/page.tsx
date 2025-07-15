@@ -23,10 +23,15 @@ import {
   Professor,
   Review,
   Vote,
+  Reply,
+  User,
 } from "@/lib/api";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
-import { convertReplyToFrontendReply } from "@/types/frontend-models";
+import {
+  convertReplyToFrontendReply,
+  FrontendReply,
+} from "@/types/frontend-models";
 import Loader from "@/components/common/Loader";
 
 export default function ProfessorPage() {
@@ -48,7 +53,7 @@ export default function ProfessorPage() {
   );
   const [replySubmitting, setReplySubmitting] = useState(false);
   const [repliesByReview, setRepliesByReview] = useState<
-    Record<string, unknown[]>
+    Record<string, FrontendReply[]>
   >({});
   const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(
     null
@@ -96,12 +101,12 @@ export default function ProfessorPage() {
 
   // Fetch replies for all reviews
   const fetchRepliesForReviews = useCallback(async (reviews: Review[]) => {
-    const repliesObj: Record<string, unknown[]> = {};
+    const repliesObj: Record<string, FrontendReply[]> = {};
     await Promise.all(
       reviews.map(async (review) => {
         const replies = await replyAPI.getReplies({ review_id: review.id });
         // Transform replies to FrontendReply
-        repliesObj[review.id] = replies.map((reply: unknown) =>
+        repliesObj[review.id] = replies.map((reply: Reply) =>
           convertReplyToFrontendReply(reply)
         );
       })
@@ -208,6 +213,7 @@ export default function ProfessorPage() {
       showError("Please log in to vote");
       return;
     }
+    const currentUserId = (user as User).id;
 
     // Find the current review
     const currentReview = reviews.find((r) => r.id === reviewId);
@@ -265,7 +271,7 @@ export default function ProfessorPage() {
       if (newUserVote !== null) {
         filteredVotes.push({
           id: `temp-${reviewId}`,
-          user_id: user.id,
+          user_id: currentUserId,
           review_id: reviewId,
           reply_id: undefined,
           vote_type: newUserVote === "up",
@@ -303,7 +309,7 @@ export default function ProfessorPage() {
 
       // Only refresh user data for echo points if voting on someone else's review
       // (users don't get echo points for voting on their own content)
-      if (currentReview.user_id !== user.id) {
+      if (user && currentReview.user_id !== (user as User).id) {
         await refresh();
       }
     } catch (err: unknown) {
@@ -342,13 +348,14 @@ export default function ProfessorPage() {
       showError("Please log in to vote");
       return;
     }
+    const currentUserId = (user as User).id;
     if (user.is_muffled) {
       showError("Muffled users cannot vote");
       return;
     }
 
     // Find the current reply
-    let currentReply: unknown = null;
+    let currentReply: FrontendReply | null = null;
     let reviewId: string | null = null;
 
     for (const [revId, replies] of Object.entries(repliesByReview)) {
@@ -415,7 +422,7 @@ export default function ProfessorPage() {
       if (newUserVote !== null) {
         filteredVotes.push({
           id: `temp-${replyId}`,
-          user_id: user.id,
+          user_id: currentUserId,
           review_id: undefined,
           reply_id: replyId,
           vote_type: newUserVote === "up",
@@ -694,6 +701,7 @@ export default function ProfessorPage() {
         const key = instructor.course.id;
         if (!coursesMap.has(key)) {
           coursesMap.set(key, {
+            id: instructor.course.id,
             code: instructor.course.code,
             name: instructor.course.name,
             semester: instructor.semester,
@@ -802,16 +810,15 @@ export default function ProfessorPage() {
               <h3 className="font-semibold mb-3">Courses Taught</h3>
               <div className="grid md:grid-cols-2 gap-3">
                 {courses.map((course, index) => (
-                  <div key={index} className="bg-muted p-4 rounded-lg">
+                  <div
+                    key={index}
+                    className="bg-muted p-4 rounded-lg cursor-pointer hover:bg-primary/10 hover:border-primary/20 border border-transparent transition-all duration-200"
+                    onClick={() => router.push(`/courses/${course.code}`)}
+                  >
                     <div className="font-medium text-primary">
                       {course.code}
                     </div>
                     <div className="font-medium">{course.name}</div>
-                    {course.semester && course.year && (
-                      <div className="text-sm text-secondary">
-                        {course.semester} {course.year}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>

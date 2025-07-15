@@ -15,7 +15,7 @@ import { getRankWithProgress } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { Feed } from "@/components/dashboard/Feed";
-import { feedAPI } from "@/lib/api";
+import { feedAPI, User } from "@/lib/api";
 import Loader from "@/components/common/Loader";
 
 export default function DashboardPage() {
@@ -35,7 +35,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       // Check if user needs verification
-      setShowVerificationBanner(user.is_muffled);
+      setShowVerificationBanner((user as User).is_muffled);
 
       // Fetch user stats
       fetchStats();
@@ -79,7 +79,7 @@ export default function DashboardPage() {
     );
   }
 
-  const rank = getRankWithProgress(user.echoes);
+  const rank = getRankWithProgress((user as User).echoes);
 
   return (
     <div className="min-h-screen bg-black">
@@ -125,12 +125,12 @@ export default function DashboardPage() {
                 <div className="text-center mb-6">
                   <div className="mb-4 flex justify-center">
                     <UserAvatar
-                      username={user.username}
-                      echoes={user.echoes}
+                      username={(user as User).username}
+                      echoes={(user as User).echoes}
                       size="xl"
                     />
                   </div>
-                  <h2 className="text-xl font-bold mb-2">{user.username}</h2>
+                  <h2 className="text-xl font-bold mb-2">{(user as User).username}</h2>
                   <div className="flex items-center justify-center gap-2 mb-4">
                     <span className="text-sm text-secondary">Rank:</span>
                     <span className="text-sm font-semibold text-primary">
@@ -139,7 +139,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="bg-primary/10 rounded-lg p-3">
                     <div className="text-2xl font-bold text-primary">
-                      {user.echoes}
+                      {(user as User).echoes}
                     </div>
                     <div className="text-xs text-secondary">Echoes</div>
                   </div>
@@ -149,16 +149,16 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-secondary">Member since</span>
-                    <span>{new Date(user.created_at).getFullYear()}</span>
+                    <span>{new Date((user as User).created_at).getFullYear()}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-secondary">Status</span>
                     <span
                       className={
-                        !user.is_muffled ? "text-green-400" : "text-yellow-400"
+                        !(user as User).is_muffled ? "text-green-400" : "text-yellow-400"
                       }
                     >
-                      {!user.is_muffled ? "Verified" : "Unverified"}
+                      {!(user as User).is_muffled ? "Verified" : "Unverified"}
                     </span>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export default function DashboardPage() {
               className="bg-card border border-primary/20 rounded-xl p-6"
             >
               <h1 className="text-xl sm:text-2xl font-bold mb-4">
-                Welcome back, {user.username}!
+                Welcome back, {(user as User).username}!
               </h1>
               <p className="text-secondary mb-6 text-sm sm:text-base">
                 Ready to share your thoughts on courses and professors? Your

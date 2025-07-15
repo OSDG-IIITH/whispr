@@ -16,10 +16,15 @@ import {
   Course,
   Review,
   Vote,
+  Reply,
+  User,
 } from "@/lib/api";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
-import { convertReplyToFrontendReply } from "@/types/frontend-models";
+import {
+  convertReplyToFrontendReply,
+  FrontendReply,
+} from "@/types/frontend-models";
 import Loader from "@/components/common/Loader";
 
 export default function CoursePage() {
@@ -41,7 +46,7 @@ export default function CoursePage() {
   );
   const [replySubmitting, setReplySubmitting] = useState(false);
   const [repliesByReview, setRepliesByReview] = useState<
-    Record<string, unknown[]>
+    Record<string, FrontendReply[]>
   >({});
   const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(
     null
@@ -89,12 +94,12 @@ export default function CoursePage() {
 
   // Fetch replies for all reviews
   const fetchRepliesForReviews = useCallback(async (reviews: Review[]) => {
-    const repliesObj: Record<string, unknown[]> = {};
+    const repliesObj: Record<string, FrontendReply[]> = {};
     await Promise.all(
       reviews.map(async (review) => {
         const replies = await replyAPI.getReplies({ review_id: review.id });
         // Transform replies to FrontendReply
-        repliesObj[review.id] = replies.map((reply: unknown) =>
+        repliesObj[review.id] = replies.map((reply: Reply) =>
           convertReplyToFrontendReply(reply)
         );
       })
@@ -199,6 +204,7 @@ export default function CoursePage() {
       showError("Please log in to vote");
       return;
     }
+    const currentUserId = (user as User).id;
 
     // Find the current review
     const currentReview = reviews.find((r) => r.id === reviewId);
@@ -253,10 +259,10 @@ export default function CoursePage() {
     // Optimistically update user votes
     setUserVotes((prevVotes) => {
       const filteredVotes = prevVotes.filter((v) => v.review_id !== reviewId);
-      if (newUserVote !== null) {
+      if (newUserVote !== null && user) {
         filteredVotes.push({
           id: `temp-${reviewId}`,
-          user_id: user.id,
+          user_id: currentUserId,
           review_id: reviewId,
           reply_id: undefined,
           vote_type: newUserVote === "up",
@@ -294,7 +300,7 @@ export default function CoursePage() {
 
       // Only refresh user data for echo points if voting on someone else's review
       // (users don't get echo points for voting on their own content)
-      if (currentReview.user_id !== user.id) {
+      if (user && currentReview.user_id !== (user as User).id) {
         await refresh();
       }
     } catch (err: unknown) {
@@ -333,13 +339,14 @@ export default function CoursePage() {
       showError("Please log in to vote");
       return;
     }
-    if (user.is_muffled) {
+    const currentUserId = (user as User).id;
+    if ((user as User).is_muffled) {
       showError("Muffled users cannot vote");
       return;
     }
 
     // Find the current reply
-    let currentReply: unknown = null;
+    let currentReply: FrontendReply | null = null;
     let reviewId: string | null = null;
 
     for (const [revId, replies] of Object.entries(repliesByReview)) {
@@ -403,10 +410,10 @@ export default function CoursePage() {
     // Optimistically update user votes
     setUserVotes((prevVotes) => {
       const filteredVotes = prevVotes.filter((v) => v.reply_id !== replyId);
-      if (newUserVote !== null) {
+      if (newUserVote !== null && user) {
         filteredVotes.push({
           id: `temp-${replyId}`,
-          user_id: user.id,
+          user_id: currentUserId,
           review_id: undefined,
           reply_id: replyId,
           vote_type: newUserVote === "up",
@@ -444,7 +451,7 @@ export default function CoursePage() {
 
       // Only refresh user data for echo points if voting on someone else's reply
       // (users don't get echo points for voting on their own content)
-      if (currentReply.user_id !== user.id) {
+      if (user && currentReply.user_id !== (user as User).id) {
         await refresh();
       }
     } catch (err: unknown) {
@@ -687,11 +694,14 @@ export default function CoursePage() {
       return [];
     }
 
-    // Get unique professors
-    const professors = new Map<string, string>();
+    // Get unique professors with id and name
+    const professors = new Map<string, { id: string; name: string }>();
     course.course_instructors.forEach((instructor) => {
       if (instructor.professor) {
-        professors.set(instructor.professor.id, instructor.professor.name);
+        professors.set(instructor.professor.id, {
+          id: instructor.professor.id,
+          name: instructor.professor.name,
+        });
       }
     });
 
@@ -771,9 +781,12 @@ export default function CoursePage() {
                     {professors.map((professor, i) => (
                       <span
                         key={i}
-                        className="bg-primary/10 text-primary text-xs px-3 py-1 rounded-full"
+                        className="bg-primary/10 text-primary text-xs px-3 py-1 rounded-full cursor-pointer hover:bg-primary/20 transition-colors"
+                        onClick={() =>
+                          router.push(`/professors/${professor.id}`)
+                        }
                       >
-                        {professor}
+                        {professor.name}
                       </span>
                     ))}
                   </div>
@@ -822,7 +835,7 @@ export default function CoursePage() {
               onClick={() => {
                 if (!user) {
                   showError("Please log in to submit a review");
-                } else if (user.is_muffled) {
+                } else if ((user as User).is_muffled) {
                   showError("Please verify your account to rate and review.");
                 } else {
                   setShowReviewForm(true);
@@ -900,7 +913,7 @@ export default function CoursePage() {
               createdAt: review.created_at,
               isEdited: review.is_edited,
               userVote: getUserVoteForReview(review.id),
-              isOwn: user ? review.user_id === user.id : false,
+              isOwn: user ? review.user_id === (user as User).id : false,
               isHighlighted: highlightedReviewId === review.id,
             }))}
             onVote={handleVote}

@@ -69,6 +69,7 @@ export interface FrontendReview {
 
 export interface FrontendReply {
   id: string;
+  user_id?: string;
   author: {
     username: string;
     echoes: number;
