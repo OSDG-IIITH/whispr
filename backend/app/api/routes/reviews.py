@@ -22,7 +22,7 @@ from app.schemas.review import (
     Review, ReviewCreate, ReviewUpdate, ReviewWithUser, ReviewWithRelations)
 from app.auth.jwt import get_current_unmuffled_user
 from app.models.user import User as UserModel
-from app.core.notifications import notify_on_mention
+from app.core.notifications import notify_on_mention, notify_followers_on_review
 
 router = APIRouter()
 
@@ -241,6 +241,13 @@ or course_instructor_ids must be provided"
             content_type="review",
             author_username=current_user.username
         )
+
+    # Notify followers about the new review
+    await notify_followers_on_review(
+        db=db,
+        review_id=review.id,
+        author_username=current_user.username
+    )
 
     # Award echo points for creating a review (+5 points)
     from app.core.echo_points import update_user_echo_points

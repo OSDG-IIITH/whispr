@@ -157,7 +157,9 @@ CREATE TABLE notifications (
             'REPLY',
             'RANK_CHANGE',
             'SYSTEM',
-            'FOLLOW'
+            'FOLLOW',
+            'FOLLOWER_REVIEW',
+            'FOLLOWER_REPLY'
         )
     ),
     content TEXT NOT NULL,

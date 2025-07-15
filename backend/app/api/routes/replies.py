@@ -16,7 +16,7 @@ from app.models.review import Review as ReviewModel
 from app.schemas.reply import Reply, ReplyCreate, ReplyUpdate, ReplyWithUser
 from app.auth.jwt import get_current_unmuffled_user
 from app.models.user import User as UserModel
-from app.core.notifications import notify_on_reply, notify_on_mention
+from app.core.notifications import notify_on_reply, notify_on_mention, notify_followers_on_reply
 
 router = APIRouter()
 
@@ -110,6 +110,13 @@ async def create_reply(
             content_type="reply",
             author_username=current_user.username
         )
+
+    # Notify followers about the new reply
+    await notify_followers_on_reply(
+        db=db,
+        reply_id=reply.id,
+        author_username=current_user.username
+    )
 
     # Award echo points for creating a reply (+1 point)
     from app.core.echo_points import update_user_echo_points

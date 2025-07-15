@@ -21,6 +21,12 @@ const getNotificationIcon = (type: string) => {
       return <Shield className="w-4 h-4 text-primary" />;
     case "MENTION":
       return <Users className="w-4 h-4 text-purple-500" />;
+    case "FOLLOW":
+      return <Users className="w-4 h-4 text-green-500" />;
+    case "FOLLOWER_REVIEW":
+      return <MessageSquare className="w-4 h-4 text-orange-500" />;
+    case "FOLLOWER_REPLY":
+      return <MessageSquare className="w-4 h-4 text-cyan-500" />;
     case "SYSTEM":
       return <MessageSquare className="w-4 h-4 text-secondary" />;
     default:
@@ -85,9 +91,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className={`p-4 hover:bg-primary/5 transition-colors cursor-pointer ${
-                  !notification.read ? "bg-primary/10" : ""
-                }`}
+                className={`p-4 hover:bg-primary/5 transition-colors cursor-pointer ${!notification.read ? "bg-primary/10" : ""
+                  }`}
                 onClick={async () => {
                   try {
                     // Mark as read when clicked and ensure it completes
@@ -99,14 +104,14 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
 
                     // Navigate based on notification type and source
                     let actionUrl = "";
-                    
+
                     if (
                       notification.source_type === "review" &&
                       notification.source_id
                     ) {
                       // Fetch review data to get course/professor info
                       const review = await reviewAPI.getReview(notification.source_id);
-                      
+
                       // Navigate to the appropriate page based on review type
                       if (review.course_id) {
                         // Fetch course data to get the course code
@@ -129,10 +134,10 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                     ) {
                       // Fetch reply data to get the review info
                       const reply = await replyAPI.getReply(notification.source_id);
-                      
+
                       // Now fetch the review to get course/professor info
                       const review = await reviewAPI.getReview(reply.review_id);
-                      
+
                       // Navigate to the appropriate page based on review type
                       if (review.course_id) {
                         // Fetch course data to get the course code
@@ -164,7 +169,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                     // Still navigate to dashboard on error
                     window.location.href = "/dashboard";
                   }
-                  
+
                   onClose();
                 }}
               >

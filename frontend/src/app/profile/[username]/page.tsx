@@ -15,6 +15,7 @@ import { UserAvatar } from "@/components/user/UserAvatar";
 import { RankBadge } from "@/components/user/RankBadge";
 import { EchoesDisplay } from "@/components/user/EchoesDisplay";
 import { FollowButton } from "@/components/user/FollowButton";
+import { UserStats } from "@/components/user/UserStats";
 import { FeedReviewCard } from "@/components/reviews/FeedReviewCard";
 import { KillSwitch } from "@/components/common/KillSwitch";
 import { formatDate } from "@/lib/utils";
@@ -214,10 +215,10 @@ export default function ProfilePage() {
         prevReviews.map((review) =>
           review.id === reviewId
             ? {
-                ...review,
-                upvotes: currentReview.upvotes,
-                downvotes: currentReview.downvotes,
-              }
+              ...review,
+              upvotes: currentReview.upvotes,
+              downvotes: currentReview.downvotes,
+            }
             : review
         )
       );
@@ -429,11 +430,6 @@ export default function ProfilePage() {
       value: profileViews,
       icon: <Settings className="w-5 h-5 text-purple-500" />,
     },
-    {
-      label: "Followers",
-      value: followersCount,
-      icon: <Calendar className="w-5 h-5 text-yellow-500" />,
-    },
   ];
 
   return (
@@ -534,7 +530,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {stats.map((stat, index) => (
               <motion.div
                 key={stat.label}
@@ -549,6 +545,16 @@ export default function ProfilePage() {
               </motion.div>
             ))}
           </div>
+        </motion.div>
+
+        {/* Followers/Following Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-8"
+        >
+          <UserStats user={profileUser} isOwnProfile={isOwnProfile} />
         </motion.div>
 
         {/* Reviews Section */}
@@ -568,11 +574,10 @@ export default function ProfilePage() {
                 <button
                   key={option}
                   onClick={() => setFilterBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    filterBy === option
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${filterBy === option
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

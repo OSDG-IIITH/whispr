@@ -11,6 +11,7 @@ from app.models.notification import Notification as NotificationModel
 from app.models.user import User as UserModel
 from app.models.review import Review as ReviewModel
 from app.models.reply import Reply as ReplyModel
+from app.models.user_followers import user_followers
 
 
 async def create_notification(
@@ -38,6 +39,80 @@ async def create_notification(
         actor_username=actor_username
     )
     await db.execute(stmt)
+
+
+async def notify_followers_on_review(
+    db: AsyncSession,
+    review_id: UUID,
+    author_username: str
+) -> None:
+    """
+    Create notifications for all followers when user creates a review.
+    """
+    # Get the author's user ID
+    stmt = select(UserModel).where(UserModel.username == author_username)
+    result = await db.execute(stmt)
+    author = result.scalar_one_or_none()
+    if not author:
+        return
+
+    # Get all followers of the author
+    followers_stmt = (
+        select(UserModel)
+        .join(user_followers, UserModel.id == user_followers.c.follower_id)
+        .where(user_followers.c.followed_id == author.id)
+    )
+    followers_result = await db.execute(followers_stmt)
+    followers = followers_result.scalars().all()
+
+    # Create notifications for each follower
+    for follower in followers:
+        await create_notification(
+            db=db,
+            username=follower.username,
+            notification_type="FOLLOWER_REVIEW",
+            content=f"{author_username} posted a new review",
+            source_id=review_id,
+            source_type="review",
+            actor_username=author_username
+        )
+
+
+async def notify_followers_on_reply(
+    db: AsyncSession,
+    reply_id: UUID,
+    author_username: str
+) -> None:
+    """
+    Create notifications for all followers when user creates a reply.
+    """
+    # Get the author's user ID
+    stmt = select(UserModel).where(UserModel.username == author_username)
+    result = await db.execute(stmt)
+    author = result.scalar_one_or_none()
+    if not author:
+        return
+
+    # Get all followers of the author
+    followers_stmt = (
+        select(UserModel)
+        .join(user_followers, UserModel.id == user_followers.c.follower_id)
+        .where(user_followers.c.followed_id == author.id)
+    )
+    followers_result = await db.execute(followers_stmt)
+    followers = followers_result.scalars().all()
+
+    # Create notifications for each follower
+    for follower in followers:
+        await create_notification(
+            db=db,
+            username=follower.username,
+            notification_type="FOLLOWER_REPLY",
+            content=f"{author_username} posted a new reply",
+            source_id=reply_id,
+            source_type="reply",
+            actor_username=author_username
+        )
 
 
 async def notify_on_vote(
@@ -71,6 +146,7 @@ async def notify_on_vote(
                     source_type="review",
                     actor_username=voter_username
                 )
+
     elif target_type == "reply":
         stmt = select(ReplyModel).where(ReplyModel.id == target_id)
         result = await db.execute(stmt)

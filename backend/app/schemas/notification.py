@@ -18,7 +18,7 @@ class NotificationBase(BaseModel):
     """
     Base schema for notification.
     """
-    type: Literal['MENTION', 'VOTE', 'REPLY', 'RANK_CHANGE', 'SYSTEM', 'FOLLOW']
+    type: Literal['MENTION', 'VOTE', 'REPLY', 'RANK_CHANGE', 'SYSTEM', 'FOLLOW', 'FOLLOWER_REVIEW', 'FOLLOWER_REPLY']
     content: str
     source_id: Optional[UUID4] = None
     source_type: Optional[str] = None
