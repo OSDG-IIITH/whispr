@@ -38,6 +38,7 @@ export function ReviewCard({
   onReport,
   showReplies = true,
 }: ReviewCardProps) {
+  // console.log("Rendering ReviewCard for:", review);
   const router = useRouter();
   const { showError } = useToast();
   const [showActions, setShowActions] = useState(false);

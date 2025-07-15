@@ -33,6 +33,7 @@ export function ReplyCard({
   onDelete,
   onReport,
 }: ReplyCardProps) {
+  // console.log("Rendering ReplyCard for:", reply);
   const { showError } = useToast();
   const [showActions, setShowActions] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
