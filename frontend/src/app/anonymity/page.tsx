@@ -6,8 +6,8 @@ import Link from "next/link";
 
 export default function AnonymityPage() {
     return (
-        <div className="min-h-screen bg-black">
-            <div className="absolute inset-0 bg-gradient-to-br from-black via-primary/5 to-black" />
+        <div className="relative min-h-screen">
+            <div className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-br from-black via-primary/5 to-black" />
 
             <div className="relative z-10 max-w-4xl mx-auto px-4 py-8">
                 {/* Header */}

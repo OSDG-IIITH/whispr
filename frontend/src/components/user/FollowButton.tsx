@@ -25,7 +25,7 @@ export function FollowButton({
   const { user } = useAuth();
   const { showError } = useToast();
 
-  const handleFollow = async (e: any) => {
+  const handleFollow = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation(); // Prevent card click when follow button is clicked
 
     console.log("Follow button clicked", {

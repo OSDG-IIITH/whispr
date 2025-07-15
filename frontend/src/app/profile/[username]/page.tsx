@@ -429,7 +429,7 @@ export default function ProfilePage() {
       label: "Upvotes",
       value: totalUpvotes,
       icon: <TrendingUp className="w-5 h-5 text-green-500" />,
-    }
+    },
   ];
 
   return (
