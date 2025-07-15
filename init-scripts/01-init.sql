@@ -66,7 +66,6 @@ CREATE TABLE reviews (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     course_id UUID REFERENCES courses(id) ON DELETE CASCADE,
     professor_id UUID REFERENCES professors(id) ON DELETE CASCADE,
-    course_instructor_id UUID REFERENCES course_instructors(id) ON DELETE CASCADE,
     semester VARCHAR(20),
     year INTEGER,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
@@ -82,6 +81,12 @@ CREATE TABLE reviews (
         OR (course_instructor_id IS NOT NULL)
     )
 );
+-- Create course_instructor-review table
+CREATE TABLE course_instructor_reviews (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
+    course_instructor_id UUID REFERENCES course_instructors(id) ON DELETE CASCADE,
+)
 -- Create replies table
 CREATE TABLE replies (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
