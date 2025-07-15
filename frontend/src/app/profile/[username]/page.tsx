@@ -417,7 +417,7 @@ export default function ProfilePage() {
     0
   );
   reviews.reduce((sum, review) => sum + (review.downvotes || 0), 0);
-  const profileViews = 0; // TODO: Implement profile views when backend supports it
+  // const profileViews = 0; // TODO: Implement profile views when backend supports it
 
   const stats = [
     {
