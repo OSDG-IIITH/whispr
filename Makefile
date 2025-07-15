@@ -30,7 +30,7 @@ help:
 
 # Start all containers
 up:
-	docker-compose up -d --wait
+	docker-compose up -d
 
 # Start all containers without detach
 up_n:
@@ -48,7 +48,7 @@ build:
 rebuild:
 	docker-compose down
 	docker-compose build
-	docker-compose up -d --wait
+	docker-compose up -d
 
 # Development mode commands
 # Start all containers in development mode (interactive)
@@ -59,7 +59,7 @@ dev:
 # Start all containers in development mode (detached)
 dev-up:
 	@echo "Starting services in development mode (detached)..."
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --wait
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 # Stop development containers
 dev-down:
@@ -73,7 +73,7 @@ dev-build:
 dev-rebuild:
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml build
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --wait
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 # View logs from development containers
 dev-logs:
@@ -114,7 +114,7 @@ setup-frontend:
 # Start services in the correct order
 start:
 	@echo "Starting services with proper dependency waiting..."
-	docker-compose up -d --wait
+	docker-compose up -d
 	@echo "All services started successfully with health checks."
 	@echo "Access the application at http://localhost"
 	@echo "API documentation available at http://localhost/api/docs"
