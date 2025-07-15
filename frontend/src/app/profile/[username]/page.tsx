@@ -6,7 +6,7 @@ import {
   Calendar,
   MessageSquare,
   TrendingUp,
-  Settings,
+  Biohazard,
   Flag,
   ArrowLeft,
 } from "lucide-react";
@@ -211,10 +211,10 @@ export default function ProfilePage() {
         prevReviews.map((review) =>
           review.id === reviewId
             ? {
-                ...review,
-                upvotes: currentReview.upvotes,
-                downvotes: currentReview.downvotes,
-              }
+              ...review,
+              upvotes: currentReview.upvotes,
+              downvotes: currentReview.downvotes,
+            }
             : review
         )
       );
@@ -429,17 +429,12 @@ export default function ProfilePage() {
       label: "Upvotes",
       value: totalUpvotes,
       icon: <TrendingUp className="w-5 h-5 text-green-500" />,
-    },
-    {
-      label: "Profile Views",
-      value: profileViews,
-      icon: <Settings className="w-5 h-5 text-purple-500" />,
-    },
+    }
   ];
 
   return (
     <div className="min-h-screen bg-black pb-24">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Back Button */}
         <motion.button
           initial={{ opacity: 0, x: -20 }}
@@ -447,7 +442,7 @@ export default function ProfilePage() {
           onClick={() => router.back()}
           className="flex items-center gap-2 text-secondary hover:text-primary transition-colors mb-6"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-5 h-5" />
           Back
         </motion.button>
 
@@ -455,45 +450,73 @@ export default function ProfilePage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card border border-primary/20 rounded-xl p-8 mb-8"
+          className="bg-card border border-primary/20 rounded-xl p-6 lg:p-8 mb-8"
         >
-          <div className="flex items-start gap-6 mb-6">
-            <UserAvatar
-              username={profileUser.username}
-              echoes={profileUser.echoes || 0}
-              size="xl"
-            />
+          {/* Mobile Layout */}
+          <div className="block lg:hidden">
+            {/* Avatar and Actions Row */}
+            <div className="flex items-start justify-between mb-6">
+              <UserAvatar
+                username={profileUser.username}
+                echoes={profileUser.echoes || 0}
+                size="xl"
+              />
 
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold">{profileUser.username}</h1>
+              {/* Mobile Actions */}
+              <div className="flex flex-col gap-2">
+                {isOwnProfile ? (
+                  <button
+                    onClick={() => setShowKillSwitch(true)}
+                    className="btn text-red-400 border-2 border-red-500/60 hover:border-red-400 hover:bg-red-500/20 bg-red-500/10 px-3 py-1.5 text-sm shadow-lg shadow-red-500/20 hover:shadow-red-500/30 transition-all duration-200"
+                  >
+                    <Biohazard className="w-6 h-6" />
+                  </button>
+                ) : (
+                  <>
+                    {currentUser && (
+                      <FollowButton
+                        userId={profileUser.id}
+                        isFollowing={isFollowing}
+                        onFollowChange={handleFollowChange}
+                        className="px-3 py-1.5 text-sm"
+                      />
+                    )}
+                    <button className="btn btn-secondary px-3 py-1.5 text-sm flex items-center gap-2">
+                      <Flag className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* User Info */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <h1 className="text-2xl font-bold">{profileUser.username}</h1>
                 {profileUser.is_muffled !== undefined &&
                   !profileUser.is_muffled && (
-                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                      <span className="text-black text-sm">✓</span>
+                    <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                      <span className="text-black text-xs">✓</span>
                     </div>
                   )}
               </div>
 
-              <div className="mb-4">
+              <div className="flex flex-col gap-3 mb-4">
                 <RankBadge
                   echoes={profileUser.echoes || 0}
-                  size="lg"
+                  size="md"
                   showProgress
                 />
-              </div>
-
-              <div className="mb-4">
-                <EchoesDisplay echoes={profileUser.echoes || 0} size="lg" />
+                <EchoesDisplay echoes={profileUser.echoes || 0} size="md" />
               </div>
 
               {profileUser.bio && (
-                <p className="text-secondary leading-relaxed mb-4">
+                <p className="text-secondary leading-relaxed mb-4 text-sm">
                   {profileUser.bio}
                 </p>
               )}
 
-              <div className="flex items-center gap-4 text-sm text-secondary">
+              <div className="flex flex-col gap-2 text-sm text-secondary">
                 {profileUser.student_since_year && (
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
@@ -505,85 +528,142 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2">
-              {isOwnProfile ? (
-                <button
-                  onClick={() => setShowKillSwitch(true)}
-                  className="btn text-red-400 border-red-400/50 hover:bg-red-400/10 px-4 py-2 text-sm"
-                >
-                  Kill Switch
-                </button>
-              ) : (
-                <>
-                  {currentUser && (
-                    <FollowButton
-                      userId={profileUser.id}
-                      isFollowing={isFollowing}
-                      onFollowChange={handleFollowChange}
-                      className="px-4 py-2"
+          {/* Desktop Layout */}
+          <div className="hidden lg:block">
+            <div className="flex items-start gap-8 mb-8">
+              <UserAvatar
+                username={profileUser.username}
+                echoes={profileUser.echoes || 0}
+                size="xl"
+              />
+
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <h1 className="text-3xl font-bold">{profileUser.username}</h1>
+                  {profileUser.is_muffled !== undefined &&
+                    !profileUser.is_muffled && (
+                      <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                        <span className="text-black text-sm">✓</span>
+                      </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <RankBadge
+                      echoes={profileUser.echoes || 0}
+                      size="lg"
+                      showProgress
                     />
+                  </div>
+                  <div>
+                    <EchoesDisplay echoes={profileUser.echoes || 0} size="lg" />
+                  </div>
+                </div>
+
+                {profileUser.bio && (
+                  <p className="text-secondary leading-relaxed mb-4">
+                    {profileUser.bio}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-6 text-sm text-secondary">
+                  {profileUser.student_since_year && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>Student since {profileUser.student_since_year}</span>
+                    </div>
                   )}
-                  <button className="btn btn-secondary px-4 py-2 flex items-center gap-2">
-                    <Flag className="w-4 h-4" />
-                    Report
+                  <div className="flex items-center gap-2">
+                    <span>Joined {formatDate(profileUser.created_at)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop Actions */}
+              <div className="flex flex-col gap-3">
+                {isOwnProfile ? (
+                  <button
+                    onClick={() => setShowKillSwitch(true)}
+                    className="btn text-red-400 border-2 border-red-500/60 hover:border-red-400 hover:bg-red-500/20 bg-red-500/10 px-4 py-2 text-sm flex items-center gap-2 shadow-lg shadow-red-500/20 hover:shadow-red-500/30 transition-all duration-200"
+                  >
+                    <Biohazard className="w-5 h-5" />
+                    Kill Switch
                   </button>
-                </>
-              )}
+                ) : (
+                  <>
+                    {currentUser && (
+                      <FollowButton
+                        userId={profileUser.id}
+                        isFollowing={isFollowing}
+                        onFollowChange={handleFollowChange}
+                        className="px-4 py-2"
+                      />
+                    )}
+                    <button className="btn btn-secondary px-4 py-2 flex items-center gap-2">
+                      <Flag className="w-4 h-4" />
+                      Report
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Stats Grid - Always shown */}
+            <div className="grid grid-cols-2 gap-4">
             {stats.map((stat, index) => (
               <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index }}
-                className="bg-muted/50 rounded-lg p-4 text-center"
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index }}
+              className="bg-muted/50 rounded-lg p-4 text-center hover:bg-muted/70 transition-colors"
               >
-                <div className="flex justify-center mb-2">{stat.icon}</div>
-                <div className="text-xl font-bold">{stat.value}</div>
-                <div className="text-sm text-secondary">{stat.label}</div>
+              <div className="flex justify-center mb-2">{stat.icon}</div>
+              <div className="text-xl lg:text-2xl font-bold">{stat.value}</div>
+              <div className="text-sm text-secondary">{stat.label}</div>
               </motion.div>
             ))}
-          </div>
+
+
+            {/* Followers/Following Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="col-span-2"
+            >
+              <UserStats user={profileUser} isOwnProfile={isOwnProfile} />
+            </motion.div>
+
+            {/* Reviews Section */}
+            </div>
         </motion.div>
 
-        {/* Followers/Following Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="mb-8"
-        >
-          <UserStats user={profileUser} isOwnProfile={isOwnProfile} />
-        </motion.div>
 
-        {/* Reviews Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <h3 className="text-xl lg:text-2xl font-bold">
               Reviews ({filteredReviews.length})
             </h3>
 
-            <div className="flex items-center gap-2">
-              <span className="text-secondary">Filter:</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-secondary text-sm">Filter:</span>
               {["all", "courses", "professors"].map((option) => (
                 <button
                   key={option}
                   onClick={() => setFilterBy(option)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    filterBy === option
-                      ? "bg-primary text-black"
-                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors whitespace-nowrap ${filterBy === option
+                    ? "bg-primary text-black"
+                    : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>

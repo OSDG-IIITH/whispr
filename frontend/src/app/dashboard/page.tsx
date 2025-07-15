@@ -90,11 +90,11 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 backdrop-blur-xl border-b border-yellow-600/50"
         >
-          <div className="max-w-4xl mx-auto px-2 sm:px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
+          <div className="max-w-4xl mx-auto px-2 sm:px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
             <div className="flex items-center gap-3">
               <Shield className="w-5 h-5 text-yellow-500" />
               <div>
-                <p className="font-semibold text-sm">Your account is muffled</p>
+                <p className="font-semibold text-md">Your account is muffled</p>
                 <p className="text-xs text-secondary">
                   Verify your student status to post reviews and vote
                 </p>
