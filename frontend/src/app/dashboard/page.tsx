@@ -116,6 +116,38 @@ export default function DashboardPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1 order-2 lg:order-1">
             <div className="sticky top-8 space-y-6">
+              {/* Mobile Quick Actions - Only visible on mobile */}
+              <div className="lg:hidden">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-card border border-primary/20 rounded-xl p-6"
+                >
+                  <h3 className="font-semibold mb-4">Quick Actions</h3>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => router.push("/courses")}
+                      className="w-full h-10 btn btn-primary text-sm"
+                    >
+                      Browse Courses
+                    </button>
+                    <button
+                      onClick={() => router.push("/professors")}
+                      className="w-full h-10 btn btn-primary text-sm"
+                    >
+                      Browse Professors
+                    </button>
+                    <button
+                      onClick={() => router.push("/profiles")}
+                      className="w-full h-10 btn btn-primary text-sm"
+                    >
+                      Browse Profiles
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+
               {/* User Profile Card */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -164,35 +196,37 @@ export default function DashboardPage() {
                 </div>
               </motion.div>
 
-              {/* Quick Actions */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-card border border-primary/20 rounded-xl p-6"
-              >
-                <h3 className="font-semibold mb-4">Quick Actions</h3>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => router.push("/courses")}
-                    className="w-full h-10 btn btn-primary text-sm"
-                  >
-                    Browse Courses
-                  </button>
-                  <button
-                    onClick={() => router.push("/professors")}
-                    className="w-full h-10 btn btn-primary text-sm"
-                  >
-                    Browse Professors
-                  </button>
-                  <button
-                    onClick={() => router.push("/profiles")}
-                    className="w-full h-10 btn btn-primary text-sm"
-                  >
-                    Browse Profiles
-                  </button>
-                </div>
-              </motion.div>
+              {/* Desktop Quick Actions - Only visible on desktop */}
+              <div className="hidden lg:block">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-card border border-primary/20 rounded-xl p-6"
+                >
+                  <h3 className="font-semibold mb-4">Quick Actions</h3>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => router.push("/courses")}
+                      className="w-full h-10 btn btn-primary text-sm"
+                    >
+                      Browse Courses
+                    </button>
+                    <button
+                      onClick={() => router.push("/professors")}
+                      className="w-full h-10 btn btn-primary text-sm"
+                    >
+                      Browse Professors
+                    </button>
+                    <button
+                      onClick={() => router.push("/profiles")}
+                      className="w-full h-10 btn btn-primary text-sm"
+                    >
+                      Browse Profiles
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
             </div>
           </div>
 

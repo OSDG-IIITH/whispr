@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bell, Home, User } from "lucide-react";
+import { Search, Bell, Home, User, BookOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { SearchBar } from "./SearchBar";
 import { ProfileMenu } from "./ProfileMenu";
 import { NotificationPanel } from "./NotificationPanel";
+import { BrowseMenu } from "./BrowseMenu";
 import { useNotifications } from "@/hooks/useNotifications";
 
 export function FloatingDock() {
@@ -15,6 +16,7 @@ export function FloatingDock() {
   const [showSearch, setShowSearch] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showBrowse, setShowBrowse] = useState(false);
   const { unreadCount } = useNotifications();
 
   // Hide dock on auth pages
@@ -26,7 +28,7 @@ export function FloatingDock() {
     <>
       {/* Backdrop */}
       <AnimatePresence>
-        {(showSearch || showNotifications || showProfile) && (
+        {(showSearch || showNotifications || showProfile || showBrowse) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -36,6 +38,7 @@ export function FloatingDock() {
               setShowSearch(false);
               setShowNotifications(false);
               setShowProfile(false);
+              setShowBrowse(false);
             }}
           />
         )}
@@ -63,6 +66,24 @@ export function FloatingDock() {
                 </motion.button>
               </Link>
 
+              {/* Browse Menu */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setShowBrowse(!showBrowse);
+                  setShowSearch(false);
+                  setShowNotifications(false);
+                  setShowProfile(false);
+                }}
+                className={`p-3 rounded-xl transition-colors ${showBrowse || pathname === '/courses' || pathname === '/professors'
+                  ? 'bg-primary text-black'
+                  : 'text-primary hover:bg-primary/10'
+                  }`}
+              >
+                <BookOpen className="w-5 h-5" />
+              </motion.button>
+
               {/* Search */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -71,6 +92,7 @@ export function FloatingDock() {
                   setShowSearch(!showSearch);
                   setShowNotifications(false);
                   setShowProfile(false);
+                  setShowBrowse(false);
                 }}
                 className={`p-3 rounded-xl transition-colors ${showSearch
                   ? 'bg-primary text-black'
@@ -88,6 +110,7 @@ export function FloatingDock() {
                   setShowNotifications(!showNotifications);
                   setShowSearch(false);
                   setShowProfile(false);
+                  setShowBrowse(false);
                 }}
                 className={`p-3 rounded-xl transition-colors relative ${showNotifications
                   ? 'bg-primary text-black'
@@ -111,6 +134,7 @@ export function FloatingDock() {
                   setShowProfile(!showProfile);
                   setShowSearch(false);
                   setShowNotifications(false);
+                  setShowBrowse(false);
                 }}
                 className={`p-3 rounded-xl transition-colors ${showProfile
                   ? 'bg-primary text-black'
@@ -156,8 +180,7 @@ export function FloatingDock() {
       </div>
 
       {/* Profile Menu */}
-
-      < div className="fixed bottom-28 left-0 right-0 z-50 flex justify-center" >
+      <div className="fixed bottom-28 left-0 right-0 z-50 flex justify-center">
         <AnimatePresence>
           {showProfile && (
             <motion.div
@@ -167,6 +190,22 @@ export function FloatingDock() {
               className="w-64"
             >
               <ProfileMenu onClose={() => setShowProfile(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Browse Menu */}
+      <div className="fixed bottom-28 left-0 right-0 z-50 flex justify-center">
+        <AnimatePresence>
+          {showBrowse && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="w-64"
+            >
+              <BrowseMenu onClose={() => setShowBrowse(false)} />
             </motion.div>
           )}
         </AnimatePresence>

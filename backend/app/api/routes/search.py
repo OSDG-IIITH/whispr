@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, and_, func, desc, asc
 
 from app.db.session import get_db
-from app.auth.jwt import get_current_unmuffled_user
+from app.auth.jwt import get_current_user
 from app.models.user import User as UserModel
 from app.models.course import Course as CourseModel
 from app.models.professor import Professor as ProfessorModel
@@ -20,6 +20,23 @@ from app.models.review import Review as ReviewModel
 from app.models.reply import Reply as ReplyModel
 from app.models.course_instructor \
     import CourseInstructor as CourseInstructorModel
+
+async def get_current_unmuffled_user(
+    current_user: UserModel = Depends(get_current_user)
+) -> UserModel:
+    """
+    Get the current authenticated user and ensure they are not muffled.
+    
+    Note: This function can be used in the future if we need to restrict
+    certain search functionality for muffled users. Currently, all users 
+    (including muffled users) can access the search functionality.
+    """
+    if current_user.is_muffled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Muffled users cannot access search functionality"
+        )
+    return current_user
 
 from app.schemas.search import (
     SearchParams, SearchResponse,
@@ -131,7 +148,7 @@ def combine_relevance_scores(scores: Dict[str, float]) -> float:
 async def search(
     params: SearchParams,
     db: AsyncSession = Depends(get_db),
-    current_user: UserModel = Depends(get_current_unmuffled_user)
+    current_user: UserModel = Depends(get_current_user)
 ) -> Any:
     """
     Search across various entities with optional filtering and deep search.
@@ -237,7 +254,7 @@ async def search_get(
     limit: int = Query(100, ge=1, le=100,
                        description="Maximum number of results to return"),
     db: AsyncSession = Depends(get_db),
-    current_user: UserModel = Depends(get_current_unmuffled_user)
+    current_user: UserModel = Depends(get_current_user)
 ) -> Any:
     """
     GET endpoint for search functionality (same as POST but with query params).
