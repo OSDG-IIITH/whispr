@@ -84,8 +84,9 @@ CREATE TABLE reviews (
 -- Create course_instructor-review table
 CREATE TABLE course_instructor_reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
-    course_instructor_id UUID REFERENCES course_instructors(id) ON DELETE CASCADE,
+    review_id UUID NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+    course_instructor_id UUID NOT NULL REFERENCES course_instructors(id) ON DELETE CASCADE,
+    UNIQUE(review_id, course_instructor_id)
 );
 -- Create replies table
 CREATE TABLE replies (
@@ -220,7 +221,6 @@ CREATE INDEX idx_courses_name ON courses(name);
 CREATE INDEX idx_reviews_user_id ON reviews(user_id);
 CREATE INDEX idx_reviews_course_id ON reviews(course_id);
 CREATE INDEX idx_reviews_professor_id ON reviews(professor_id);
-CREATE INDEX idx_reviews_course_instructor_id ON reviews(course_instructor_id);
 CREATE INDEX idx_replies_review_id ON replies(review_id);
 CREATE INDEX idx_replies_user_id ON replies(user_id);
 CREATE INDEX idx_votes_user_id ON votes(user_id);
@@ -238,6 +238,8 @@ CREATE INDEX idx_verification_sessions_user_id ON verification_sessions(user_id)
 CREATE INDEX idx_professor_social_media_professor_id ON professor_social_media(professor_id);
 CREATE INDEX idx_course_instructors_professor_id ON course_instructors(professor_id);
 CREATE INDEX idx_course_instructors_course_id ON course_instructors(course_id);
+CREATE INDEX idx_course_instructor_reviews_review_id ON course_instructor_reviews(review_id);
+CREATE INDEX idx_course_instructor_reviews_course_instructor_id ON course_instructor_reviews(course_instructor_id);
 -- Add some trigger functions to handle updated_at timestamps
 CREATE OR REPLACE FUNCTION update_modified_column() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = now();
 RETURN NEW;
