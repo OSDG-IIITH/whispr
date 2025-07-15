@@ -423,7 +423,7 @@ export default function ProfilePage() {
     {
       label: "Reviews",
       value: reviews.length,
-      icon: <MessageSquare className="w-5 h-5 text-blue-500" />,
+      icon: <MessageSquare className="w-5 h-5 text-blgreen00" />,
     },
     {
       label: "Upvotes",

@@ -128,6 +128,22 @@ export default function LandingPage() {
               </button>
             </Link>
           </motion.div>
+
+          {/* Privacy Link */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 1.2 }}
+            className="mt-6"
+          >
+            <Link
+              href="/anonymity"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-card/30 backdrop-blur-sm border border-primary/30 rounded-lg text-secondary hover:text-primary hover:border-primary/60 hover:bg-card/50 transition-all duration-300 text-sm font-medium"
+            >
+              <Shield className="w-4 h-4" />
+              Learn how we protect your anonymity
+            </Link>
+          </motion.div>
         </div>
       </section>
 
@@ -227,6 +243,22 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </div>
+
+          {/* Learn More About Privacy */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 1.2 }}
+            className="mt-8 text-center"
+          >
+            <Link
+              href="/anonymity"
+              className="text-secondary hover:text-primary transition-colors text-sm flex items-center justify-center gap-2"
+            >
+              <Shield className="w-4 h-4" />
+              Learn more about how we protect your privacy
+            </Link>
+          </motion.div>
         </div>
       </section>
 
