@@ -472,8 +472,8 @@ export function SearchBar({ onClose }: SearchBarProps) {
         ))}
       </motion.div>
 
-      {/* Search Button - Shown on mobile only */}
-      <div className="md:hidden mb-4">
+      {/* Search Button */}
+      <div className="mb-4">
         <motion.button
           onClick={handleSearch}
           className="w-full flex items-center justify-center gap-2 bg-primary text-black py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors"
