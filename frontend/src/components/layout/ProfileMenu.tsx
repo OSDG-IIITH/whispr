@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { X, Settings, Shield, LogOut, User } from "lucide-react";
+import { X, Settings, Shield, LogOut, User, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { RankBadge } from "@/components/user/RankBadge";
@@ -31,6 +31,11 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
   const handleViewProfile = () => {
     onClose();
     router.push(`/profile/${user?.username}`);
+  };
+
+  const handleProfiles = () => {
+    onClose();
+    router.push("/profiles");
   };
 
   const handleSettings = () => {
@@ -85,6 +90,16 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
         >
           <User className="w-5 h-5 text-secondary" />
           <span>View Profile</span>
+        </motion.button>
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleProfiles}
+          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
+        >
+          <Users className="w-5 h-5 text-secondary" />
+          <span>Browse Profiles</span>
         </motion.button>
 
         <motion.button

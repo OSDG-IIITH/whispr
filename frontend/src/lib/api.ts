@@ -145,6 +145,59 @@ export const userAPI = {
     return apiCall<User[]>(`/users?skip=${skip}&limit=${limit}`);
   },
 
+  getLeaderboard: async (limit = 10) => {
+    return apiCall<User[]>(`/users/leaderboard?limit=${limit}`);
+  },
+
+  browseUsers: async (
+    params: {
+      skip?: number;
+      limit?: number;
+      search?: string;
+      sort_by?: string;
+      order?: string;
+      min_echoes?: number;
+      is_verified?: boolean;
+      exclude_leaderboard?: boolean;
+      leaderboard_limit?: number;
+    } = {}
+  ) => {
+    const searchParams = new URLSearchParams();
+
+    if (params.skip !== undefined)
+      searchParams.append("skip", params.skip.toString());
+    if (params.limit !== undefined)
+      searchParams.append("limit", params.limit.toString());
+    if (params.search) searchParams.append("search", params.search);
+    if (params.sort_by) searchParams.append("sort_by", params.sort_by);
+    if (params.order) searchParams.append("order", params.order);
+    if (params.min_echoes !== undefined)
+      searchParams.append("min_echoes", params.min_echoes.toString());
+    if (params.is_verified !== undefined)
+      searchParams.append("is_verified", params.is_verified.toString());
+    if (params.exclude_leaderboard !== undefined)
+      searchParams.append(
+        "exclude_leaderboard",
+        params.exclude_leaderboard.toString()
+      );
+    if (params.leaderboard_limit !== undefined)
+      searchParams.append(
+        "leaderboard_limit",
+        params.leaderboard_limit.toString()
+      );
+
+    return apiCall<User[]>(`/users/browse?${searchParams.toString()}`);
+  },
+
+  getUserStats: async () => {
+    return apiCall<{
+      total_users: number;
+      verified_users: number;
+      total_echoes: number;
+      average_echoes: number;
+    }>("/users/stats");
+  },
+
   getUser: async (userId: string) => {
     return apiCall<User>(`/users/${userId}`);
   },
@@ -476,7 +529,7 @@ export const courseAPI = {
   // Add this function to get fresh course data
   refreshCourse: async (courseId: string) => {
     return apiCall<Course>(`/courses/${courseId}?refresh=true`);
-  }
+  },
 };
 
 // Professor API
@@ -498,7 +551,7 @@ export const professorAPI = {
   // Add this function to get fresh professor data
   refreshProfessor: async (professorId: string) => {
     return apiCall<Professor>(`/professors/${professorId}?refresh=true`);
-  }
+  },
 };
 
 // Verification API

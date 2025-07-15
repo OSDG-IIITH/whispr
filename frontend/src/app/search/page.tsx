@@ -2,14 +2,28 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, BookOpen, GraduationCap, MessageSquare, UserCheck, ChevronDown } from "lucide-react";
+import {
+  Search,
+  Filter,
+  BookOpen,
+  GraduationCap,
+  MessageSquare,
+  UserCheck,
+  ChevronDown,
+} from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { searchAPI } from "@/lib/api";
 
 interface SearchResultData {
   id: string;
-  type: "course" | "professor" | "review" | "reply" | "course_instructor";
+  type:
+    | "course"
+    | "professor"
+    | "review"
+    | "reply"
+    | "course_instructor"
+    | "user";
   title: string;
   subtitle?: string;
   description: string;
@@ -29,182 +43,240 @@ export default function SearchPage() {
   const [entityTypes, setEntityTypes] = useState<string[]>(
     searchParams.get("entity_types")?.split(",").filter(Boolean) || []
   );
-  const [sortBy, setSortBy] = useState(searchParams.get("sort_by") || "relevance");
-  const [sortOrder, setSortOrder] = useState(searchParams.get("sort_order") || "desc");
-  const [deepSearch, setDeepSearch] = useState(searchParams.get("deep") === "true");
+  const [sortBy, setSortBy] = useState(
+    searchParams.get("sort_by") || "relevance"
+  );
+  const [sortOrder, setSortOrder] = useState(
+    searchParams.get("sort_order") || "desc"
+  );
+  const [deepSearch, setDeepSearch] = useState(
+    searchParams.get("deep") === "true"
+  );
   const [minRating, setMinRating] = useState<number | undefined>(
-    searchParams.get("min_rating") ? parseInt(searchParams.get("min_rating")!) : undefined
+    searchParams.get("min_rating")
+      ? parseInt(searchParams.get("min_rating")!)
+      : undefined
   );
   const [maxRating, setMaxRating] = useState<number | undefined>(
-    searchParams.get("max_rating") ? parseInt(searchParams.get("max_rating")!) : undefined
+    searchParams.get("max_rating")
+      ? parseInt(searchParams.get("max_rating")!)
+      : undefined
   );
   const [currentPage, setCurrentPage] = useState(0);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const RESULTS_PER_PAGE = 20;
 
-  const performSearch = useCallback(async (page = 0, append = false) => {
-    if (!query.trim()) return;
+  const performSearch = useCallback(
+    async (page = 0, append = false) => {
+      if (!query.trim()) return;
 
-    setLoading(true);
-    try {
-      const params: Record<string, unknown> = {
-        query: query.trim(),
-        deep: deepSearch,
-        sort_by: sortBy,
-        sort_order: sortOrder,
-        skip: page * RESULTS_PER_PAGE,
-        limit: RESULTS_PER_PAGE,
-      };
+      setLoading(true);
+      try {
+        const params: Record<string, unknown> = {
+          query: query.trim(),
+          deep: deepSearch,
+          sort_by: sortBy,
+          sort_order: sortOrder,
+          skip: page * RESULTS_PER_PAGE,
+          limit: RESULTS_PER_PAGE,
+        };
 
-      if (entityTypes.length > 0) {
-        params.entity_types = entityTypes;
-      }
-
-      if (minRating !== undefined) {
-        params.min_rating = minRating;
-      }
-
-      if (maxRating !== undefined) {
-        params.max_rating = maxRating;
-      }
-
-      const response = await searchAPI.search(params);
-
-      // Transform API results to our format
-      const transformedResults: SearchResultData[] = response.results.map((result: unknown) => {
-        let transformedResult: SearchResultData;
-
-        switch (result.entity_type) {
-          case "course":
-            transformedResult = {
-              id: result.data.id,
-              type: "course",
-              title: `${result.data.code} - ${result.data.name}`,
-              subtitle: `${result.data.credits} Credits`,
-              description: result.data.description || "No description available",
-              rating: result.data.average_rating ? Number(result.data.average_rating) : undefined,
-              metadata: {
-                reviewCount: result.data.review_count,
-                code: result.data.code,
-                credits: result.data.credits
-              },
-              relevanceScore: result.relevance_score,
-              rawData: result.data
-            };
-            break;
-
-          case "professor":
-            transformedResult = {
-              id: result.data.id,
-              type: "professor",
-              title: result.data.name,
-              subtitle: result.data.lab || "Faculty",
-              description: result.data.review_summary || "No summary available",
-              rating: result.data.average_rating ? Number(result.data.average_rating) : undefined,
-              metadata: {
-                reviewCount: result.data.review_count,
-                lab: result.data.lab
-              },
-              relevanceScore: result.relevance_score,
-              rawData: result.data
-            };
-            break;
-
-          case "course_instructor":
-            transformedResult = {
-              id: result.data.id,
-              type: "course_instructor",
-              title: `${result.data.course.code} - ${result.data.professor.name}`,
-              subtitle: `${result.data.semester} ${result.data.year}`,
-              description: result.data.summary || `${result.data.professor.name} teaching ${result.data.course.name}`,
-              rating: result.data.average_rating ? Number(result.data.average_rating) : undefined,
-              metadata: {
-                reviewCount: result.data.review_count,
-                semester: result.data.semester,
-                year: result.data.year,
-                courseCode: result.data.course.code,
-                professorName: result.data.professor.name
-              },
-              relevanceScore: result.relevance_score,
-              rawData: result.data
-            };
-            break;
-
-          case "review":
-            transformedResult = {
-              id: result.data.id,
-              type: "review",
-              title: "Review",
-              subtitle: `by ${result.data.user.username} • ${result.data.rating} stars`,
-              description: result.data.content,
-              metadata: {
-                upvotes: result.data.upvotes,
-                downvotes: result.data.downvotes,
-                createdAt: new Date(result.data.created_at).toLocaleDateString(),
-                username: result.data.user.username,
-                rating: result.data.rating
-              },
-              relevanceScore: result.relevance_score,
-              rawData: result.data
-            };
-            break;
-
-          case "reply":
-            transformedResult = {
-              id: result.data.id,
-              type: "reply",
-              title: "Reply",
-              subtitle: `by ${result.data.user.username}`,
-              description: result.data.content,
-              metadata: {
-                upvotes: result.data.upvotes,
-                downvotes: result.data.downvotes,
-                createdAt: new Date(result.data.created_at).toLocaleDateString(),
-                username: result.data.user.username
-              },
-              relevanceScore: result.relevance_score,
-              rawData: result.data
-            };
-            break;
-
-          default:
-            transformedResult = {
-              id: result.data.id || Math.random().toString(),
-              type: result.entity_type,
-              title: "Unknown",
-              description: "Unknown result type",
-              metadata: {},
-              relevanceScore: result.relevance_score,
-              rawData: result.data
-            };
+        if (entityTypes.length > 0) {
+          params.entity_types = entityTypes;
         }
 
-        return transformedResult;
-      });
+        if (minRating !== undefined) {
+          params.min_rating = minRating;
+        }
 
-      if (append) {
-        setResults(prev => [...prev, ...transformedResults]);
-      } else {
-        setResults(transformedResults);
+        if (maxRating !== undefined) {
+          params.max_rating = maxRating;
+        }
+
+        const response = await searchAPI.search(params);
+
+        // Transform API results to our format
+        const transformedResults: SearchResultData[] = response.results.map(
+          (result: unknown) => {
+            let transformedResult: SearchResultData;
+
+            switch (result.entity_type) {
+              case "course":
+                transformedResult = {
+                  id: result.data.id,
+                  type: "course",
+                  title: `${result.data.code} - ${result.data.name}`,
+                  subtitle: `${result.data.credits} Credits`,
+                  description:
+                    result.data.description || "No description available",
+                  rating: result.data.average_rating
+                    ? Number(result.data.average_rating)
+                    : undefined,
+                  metadata: {
+                    reviewCount: result.data.review_count,
+                    code: result.data.code,
+                    credits: result.data.credits,
+                  },
+                  relevanceScore: result.relevance_score,
+                  rawData: result.data,
+                };
+                break;
+
+              case "professor":
+                transformedResult = {
+                  id: result.data.id,
+                  type: "professor",
+                  title: result.data.name,
+                  subtitle: result.data.lab || "Faculty",
+                  description:
+                    result.data.review_summary || "No summary available",
+                  rating: result.data.average_rating
+                    ? Number(result.data.average_rating)
+                    : undefined,
+                  metadata: {
+                    reviewCount: result.data.review_count,
+                    lab: result.data.lab,
+                  },
+                  relevanceScore: result.relevance_score,
+                  rawData: result.data,
+                };
+                break;
+
+              case "course_instructor":
+                transformedResult = {
+                  id: result.data.id,
+                  type: "course_instructor",
+                  title: `${result.data.course.code} - ${result.data.professor.name}`,
+                  subtitle: `${result.data.semester} ${result.data.year}`,
+                  description:
+                    result.data.summary ||
+                    `${result.data.professor.name} teaching ${result.data.course.name}`,
+                  rating: result.data.average_rating
+                    ? Number(result.data.average_rating)
+                    : undefined,
+                  metadata: {
+                    reviewCount: result.data.review_count,
+                    semester: result.data.semester,
+                    year: result.data.year,
+                    courseCode: result.data.course.code,
+                    professorName: result.data.professor.name,
+                  },
+                  relevanceScore: result.relevance_score,
+                  rawData: result.data,
+                };
+                break;
+
+              case "review":
+                transformedResult = {
+                  id: result.data.id,
+                  type: "review",
+                  title: "Review",
+                  subtitle: `by ${result.data.user.username} • ${result.data.rating} stars`,
+                  description: result.data.content,
+                  metadata: {
+                    upvotes: result.data.upvotes,
+                    downvotes: result.data.downvotes,
+                    createdAt: new Date(
+                      result.data.created_at
+                    ).toLocaleDateString(),
+                    username: result.data.user.username,
+                    rating: result.data.rating,
+                  },
+                  relevanceScore: result.relevance_score,
+                  rawData: result.data,
+                };
+                break;
+
+              case "reply":
+                transformedResult = {
+                  id: result.data.id,
+                  type: "reply",
+                  title: "Reply",
+                  subtitle: `by ${result.data.user.username}`,
+                  description: result.data.content,
+                  metadata: {
+                    upvotes: result.data.upvotes,
+                    downvotes: result.data.downvotes,
+                    createdAt: new Date(
+                      result.data.created_at
+                    ).toLocaleDateString(),
+                    username: result.data.user.username,
+                  },
+                  relevanceScore: result.relevance_score,
+                  rawData: result.data,
+                };
+                break;
+
+              case "user":
+                transformedResult = {
+                  id: result.data.id,
+                  type: "user",
+                  title: `@${result.data.username}`,
+                  subtitle: result.data.is_muffled ? "Unverified" : "Verified",
+                  description: result.data.bio || "No bio available",
+                  metadata: {
+                    echoes: result.data.echoes,
+                    studentSince: result.data.student_since_year,
+                    joinedAt: new Date(
+                      result.data.created_at
+                    ).toLocaleDateString(),
+                    isVerified: !result.data.is_muffled,
+                  },
+                  relevanceScore: result.relevance_score,
+                  rawData: result.data,
+                };
+                break;
+
+              default:
+                transformedResult = {
+                  id: result.data.id || Math.random().toString(),
+                  type: result.entity_type,
+                  title: "Unknown",
+                  description: "Unknown result type",
+                  metadata: {},
+                  relevanceScore: result.relevance_score,
+                  rawData: result.data,
+                };
+            }
+
+            return transformedResult;
+          }
+        );
+
+        if (append) {
+          setResults((prev) => [...prev, ...transformedResults]);
+        } else {
+          setResults(transformedResults);
+        }
+
+        setTotalResults(response.total);
+        setCurrentPage(page);
+      } catch (error) {
+        console.error("Search error:", error);
+        setResults([]);
+        setTotalResults(0);
+      } finally {
+        setLoading(false);
       }
-
-      setTotalResults(response.total);
-      setCurrentPage(page);
-    } catch (error) {
-      console.error("Search error:", error);
-      setResults([]);
-      setTotalResults(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [query, entityTypes, sortBy, sortOrder, deepSearch, minRating, maxRating]);
+    },
+    [query, entityTypes, sortBy, sortOrder, deepSearch, minRating, maxRating]
+  );
 
   useEffect(() => {
     if (query) {
       performSearch(0, false);
     }
-  }, [query, entityTypes, sortBy, sortOrder, deepSearch, minRating, maxRating, performSearch]);
+  }, [
+    query,
+    entityTypes,
+    sortBy,
+    sortOrder,
+    deepSearch,
+    minRating,
+    maxRating,
+    performSearch,
+  ]);
 
   const handleLoadMore = () => {
     performSearch(currentPage + 1, true);
@@ -213,7 +285,8 @@ export default function SearchPage() {
   const updateURL = () => {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
-    if (entityTypes.length > 0) params.set("entity_types", entityTypes.join(","));
+    if (entityTypes.length > 0)
+      params.set("entity_types", entityTypes.join(","));
     if (sortBy !== "relevance") params.set("sort_by", sortBy);
     if (sortOrder !== "desc") params.set("sort_order", sortOrder);
     if (deepSearch) params.set("deep", "true");
@@ -225,7 +298,7 @@ export default function SearchPage() {
 
   const handleEntityTypeToggle = (type: string) => {
     const newTypes = entityTypes.includes(type)
-      ? entityTypes.filter(t => t !== type)
+      ? entityTypes.filter((t) => t !== type)
       : [...entityTypes, type];
     setEntityTypes(newTypes);
   };
@@ -242,6 +315,8 @@ export default function SearchPage() {
         return <MessageSquare className="w-5 h-5 text-yellow-500" />;
       case "reply":
         return <MessageSquare className="w-5 h-5 text-green-500" />;
+      case "user":
+        return <UserCheck className="w-5 h-5 text-blue-500" />;
       default:
         return <Search className="w-5 h-5 text-secondary" />;
     }
@@ -255,9 +330,12 @@ export default function SearchPage() {
         return `/professors/${result.id}`;
       case "course_instructor":
         return `/courses/${result.metadata?.courseCode}?professor=${result.rawData?.professor?.id}`;
+      case "user":
+        return `/profile/${result.rawData?.username}`;
       case "review":
         // Find course code from the review data
-        const reviewCourseCode = result.rawData?.course?.code ||
+        const reviewCourseCode =
+          result.rawData?.course?.code ||
           result.rawData?.course_instructor?.course?.code;
         if (reviewCourseCode) {
           return `/courses/${reviewCourseCode}?reviewId=${result.id}`;
@@ -266,7 +344,8 @@ export default function SearchPage() {
         return `/dashboard`;
       case "reply":
         // Find course code from the reply's review data
-        const replyCourseCode = result.rawData?.review?.course?.code ||
+        const replyCourseCode =
+          result.rawData?.review?.course?.code ||
           result.rawData?.review?.course_instructor?.course?.code;
         if (replyCourseCode) {
           return `/courses/${replyCourseCode}?reviewId=${result.rawData?.review_id}&replyId=${result.id}`;
@@ -283,7 +362,9 @@ export default function SearchPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <span
         key={i}
-        className={`text-sm ${i < Math.floor(numRating) ? 'text-yellow-500' : 'text-secondary'}`}
+        className={`text-sm ${
+          i < Math.floor(numRating) ? "text-yellow-500" : "text-secondary"
+        }`}
       >
         ★
       </span>
@@ -295,7 +376,7 @@ export default function SearchPage() {
     professor: "Professors",
     course_instructor: "Course Offerings",
     review: "Reviews",
-    reply: "Replies"
+    reply: "Replies",
   };
 
   const sortOptions = [
@@ -303,7 +384,7 @@ export default function SearchPage() {
     { value: "name", label: "Name" },
     { value: "rating", label: "Rating" },
     { value: "created_at", label: "Date" },
-    { value: "code", label: "Course Code" }
+    { value: "code", label: "Course Code" },
   ];
 
   return (
@@ -329,7 +410,9 @@ export default function SearchPage() {
 
           {query && (
             <p className="text-secondary">
-              {loading ? "Searching..." : `${totalResults} results for "${query}"`}
+              {loading
+                ? "Searching..."
+                : `${totalResults} results for "${query}"`}
             </p>
           )}
         </motion.div>
@@ -348,10 +431,11 @@ export default function SearchPage() {
               <button
                 key={type}
                 onClick={() => handleEntityTypeToggle(type)}
-                className={`px-4 py-2 text-sm rounded-lg transition-colors ${entityTypes.length === 0 || entityTypes.includes(type)
-                    ? 'bg-primary text-black'
-                    : 'bg-muted text-secondary hover:bg-primary/10 hover:text-primary'
-                  }`}
+                className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                  entityTypes.length === 0 || entityTypes.includes(type)
+                    ? "bg-primary text-black"
+                    : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
+                }`}
               >
                 {label}
               </button>
@@ -366,7 +450,11 @@ export default function SearchPage() {
             >
               <Filter className="w-4 h-4" />
               Advanced Filters
-              <ChevronDown className={`w-4 h-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${
+                  showAdvancedFilters ? "rotate-180" : ""
+                }`}
+              />
             </button>
 
             <div className="flex items-center gap-4">
@@ -378,18 +466,31 @@ export default function SearchPage() {
                     onChange={(e) => setDeepSearch(e.target.checked)}
                     className="sr-only"
                   />
-                  <div className={`w-4 h-4 rounded border-2 transition-colors ${deepSearch
-                      ? 'bg-primary border-primary'
-                      : 'border-border hover:border-primary/50'
-                    }`}>
+                  <div
+                    className={`w-4 h-4 rounded border-2 transition-colors ${
+                      deepSearch
+                        ? "bg-primary border-primary"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
                     {deepSearch && (
-                      <svg className="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-3 h-3 text-black"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     )}
                   </div>
                 </div>
-                <span className="text-secondary hover:text-primary transition-colors">Deep Search</span>
+                <span className="text-secondary hover:text-primary transition-colors">
+                  Deep Search
+                </span>
               </label>
 
               <div className="flex items-center gap-2">
@@ -428,10 +529,16 @@ export default function SearchPage() {
             >
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-secondary mb-1">Min Rating</label>
+                  <label className="block text-sm text-secondary mb-1">
+                    Min Rating
+                  </label>
                   <select
                     value={minRating || ""}
-                    onChange={(e) => setMinRating(e.target.value ? parseInt(e.target.value) : undefined)}
+                    onChange={(e) =>
+                      setMinRating(
+                        e.target.value ? parseInt(e.target.value) : undefined
+                      )
+                    }
                     className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm"
                   >
                     <option value="">Any</option>
@@ -443,10 +550,16 @@ export default function SearchPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-secondary mb-1">Max Rating</label>
+                  <label className="block text-sm text-secondary mb-1">
+                    Max Rating
+                  </label>
                   <select
                     value={maxRating || ""}
-                    onChange={(e) => setMaxRating(e.target.value ? parseInt(e.target.value) : undefined)}
+                    onChange={(e) =>
+                      setMaxRating(
+                        e.target.value ? parseInt(e.target.value) : undefined
+                      )
+                    }
                     className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm"
                   >
                     <option value="">Any</option>
@@ -467,7 +580,10 @@ export default function SearchPage() {
           {loading && results.length === 0 ? (
             // Loading skeleton
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-6">
+              <div
+                key={i}
+                className="bg-card border border-border rounded-xl p-6"
+              >
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-muted rounded-lg animate-pulse" />
                   <div className="flex-1 space-y-3">
@@ -487,7 +603,8 @@ export default function SearchPage() {
               <Search className="w-16 h-16 text-secondary mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">No results found</h3>
               <p className="text-secondary">
-                Try different keywords, enable deep search, or adjust your filters
+                Try different keywords, enable deep search, or adjust your
+                filters
               </p>
             </motion.div>
           ) : (
@@ -533,11 +650,16 @@ export default function SearchPage() {
                         <div className="flex items-center gap-4 text-xs text-secondary justify-end">
                           {result.metadata?.reviewCount !== undefined && (
                             <span className="flex items-center gap-2">
-                              {result.metadata.reviewCount} {result.metadata.reviewCount === 1 ? "review" : "reviews" }
+                              {result.metadata.reviewCount}{" "}
+                              {result.metadata.reviewCount === 1
+                                ? "review"
+                                : "reviews"}
                               {result.rating !== undefined && (
                                 <span className="flex items-center gap-1 ml-2">
                                   {renderStars(result.rating)}
-                                  <span className="text-sm text-secondary">{result.rating.toFixed(1)}</span>
+                                  <span className="text-sm text-secondary">
+                                    {result.rating.toFixed(1)}
+                                  </span>
                                 </span>
                               )}
                             </span>
@@ -548,9 +670,13 @@ export default function SearchPage() {
                           {result.metadata?.createdAt && (
                             <span>{result.metadata.createdAt}</span>
                           )}
-                          {result.metadata?.semester && result.metadata?.year && (
-                            <span>{result.metadata.semester} {result.metadata.year}</span>
-                          )}
+                          {result.metadata?.semester &&
+                            result.metadata?.year && (
+                              <span>
+                                {result.metadata.semester}{" "}
+                                {result.metadata.year}
+                              </span>
+                            )}
                         </div>
                       </div>
                     </div>

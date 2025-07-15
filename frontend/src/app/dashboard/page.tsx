@@ -185,6 +185,12 @@ export default function DashboardPage() {
                   >
                     Browse Professors
                   </button>
+                  <button
+                    onClick={() => router.push("/profiles")}
+                    className="w-full h-10 btn btn-primary text-sm"
+                  >
+                    Browse Profiles
+                  </button>
                 </div>
               </motion.div>
             </div>

@@ -46,6 +46,8 @@ export function SearchBar({ onClose }: SearchBarProps) {
             ? "professor"
             : filter === "courses"
             ? "course"
+            : filter === "users"
+            ? "user"
             : filter,
         sort_by:
           sort === "newest"
@@ -68,6 +70,7 @@ export function SearchBar({ onClose }: SearchBarProps) {
     { id: "professors", label: "Professors" },
     { id: "reviews", label: "Reviews" },
     { id: "course_instructors", label: "Course Offerings" },
+    { id: "users", label: "Users" },
   ];
 
   const sortOptions = [

@@ -2,12 +2,12 @@
 User-related routes for fetching and manipulating user data.
 """
 
-from typing import List, Any
+from typing import List, Any, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, insert, and_, delete, func
+from sqlalchemy import select, update, insert, and_, delete, func, desc, asc
 
 from app.db.session import get_db
 from app.models.user import User as UserModel
@@ -17,6 +17,130 @@ from app.auth.password import get_password_hash
 from app.core.notifications import notify_on_follow
 
 router = APIRouter()
+
+
+@router.get("/leaderboard", response_model=List[User])
+async def get_leaderboard(
+    limit: int = Query(10, ge=1, le=100),
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """
+    Get top users by echo points (leaderboard).
+    """
+    stmt = (
+        select(UserModel)
+        .order_by(desc(UserModel.echoes))
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+    return users
+
+
+@router.get("/browse", response_model=List[User])
+async def browse_users(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    search: Optional[str] = Query(None, description="Search by username or bio"),
+    sort_by: Optional[str] = Query("echoes", description="Sort by: echoes, username, created_at"),
+    order: Optional[str] = Query("desc", description="Sort order: desc, asc"),
+    min_echoes: Optional[int] = Query(None, ge=0, description="Minimum echo points"),
+    is_verified: Optional[bool] = Query(None, description="Filter by verification status"),
+    exclude_leaderboard: Optional[bool] = Query(False, description="Exclude top users from leaderboard"),
+    leaderboard_limit: Optional[int] = Query(10, ge=1, le=100, description="Number of top users to exclude if exclude_leaderboard=True"),
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """
+    Browse all users with filtering, sorting, and search capabilities.
+    """
+    # Start with base query
+    query = select(UserModel)
+    
+    # Apply search filter
+    if search and search.strip():
+        search_term = f"%{search.strip()}%"
+        query = query.where(
+            UserModel.username.ilike(search_term) | 
+            UserModel.bio.ilike(search_term)
+        )
+    
+    # Apply filters
+    if min_echoes is not None:
+        query = query.where(UserModel.echoes >= min_echoes)
+    
+    if is_verified is not None:
+        query = query.where(UserModel.is_muffled == (not is_verified))
+    
+    # Exclude leaderboard users if requested
+    if exclude_leaderboard:
+        # Get the IDs of top users to exclude
+        leaderboard_query = (
+            select(UserModel.id)
+            .order_by(desc(UserModel.echoes))
+            .limit(leaderboard_limit)
+        )
+        leaderboard_result = await db.execute(leaderboard_query)
+        leaderboard_ids = [row[0] for row in leaderboard_result.fetchall()]
+        
+        if leaderboard_ids:
+            query = query.where(~UserModel.id.in_(leaderboard_ids))
+    
+    # Apply sorting
+    if sort_by == "username":
+        order_by = UserModel.username
+    elif sort_by == "created_at":
+        order_by = UserModel.created_at
+    else:  # default to echoes
+        order_by = UserModel.echoes
+    
+    if order == "asc":
+        query = query.order_by(asc(order_by))
+    else:  # default to desc
+        query = query.order_by(desc(order_by))
+    
+    # Apply pagination
+    query = query.offset(skip).limit(limit)
+    
+    result = await db.execute(query)
+    users = result.scalars().all()
+    return users
+
+
+@router.get("/stats", response_model=dict)
+async def get_user_stats(
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    """
+    Get user statistics for the profiles page.
+    """
+    # Total users
+    total_users_stmt = select(func.count(UserModel.id))
+    total_users_result = await db.execute(total_users_stmt)
+    total_users = total_users_result.scalar() or 0
+    
+    # Verified users
+    verified_users_stmt = select(func.count(UserModel.id)).where(
+        UserModel.is_muffled == False
+    )
+    verified_users_result = await db.execute(verified_users_stmt)
+    verified_users = verified_users_result.scalar() or 0
+    
+    # Total echo points
+    total_echoes_stmt = select(func.sum(UserModel.echoes))
+    total_echoes_result = await db.execute(total_echoes_stmt)
+    total_echoes = total_echoes_result.scalar() or 0
+    
+    # Average echo points
+    avg_echoes_stmt = select(func.avg(UserModel.echoes))
+    avg_echoes_result = await db.execute(avg_echoes_stmt)
+    avg_echoes = avg_echoes_result.scalar() or 0
+    
+    return {
+        "total_users": total_users,
+        "verified_users": verified_users,
+        "total_echoes": int(total_echoes),
+        "average_echoes": float(avg_echoes)
+    }
 
 
 @router.get("/", response_model=List[User])
