@@ -1,5 +1,3 @@
-import React from "react";
-import { useRouter } from "next/navigation";
 import { RANKS, type Rank, type RankKey } from "./constants";
 
 /**
