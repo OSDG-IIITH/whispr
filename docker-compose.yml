@@ -4,7 +4,6 @@ services:
     container_name: whispr-nginx
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/certs:/etc/nginx/certs
     depends_on:
       frontend:
         condition: service_started
