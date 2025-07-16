@@ -149,7 +149,7 @@ BEGIN
     course_id := uuid_generate_v4();
     INSERT INTO courses (id, code, name, credits, description, review_count, average_rating)
     VALUES (course_id, course_code, course_name, course_credits, 
-            'Monsoon 2024 course: ' || course_name, 0, 0.0);
+            'Monsoon course: ' || course_name, 0, 0.0);
     
     -- Split faculty list by '+' and process each faculty member
     faculty_array := string_to_array(faculty_list, '+');
