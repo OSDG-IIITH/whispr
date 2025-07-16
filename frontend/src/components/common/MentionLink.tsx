@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { UserHoverCard } from "@/components/user/UserHoverCard";
 import { userAPI } from "@/lib/api";
 import type { User } from "@/types/backend-models";
@@ -10,6 +11,7 @@ interface MentionLinkProps {
 }
 
 export function MentionLink({ username }: MentionLinkProps) {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -17,7 +19,7 @@ export function MentionLink({ username }: MentionLinkProps) {
   useEffect(() => {
     const fetchUser = async () => {
       if (loading || user || error) return;
-      
+
       setLoading(true);
       try {
         const userData = await userAPI.getUserByUsername(username);
@@ -34,7 +36,7 @@ export function MentionLink({ username }: MentionLinkProps) {
   }, [username, loading, user, error]);
 
   const handleClick = () => {
-    window.location.href = `/profile/${username}`;
+    router.push(`/profile/${username}`);
   };
 
   // If we have user data, show with hover card

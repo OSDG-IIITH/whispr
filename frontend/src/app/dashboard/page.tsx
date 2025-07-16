@@ -101,7 +101,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <button
-              onClick={() => (window.location.href = "/verify")}
+              onClick={() => router.push("/verify")}
               className="btn btn-primary px-4 py-2 text-sm mt-2 sm:mt-0"
             >
               Verify Now

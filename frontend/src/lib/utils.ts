@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/navigation";
 import { RANKS, type Rank, type RankKey } from "./constants";
 
 /**
@@ -102,9 +103,10 @@ export function isIIITHEmail(email: string): boolean {
  * Parse content and highlight mentions (deprecated - use MentionText component instead)
  */
 export function highlightMentions(content: string): React.ReactNode {
+    const router = useRouter();
     const mentionRegex = /@(\w+)/g;
     const parts = content.split(mentionRegex);
-    
+
     return parts.map((part, index) => {
         // Every odd index is a username (captured group)
         if (index % 2 === 1) {
@@ -114,8 +116,7 @@ export function highlightMentions(content: string): React.ReactNode {
                     key: index,
                     className: "text-primary font-medium hover:underline cursor-pointer",
                     onClick: () => {
-                        // Navigate to user profile
-                        window.location.href = `/profile/${part}`;
+                        router.push(`/profile/${part}`);
                     }
                 },
                 `@${part}`

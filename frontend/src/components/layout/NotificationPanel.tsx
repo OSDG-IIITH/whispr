@@ -6,6 +6,7 @@ import { formatDate } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { reviewAPI, replyAPI, courseAPI } from "@/lib/api";
 import Loader from "@/components/common/Loader";
+import { useRouter } from "next/navigation";
 
 interface NotificationPanelProps {
   onClose: () => void;
@@ -35,6 +36,7 @@ const getNotificationIcon = (type: string) => {
 };
 
 export function NotificationPanel({ onClose }: NotificationPanelProps) {
+  const router = useRouter();
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead } =
     useNotifications();
 
@@ -162,12 +164,12 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                     }
 
                     if (actionUrl) {
-                      window.location.href = actionUrl;
+                      router.push(actionUrl);
                     }
                   } catch (error) {
                     console.error("Error handling notification click:", error);
                     // Still navigate to dashboard on error
-                    window.location.href = "/dashboard";
+                    router.push("/dashboard");
                   }
 
                   onClose();

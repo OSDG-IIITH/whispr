@@ -85,7 +85,7 @@ export function VerifyClientContent({ refreshAuth }: VerifyClientContentProps) {
         const { cas_url } = response;
 
         // Redirect to CAS login
-        window.location.href = cas_url;
+        router.push(cas_url);
       } catch (error: unknown) {
         console.error("Verification initiation failed:", error);
         setStatus("error");
