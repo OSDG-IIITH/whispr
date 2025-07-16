@@ -108,7 +108,7 @@ export const authAPI = {
     formData.append("password", password);
 
     return apiCall<{ access_token: string; token_type: string }>(
-      "/auth/login",
+      "/auth/login/",
       {
         method: "POST",
         headers: {
@@ -121,7 +121,7 @@ export const authAPI = {
 
   register: async (username: string, password: string) => {
     return apiCall<{ access_token: string; token_type: string }>(
-      "/auth/register",
+      "/auth/register/",
       {
         method: "POST",
         body: JSON.stringify({ username, password }),
@@ -130,7 +130,7 @@ export const authAPI = {
   },
 
   logout: async () => {
-    return apiCall<{ message: string }>("/auth/logout", {
+    return apiCall<{ message: string }>("/auth/logout/", {
       method: "POST",
     });
   },
@@ -143,11 +143,11 @@ export const authAPI = {
 // User API
 export const userAPI = {
   getUsers: async (skip = 0, limit = 100) => {
-    return apiCall<User[]>(`/users?skip=${skip}&limit=${limit}`);
+    return apiCall<User[]>(`/users/?skip=${skip}&limit=${limit}`);
   },
 
   getLeaderboard: async (limit = 10) => {
-    return apiCall<User[]>(`/users/leaderboard?limit=${limit}`);
+    return apiCall<User[]>(`/users/leaderboard/?limit=${limit}`);
   },
 
   browseUsers: async (
@@ -187,7 +187,7 @@ export const userAPI = {
         params.leaderboard_limit.toString()
       );
 
-    return apiCall<User[]>(`/users/browse?${searchParams.toString()}`);
+    return apiCall<User[]>(`/users/browse/?${searchParams.toString()}`);
   },
 
   getUserStats: async () => {
@@ -196,7 +196,7 @@ export const userAPI = {
       verified_users: number;
       total_echoes: number;
       average_echoes: number;
-    }>("/users/stats");
+    }>("/users/stats/");
   },
 
   getUser: async (userId: string) => {
@@ -204,11 +204,11 @@ export const userAPI = {
   },
 
   getUserByUsername: async (username: string) => {
-    return apiCall<User>(`/users/by-username/${username}`);
+    return apiCall<User>(`/users/by-username/${username}/`);
   },
 
   updateUser: async (userData: UserUpdate) => {
-    return apiCall<User>("/users/me", {
+    return apiCall<User>("/users/me/", {
       method: "PUT",
       body: JSON.stringify(userData),
     });
@@ -228,13 +228,13 @@ export const userAPI = {
 
   getFollowers: async (userId: string, skip = 0, limit = 100) => {
     return apiCall<User[]>(
-      `/users/${userId}/followers?skip=${skip}&limit=${limit}`
+      `/users/${userId}/followers/?skip=${skip}&limit=${limit}`
     );
   },
 
   getFollowing: async (userId: string, skip = 0, limit = 100) => {
     return apiCall<User[]>(
-      `/users/${userId}/following?skip=${skip}&limit=${limit}`
+      `/users/${userId}/following/?skip=${skip}&limit=${limit}`
     );
   },
 
@@ -245,7 +245,7 @@ export const userAPI = {
       is_followed_by: boolean;
       followers_count: number;
       following_count: number;
-    }>(`/users/${userId}/follow-status`);
+    }>(`/users/${userId}/follow-status/`);
   },
 };
 
@@ -268,7 +268,7 @@ export const reviewAPI = {
       }
     });
 
-    return apiCall<Review[]>(`/reviews?${searchParams.toString()}`);
+    return apiCall<Review[]>(`/reviews/?${searchParams.toString()}`);
   },
 
   getReview: async (reviewId: string) => {
@@ -282,7 +282,7 @@ export const reviewAPI = {
     rating: number;
     content?: string;
   }) => {
-    return apiCall<Review>("/reviews", {
+    return apiCall<Review>("/reviews/", {
       method: "POST",
       body: JSON.stringify(reviewData),
     });
@@ -326,7 +326,7 @@ export const voteAPI = {
       }
     });
 
-    return apiCall<Vote[]>(`/votes?${searchParams.toString()}`);
+    return apiCall<Vote[]>(`/votes/?${searchParams.toString()}`);
   },
 
   getMyVotes: async (
@@ -352,7 +352,7 @@ export const voteAPI = {
     reply_id?: string;
     vote_type: boolean;
   }) => {
-    return apiCall<Vote>("/votes", {
+    return apiCall<Vote>("/votes/", {
       method: "POST",
       body: JSON.stringify(voteData),
     });
@@ -382,7 +382,7 @@ export const replyAPI = {
       }
     });
 
-    return apiCall<Reply[]>(`/replies?${searchParams.toString()}`);
+    return apiCall<Reply[]>(`/replies/?${searchParams.toString()}`);
   },
 
   getReply: async (replyId: string) => {
@@ -390,7 +390,7 @@ export const replyAPI = {
   },
 
   createReply: async (replyData: { review_id: string; content: string }) => {
-    return apiCall<Reply>("/replies", {
+    return apiCall<Reply>("/replies/", {
       method: "POST",
       body: JSON.stringify(replyData),
     });
@@ -432,7 +432,7 @@ export const reportAPI = {
       }
     });
 
-    return apiCall<Report[]>(`/reports?${searchParams.toString()}`);
+    return apiCall<Report[]>(`/reports/?${searchParams.toString()}`);
   },
 
   getReport: async (reportId: string) => {
@@ -553,13 +553,13 @@ export const professorAPI = {
 
   getProfessorReviews: async (professorId: string, skip = 0, limit = 100) => {
     return apiCall<Review[]>(
-      `/professors/${professorId}/reviews?skip=${skip}&limit=${limit}`
+      `/professors/${professorId}/reviews/?skip=${skip}&limit=${limit}`
     );
   },
 
   // Add this function to get fresh professor data
   refreshProfessor: async (professorId: string) => {
-    return apiCall<Professor>(`/professors/${professorId}?refresh=true`);
+    return apiCall<Professor>(`/professors/${professorId}/?refresh=true`);
   },
 };
 
@@ -598,7 +598,7 @@ export const notificationAPI = {
       }
     });
 
-    return apiCall<Notification[]>(`/notifications?${searchParams.toString()}`);
+    return apiCall<Notification[]>(`/notifications/?${searchParams.toString()}`);
   },
 
   getNotification: async (notificationId: string) => {
@@ -640,14 +640,14 @@ export const notificationAPI = {
 // User Search API
 export const userSearchAPI = {
   searchUsers: async (query: string) => {
-    return apiCall<User[]>(`/users/search?q=${encodeURIComponent(query)}`);
+    return apiCall<User[]>(`/users/search/?q=${encodeURIComponent(query)}`);
   },
 };
 
 // Feed API
 export const feedAPI = {
   getFeed: async (skip = 0, limit = 20) => {
-    return apiCall<Review[]>(`/feed?skip=${skip}&limit=${limit}`);
+    return apiCall<Review[]>(`/feed/?skip=${skip}&limit=${limit}`);
   },
 
   getStats: async () => {
