@@ -95,14 +95,14 @@ async def cas_callback(
 
         if not session:
             return RedirectResponse(
-                url=f"{settings.FRONTEND_URL}/verify?error=invalid_session"
+                url=f"{settings.FRONTEND_URL}/verify/?error=invalid_session"
             )
 
         # Validate CAS ticket
         email = await cas_client.validate_ticket(ticket, state)
         if not email:
             return RedirectResponse(
-                url=f"{settings.FRONTEND_URL}/verify?error=cas_validation_failed"
+                url=f"{settings.FRONTEND_URL}/verify/?error=cas_validation_failed"
             )
 
         # Check if session expired
@@ -115,7 +115,7 @@ async def cas_callback(
             )
             await db.commit()
             return RedirectResponse(
-                url=f"{settings.FRONTEND_URL}/verify?error=session_expired"
+                url=f"{settings.FRONTEND_URL}/verify/?error=session_expired"
             )
 
         # Check if email already used
@@ -132,7 +132,7 @@ async def cas_callback(
             )
             await db.commit()
             return RedirectResponse(
-                url=f"{settings.FRONTEND_URL}/verify?error=email_already_used"
+                url=f"{settings.FRONTEND_URL}/verify/?error=email_already_used"
             )
 
         # Add email to used emails
@@ -155,12 +155,12 @@ async def cas_callback(
         # Commit all changes
         await db.commit()
 
-        return RedirectResponse(url=f"{settings.FRONTEND_URL}/verify?success=true")
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}/verify/?success=true")
 
     except Exception as e:
         print(f"Verification error: {e}")
         return RedirectResponse(
-            url=f"{settings.FRONTEND_URL}/verify?error=internal_error"
+            url=f"{settings.FRONTEND_URL}/verify/?error=internal_error"
         )
 
 

@@ -48,7 +48,7 @@ class Settings(BaseSettings):
 
     # CAS settings
     CAS_SERVER_URL: str = "https://login.iiit.ac.in/cas"
-    CAS_SERVICE_URL: str = "http://localhost/api/verify/callback"
+    CAS_SERVICE_URL: str = "http://localhost/api/verify/callback/"
     VERIFICATION_SESSION_EXPIRE_MINUTES: int = 30
 
     @field_validator('CORS_ORIGINS', mode='before')
