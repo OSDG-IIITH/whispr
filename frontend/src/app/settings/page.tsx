@@ -116,7 +116,7 @@ export default function SettingsPage() {
 
                             <div className="space-y-2 text-sm text-secondary">
                                 <div>Member since {new Date(user.created_at).getFullYear()}</div>
-                                {user.is_muffled && (
+                                {user.is_muffled && !user.is_banned && (
                                     <div className="flex items-center gap-2 text-yellow-500">
                                         <Shield className="w-4 h-4" />
                                         <span>Account verification required</span>

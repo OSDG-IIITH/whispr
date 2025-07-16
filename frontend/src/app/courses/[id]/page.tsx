@@ -841,7 +841,7 @@ export default function CoursePage() {
               onClick={() => {
                 if (!user) {
                   showError("Please log in to submit a review");
-                } else if ((user as User).is_muffled) {
+                } else if ((user as User).is_muffled && !(user as User).is_banned) {
                   showError("Please verify your account to rate and review.");
                 } else {
                   setShowReviewForm(true);
@@ -910,6 +910,7 @@ export default function CoursePage() {
                 username: review.user?.username || "Anonymous",
                 echoes: review.user?.echoes || 0,
                 isVerified: !review.user?.is_muffled,
+                isBanned: review.user?.is_banned || false,
               },
               content: review.content || "",
               rating: review.rating,

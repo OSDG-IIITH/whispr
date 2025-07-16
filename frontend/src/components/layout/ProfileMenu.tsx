@@ -99,7 +99,7 @@ export function ProfileMenu({ onClose }: ProfileMenuProps) {
           <span>Settings</span>
         </motion.button>
 
-        {user.is_muffled && (
+        {user.is_muffled && !user.is_banned && (
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

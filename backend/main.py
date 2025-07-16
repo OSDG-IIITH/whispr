@@ -11,6 +11,8 @@ from app.core.config import settings
 from app.api.routes import api_router
 from app.db.init_db import create_tables
 
+from create_admin import create_admin_user
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -22,6 +24,10 @@ async def lifespan(_app: FastAPI):
     """
     # Create tables on startup
     await create_tables()
+    try:
+        await create_admin_user()
+    except Exception as e:
+        print(f"Error creating admin user: {e}")
     yield
     # Cleanup resources on shutdown
 
@@ -61,3 +67,9 @@ Or check out the API documentation at /docs"
 async def health():
     """Health check endpoint."""
     return {"status": "OK", "version": "1.0.0"}
+
+@app.on_event("startup")
+async def startup_event():
+    """Startup event handler."""
+    print("Starting up the Whispr API...")
+    print("Admin user setup")

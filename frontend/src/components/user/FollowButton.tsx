@@ -38,7 +38,7 @@ export function FollowButton({
     if (loading || disabled) return;
 
     // Check if user is muffled
-    if (user?.is_muffled) {
+    if (user?.is_muffled && !user?.is_banned) {
       showError("You need to verify your account to follow users.");
       return;
     }

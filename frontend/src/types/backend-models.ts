@@ -9,6 +9,7 @@ export interface User {
   bio?: string;
   student_since_year?: number;
   is_muffled: boolean;
+  is_banned: boolean;
   is_admin: boolean;
   echoes: number;
   created_at: string;

@@ -170,7 +170,7 @@ export function convertUserToFrontendUser(
 ): FrontendUser {
   return {
     ...user,
-    isVerified: !user.is_muffled,
+    isVerified: !(user.is_muffled && !user.is_banned),
     isFollowing: isFollowing,
   };
 }
@@ -210,7 +210,7 @@ export function convertReviewToFrontendReview(
     author: {
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,
-      isVerified: review.user ? !review.user.is_muffled : false,
+      isVerified: review.user ? !(review.user.is_muffled && review.user.is_banned) : false,
     },
     content: review.content,
     rating: review.rating,
@@ -244,7 +244,7 @@ export function convertReplyToFrontendReply(
     author: {
       username: reply.user?.username || "Unknown",
       echoes: reply.user?.echoes || 0,
-      isVerified: reply.user ? !reply.user.is_muffled : false,
+      isVerified: reply.user ? !(reply.user.is_muffled && reply.user.is_banned) : false,
     },
     content: reply.content,
     upvotes: reply.upvotes,

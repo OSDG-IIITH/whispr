@@ -69,7 +69,7 @@ async def browse_users(
         query = query.where(UserModel.echoes >= min_echoes)
     
     if is_verified is not None:
-        query = query.where(UserModel.is_muffled == (not is_verified))
+        query = query.where(UserModel.is_muffled == (not is_verified) and UserModel.is_banned.is_(False))
     
     # Exclude leaderboard users if requested
     if exclude_leaderboard:
