@@ -24,4 +24,4 @@ ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
 
 # Start the application
-ENTRYPOINT [ "node", ".next/standalone/server.js" ]
+ENTRYPOINT [ "npm", "run", "start" ]

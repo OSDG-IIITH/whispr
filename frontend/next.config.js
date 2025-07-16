@@ -4,7 +4,7 @@ const nextConfig = {
     domains: ["localhost", "api.dicebear.com", "osdg.iiit.ac.in"],
   },
   // Enable standalone output for production Docker builds
-  output: "standalone",
+  // output: "standalone",
   // Set base path for deployment under /whispr
   basePath: "/whispr",
   assetPrefix: "/whispr",

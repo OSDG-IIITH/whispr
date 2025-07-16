@@ -64,13 +64,6 @@ export const metadata: Metadata = {
     ],
   },
   manifest: "/manifest.json",
-  themeColor: "#000000",
-  colorScheme: "dark",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
   openGraph: {
     title: "Whispr - Anonymous Course & Professor Reviews",
     description:
@@ -107,6 +100,16 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-status-bar-style": "black-translucent",
     "mobile-web-app-capable": "yes",
   },
+};
+
+export const viewport = {
+  themeColor: '#000000',
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  },
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
