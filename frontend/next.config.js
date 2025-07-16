@@ -7,6 +7,7 @@ const nextConfig = {
   output: "standalone",
   // Set base path for deployment under /whispr
   basePath: "/whispr",
+  assetPrefix: "/whispr",
   // Ensure trailing slash is handled properly
   trailingSlash: true,
   async rewrites() {
