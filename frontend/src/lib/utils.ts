@@ -100,33 +100,6 @@ export function isIIITHEmail(email: string): boolean {
 }
 
 /**
- * Parse content and highlight mentions (deprecated - use MentionText component instead)
- */
-export function highlightMentions(content: string): React.ReactNode {
-    const router = useRouter();
-    const mentionRegex = /@(\w+)/g;
-    const parts = content.split(mentionRegex);
-
-    return parts.map((part, index) => {
-        // Every odd index is a username (captured group)
-        if (index % 2 === 1) {
-            return React.createElement(
-                'span',
-                {
-                    key: index,
-                    className: "text-primary font-medium hover:underline cursor-pointer",
-                    onClick: () => {
-                        router.push(`/profile/${part}`);
-                    }
-                },
-                `@${part}`
-            );
-        }
-        return part;
-    });
-}
-
-/**
  * Generate avatar color based on username
  */
 export function getAvatarColor(username: string): string {
