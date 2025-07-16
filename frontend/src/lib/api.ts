@@ -136,7 +136,7 @@ export const authAPI = {
   },
 
   getCurrentUser: async () => {
-    return apiCall<User>("/auth/me");
+    return apiCall<User>("/auth/me/");
   },
 };
 
@@ -200,7 +200,7 @@ export const userAPI = {
   },
 
   getUser: async (userId: string) => {
-    return apiCall<User>(`/users/${userId}`);
+    return apiCall<User>(`/users/${userId}/`);
   },
 
   getUserByUsername: async (username: string) => {
@@ -215,13 +215,13 @@ export const userAPI = {
   },
 
   followUser: async (userId: string) => {
-    return apiCall<User>(`/users/${userId}/follow`, {
+    return apiCall<User>(`/users/${userId}/follow/`, {
       method: "POST",
     });
   },
 
   unfollowUser: async (userId: string) => {
-    return apiCall<User>(`/users/${userId}/unfollow`, {
+    return apiCall<User>(`/users/${userId}/unfollow/`, {
       method: "POST",
     });
   },
@@ -272,7 +272,7 @@ export const reviewAPI = {
   },
 
   getReview: async (reviewId: string) => {
-    return apiCall<Review>(`/reviews/${reviewId}`);
+    return apiCall<Review>(`/reviews/${reviewId}/`);
   },
 
   createReview: async (reviewData: {
@@ -295,14 +295,14 @@ export const reviewAPI = {
       content?: string;
     }
   ) => {
-    return apiCall<Review>(`/reviews/${reviewId}`, {
+    return apiCall<Review>(`/reviews/${reviewId}/`, {
       method: "PUT",
       body: JSON.stringify(reviewData),
     });
   },
 
   deleteReview: async (reviewId: string) => {
-    return apiCall<void>(`/reviews/${reviewId}`, {
+    return apiCall<void>(`/reviews/${reviewId}/`, {
       method: "DELETE",
     });
   },
@@ -344,7 +344,7 @@ export const voteAPI = {
       }
     });
 
-    return apiCall<Vote[]>(`/votes/me?${searchParams.toString()}`);
+    return apiCall<Vote[]>(`/votes/me/?${searchParams.toString()}`);
   },
 
   createVote: async (voteData: {
@@ -359,7 +359,7 @@ export const voteAPI = {
   },
 
   deleteVote: async (voteId: string) => {
-    return apiCall<void>(`/votes/${voteId}`, {
+    return apiCall<void>(`/votes/${voteId}/`, {
       method: "DELETE",
     });
   },
@@ -386,7 +386,7 @@ export const replyAPI = {
   },
 
   getReply: async (replyId: string) => {
-    return apiCall<Reply>(`/replies/${replyId}`);
+    return apiCall<Reply>(`/replies/${replyId}/`);
   },
 
   createReply: async (replyData: { review_id: string; content: string }) => {
@@ -402,14 +402,14 @@ export const replyAPI = {
       content?: string;
     }
   ) => {
-    return apiCall<Reply>(`/replies/${replyId}`, {
+    return apiCall<Reply>(`/replies/${replyId}/`, {
       method: "PUT",
       body: JSON.stringify(replyData),
     });
   },
 
   deleteReply: async (replyId: string) => {
-    return apiCall<void>(`/replies/${replyId}`, {
+    return apiCall<void>(`/replies/${replyId}/`, {
       method: "DELETE",
     });
   },
@@ -436,7 +436,7 @@ export const reportAPI = {
   },
 
   getReport: async (reportId: string) => {
-    return apiCall<Report>(`/reports/${reportId}`);
+    return apiCall<Report>(`/reports/${reportId}/`);
   },
 
   createReport: async (reportData: {
@@ -444,11 +444,11 @@ export const reportAPI = {
     reply_id?: string;
     reported_user_id?: string;
     report_type:
-      | "spam"
-      | "harassment"
-      | "inappropriate"
-      | "misinformation"
-      | "other";
+    | "spam"
+    | "harassment"
+    | "inappropriate"
+    | "misinformation"
+    | "other";
     reason: string;
   }) => {
     return apiCall<Report>("/reports", {
@@ -464,14 +464,14 @@ export const reportAPI = {
       admin_notes?: string;
     }
   ) => {
-    return apiCall<Report>(`/reports/${reportId}`, {
+    return apiCall<Report>(`/reports/${reportId}/`, {
       method: "PUT",
       body: JSON.stringify(reportData),
     });
   },
 
   deleteReport: async (reportId: string) => {
-    return apiCall<void>(`/reports/${reportId}`, {
+    return apiCall<void>(`/reports/${reportId}/`, {
       method: "DELETE",
     });
   },
@@ -511,7 +511,7 @@ export const searchAPI = {
       }
     });
 
-    return apiCall<SearchApiResponse>(`/search?${searchParams.toString()}`);
+    return apiCall<SearchApiResponse>(`/search/?${searchParams.toString()}`);
   },
 };
 
@@ -522,11 +522,11 @@ export const courseAPI = {
   },
 
   getCourse: async (courseCode: string) => {
-    return apiCall<Course>(`/courses/by-code/${courseCode}`);
+    return apiCall<Course>(`/courses/by-code/${courseCode}/`);
   },
 
   getCourseById: async (courseId: string) => {
-    return apiCall<Course>(`/courses/${courseId}`);
+    return apiCall<Course>(`/courses/${courseId}/`);
   },
 
   getCourseReviews: async (courseId: string, skip = 0, limit = 100) => {
@@ -537,7 +537,7 @@ export const courseAPI = {
 
   // Add this function to get fresh course data
   refreshCourse: async (courseId: string) => {
-    return apiCall<Course>(`/courses/${courseId}?refresh=true`);
+    return apiCall<Course>(`/courses/${courseId}/?refresh=true`);
   },
 };
 
@@ -548,7 +548,7 @@ export const professorAPI = {
   },
 
   getProfessor: async (professorId: string) => {
-    return apiCall<Professor>(`/professors/${professorId}`);
+    return apiCall<Professor>(`/professors/${professorId}/`);
   },
 
   getProfessorReviews: async (professorId: string, skip = 0, limit = 100) => {
@@ -602,7 +602,7 @@ export const notificationAPI = {
   },
 
   getNotification: async (notificationId: string) => {
-    return apiCall<Notification>(`/notifications/${notificationId}`);
+    return apiCall<Notification>(`/notifications/${notificationId}/`);
   },
 
   updateNotification: async (
@@ -611,14 +611,14 @@ export const notificationAPI = {
       is_read?: boolean;
     }
   ) => {
-    return apiCall<Notification>(`/notifications/${notificationId}`, {
+    return apiCall<Notification>(`/notifications/${notificationId}/`, {
       method: "PUT",
       body: JSON.stringify(notificationData),
     });
   },
 
   markAsRead: async (notificationId: string) => {
-    return apiCall<Notification>(`/notifications/${notificationId}`, {
+    return apiCall<Notification>(`/notifications/${notificationId}/`, {
       method: "PUT",
       body: JSON.stringify({ is_read: true }),
     });
@@ -631,7 +631,7 @@ export const notificationAPI = {
   },
 
   deleteNotification: async (notificationId: string) => {
-    return apiCall<void>(`/notifications/${notificationId}`, {
+    return apiCall<void>(`/notifications/${notificationId}/`, {
       method: "DELETE",
     });
   },
@@ -658,6 +658,6 @@ export const feedAPI = {
       followers_count: number;
       following_count: number;
       echoes: number;
-    }>("/feed/stats");
+    }>("/feed/stats/");
   },
 };
