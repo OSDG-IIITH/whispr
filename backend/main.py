@@ -28,6 +28,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
+    root_path="/whispr",
     description="Anonymous review platform for IIITH \
 - Speak softly. Help loudly.",
     version="1.0.0",
