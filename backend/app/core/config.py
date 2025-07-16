@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost"]
 
     # Frontend URL
-    FRONTEND_URL: str = "http://localhost"
+    FRONTEND_URL: str = "http://localhost/whispr"
 
     # Password settings
     MIN_PASSWORD_LENGTH: int = 8
@@ -48,7 +48,7 @@ class Settings(BaseSettings):
 
     # CAS settings
     CAS_SERVER_URL: str = "https://login.iiit.ac.in/cas"
-    CAS_SERVICE_URL: str = "http://localhost/api/verify/callback/"
+    CAS_SERVICE_URL: str = "http://localhost/whispr/api/verify/callback/"
     VERIFICATION_SESSION_EXPIRE_MINUTES: int = 30
 
     @field_validator('CORS_ORIGINS', mode='before')
