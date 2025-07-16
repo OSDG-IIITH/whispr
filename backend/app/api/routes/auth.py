@@ -23,7 +23,7 @@ from app.models.user import User as UserModel
 router = APIRouter()
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login/", response_model=Token)
 async def login_for_access_token(
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -52,7 +52,7 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/logout")
+@router.post("/logout/")
 async def logout(response: Response) -> Any:
     """
     Logout the current user.
@@ -62,7 +62,7 @@ async def logout(response: Response) -> Any:
 
 
 @router.post(
-    "/register",
+    "/register/",
     response_model=Token,
     status_code=status.HTTP_201_CREATED
 )
@@ -116,7 +116,7 @@ async def register_user(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/me", response_model=User)
+@router.get("/me/", response_model=User)
 async def get_current_user_info(
     current_user: UserModel = Depends(get_current_user),
 ) -> Any:

@@ -108,7 +108,7 @@ export const authAPI = {
     formData.append("password", password);
 
     return apiCall<{ access_token: string; token_type: string }>(
-      "/auth/login",
+      "/auth/login/",
       {
         method: "POST",
         headers: {
@@ -121,7 +121,7 @@ export const authAPI = {
 
   register: async (username: string, password: string) => {
     return apiCall<{ access_token: string; token_type: string }>(
-      "/auth/register",
+      "/auth/register/",
       {
         method: "POST",
         body: JSON.stringify({ username, password }),

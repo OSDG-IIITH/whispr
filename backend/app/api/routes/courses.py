@@ -112,7 +112,7 @@ async def read_course(
     return course
 
 
-@router.get("/by-code/{code}", response_model=CourseWithInstructors)
+@router.get("/by-code/{code}/", response_model=CourseWithInstructors)
 async def read_course_by_code(
     code: str,
     db: AsyncSession = Depends(get_db)
@@ -167,7 +167,7 @@ async def create_course(
     return course
 
 
-@router.put("/{course_id}", response_model=Course)
+@router.put("/{course_id}/", response_model=Course)
 async def update_course(
     course_id: UUID,
     course_in: CourseUpdate,
@@ -199,7 +199,7 @@ async def update_course(
     return updated_course
 
 
-@router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{course_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_course(
     course_id: UUID,
     db: AsyncSession = Depends(get_db),
