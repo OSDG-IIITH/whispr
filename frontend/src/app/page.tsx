@@ -122,7 +122,7 @@ export default function LandingPage() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </button>
             </Link>
-            <Link href="/design-doc.pdf" target="_blank">
+            <Link href="https://drive.google.com/file/d/1jx2PZRUOXIz2mnGk-_YV8yOljhl0O7j8/view?usp=drivesdk" target="_blank">
               <button className="btn  px-8 py-3 text-lg border border-primary text-primary hover:bg-primary/10">
                 Design Doc <Download className="ml-2 h-5 w-5" />
               </button>
