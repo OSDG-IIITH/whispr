@@ -24,9 +24,6 @@ services:
       - NEXT_PUBLIC_API_URL=/whispr/api
     networks:
       - whispr-network
-    depends_on:
-      backend:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
