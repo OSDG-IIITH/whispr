@@ -262,7 +262,7 @@ export const reviewAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, any]) => {
+    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
       if (value !== undefined) {
         searchParams.append(key, value.toString());
       }
@@ -320,7 +320,7 @@ export const voteAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, any]) => {
+    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
       if (value !== undefined) {
         searchParams.append(key, value.toString());
       }
@@ -338,7 +338,7 @@ export const voteAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, any]) => {
+    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
       if (value !== undefined) {
         searchParams.append(key, value.toString());
       }
@@ -376,7 +376,7 @@ export const replyAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, any]) => {
+    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
       if (value !== undefined) {
         searchParams.append(key, value.toString());
       }
@@ -426,7 +426,7 @@ export const reportAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, any]) => {
+    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
       if (value !== undefined) {
         searchParams.append(key, value.toString());
       }
@@ -501,7 +501,7 @@ export const searchAPI = {
     limit?: number;
   }) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, any]) => {
+    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | string[] | undefined]) => {
       if (value !== undefined) {
         if (Array.isArray(value)) {
           value.forEach((v) => searchParams.append(key, v));
@@ -592,7 +592,7 @@ export const notificationAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, any]) => {
+    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
       if (value !== undefined) {
         searchParams.append(key, value.toString());
       }
