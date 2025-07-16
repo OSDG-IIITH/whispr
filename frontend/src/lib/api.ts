@@ -544,7 +544,7 @@ export const courseAPI = {
 // Professor API
 export const professorAPI = {
   getProfessors: async (skip = 0, limit = 100) => {
-    return apiCall<Professor[]>(`/professors?skip=${skip}&limit=${limit}`);
+    return apiCall<Professor[]>(`/professors/?skip=${skip}&limit=${limit}`);
   },
 
   getProfessor: async (professorId: string) => {
