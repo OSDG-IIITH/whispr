@@ -23,7 +23,7 @@ export function BrowseMenu({ onClose }: BrowseMenuProps) {
 
     const handleBrowseUsers = () => {
         onClose();
-        router.push("/users");
+        router.push("/profiles");
     };
 
     return (
@@ -68,7 +68,7 @@ export function BrowseMenu({ onClose }: BrowseMenuProps) {
                     className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors"
                 >
                     <User className="w-5 h-5 text-secondary" />
-                    <span>Browse Users</span>
+                    <span>Browse Profiles</span>
                 </motion.button>
             </div>
         </div>
