@@ -19,7 +19,7 @@ from app.core.notifications import notify_on_follow
 router = APIRouter()
 
 
-@router.get("/leaderboard", response_model=List[User])
+@router.get("/leaderboard/", response_model=List[User])
 async def get_leaderboard(
     limit: int = Query(10, ge=1, le=100),
     db: AsyncSession = Depends(get_db)
@@ -37,7 +37,7 @@ async def get_leaderboard(
     return users
 
 
-@router.get("/browse", response_model=List[User])
+@router.get("/browse/", response_model=List[User])
 async def browse_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -106,7 +106,7 @@ async def browse_users(
     return users
 
 
-@router.get("/stats", response_model=dict)
+@router.get("/stats/", response_model=dict)
 async def get_user_stats(
     db: AsyncSession = Depends(get_db)
 ) -> Any:
@@ -158,7 +158,7 @@ async def read_users(
     return users
 
 
-@router.get("/search", response_model=List[User])
+@router.get("/search/", response_model=List[User])
 async def search_users(
     q: str = "",
     limit: int = 10,
@@ -189,7 +189,7 @@ async def search_users(
         return []
 
 
-@router.get("/{user_id}", response_model=User)
+@router.get("/{user_id}/", response_model=User)
 async def read_user(
     user_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -210,7 +210,7 @@ async def read_user(
     return user
 
 
-@router.get("/by-username/{username}", response_model=User)
+@router.get("/by-username/{username}/", response_model=User)
 async def read_user_by_username(
     username: str,
     db: AsyncSession = Depends(get_db)
@@ -232,7 +232,7 @@ async def read_user_by_username(
 
 
 
-@router.put("/me", response_model=User)
+@router.put("/me/", response_model=User)
 async def update_user_me(
     user_update: UserUpdate,
     db: AsyncSession = Depends(get_db),
@@ -275,7 +275,7 @@ async def update_user_me(
     return updated_user
 
 
-@router.post("/{user_id}/follow", response_model=User)
+@router.post("/{user_id}/follow/", response_model=User)
 async def follow_user(
     user_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -328,7 +328,7 @@ async def follow_user(
     return current_user
 
 
-@router.post("/{user_id}/unfollow", response_model=User)
+@router.post("/{user_id}/unfollow/", response_model=User)
 async def unfollow_user(
     user_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -362,7 +362,7 @@ async def unfollow_user(
     return current_user
 
 
-@router.get("/{user_id}/followers", response_model=List[User])
+@router.get("/{user_id}/followers/", response_model=List[User])
 async def get_user_followers(
     user_id: UUID,
     skip: int = 0,
@@ -396,7 +396,7 @@ async def get_user_followers(
     return followers
 
 
-@router.get("/{user_id}/following", response_model=List[User])
+@router.get("/{user_id}/following/", response_model=List[User])
 async def get_user_following(
     user_id: UUID,
     skip: int = 0,
@@ -430,7 +430,7 @@ async def get_user_following(
     return following
 
 
-@router.get("/{user_id}/follow-status", response_model=dict)
+@router.get("/{user_id}/follow-status/", response_model=dict)
 async def get_follow_status(
     user_id: UUID,
     db: AsyncSession = Depends(get_db),

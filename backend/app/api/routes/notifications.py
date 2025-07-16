@@ -45,7 +45,7 @@ async def read_notifications(
     return notifications
 
 
-@router.get("/{notification_id}", response_model=Notification)
+@router.get("/{notification_id}/", response_model=Notification)
 async def read_notification(
     notification_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -93,7 +93,7 @@ async def create_notification(
     return notification
 
 
-@router.put("/{notification_id}", response_model=Notification)
+@router.put("/{notification_id}/", response_model=Notification)
 async def update_notification(
     notification_id: UUID,
     notification_in: NotificationUpdate,
@@ -130,7 +130,7 @@ async def update_notification(
     return updated_notification
 
 
-@router.post("/mark-all-read", response_model=dict)
+@router.post("/mark-all-read/", response_model=dict)
 async def mark_all_notifications_read(
     db: AsyncSession = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)
@@ -150,7 +150,7 @@ async def mark_all_notifications_read(
     return {"message": "All notifications marked as read"}
 
 
-@router.delete("/{notification_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{notification_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_notification(
     notification_id: UUID,
     db: AsyncSession = Depends(get_db),

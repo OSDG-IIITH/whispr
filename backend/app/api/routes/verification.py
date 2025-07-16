@@ -22,7 +22,7 @@ from app.models.verification_session import VerificationSession
 router = APIRouter()
 
 
-@router.post("/initiate")
+@router.post("/initiate/")
 async def initiate_verification(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -69,7 +69,7 @@ async def initiate_verification(
     }
 
 
-@router.get("/callback")
+@router.get("/callback/")
 async def cas_callback(
     ticket: str = Query(..., description="CAS ticket"),
     state: str = Query(..., description="Session token"),
@@ -164,7 +164,7 @@ async def cas_callback(
         )
 
 
-@router.get("/status")
+@router.get("/status/")
 async def get_verification_status(
     current_user: User = Depends(get_current_user),
 ) -> Any:

@@ -54,7 +54,7 @@ async def read_reports(
     return reports
 
 
-@router.get("/{report_id}", response_model=ReportWithDetails)
+@router.get("/{report_id}/", response_model=ReportWithDetails)
 async def read_report(
     report_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -177,7 +177,7 @@ async def create_report(
     return report
 
 
-@router.put("/{report_id}", response_model=Report)
+@router.put("/{report_id}/", response_model=Report)
 async def update_report(
     report_id: UUID,
     report_in: ReportUpdate,
@@ -209,7 +209,7 @@ async def update_report(
     return updated_report
 
 
-@router.delete("/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{report_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_report(
     report_id: UUID,
     db: AsyncSession = Depends(get_db),

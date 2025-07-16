@@ -80,7 +80,7 @@ async def read_reviews(
     return reviews
 
 
-@router.get("/{review_id}", response_model=ReviewWithRelations)
+@router.get("/{review_id}/", response_model=ReviewWithRelations)
 async def read_review(
     review_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -257,7 +257,7 @@ or course_instructor_ids must be provided"
     return review
 
 
-@router.put("/{review_id}", response_model=Review)
+@router.put("/{review_id}/", response_model=Review)
 async def update_review(
     review_id: UUID,
     review_in: ReviewUpdate,
@@ -328,7 +328,7 @@ async def update_review(
     return updated_review
 
 
-@router.delete("/{review_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{review_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_review(
     review_id: UUID,
     db: AsyncSession = Depends(get_db),

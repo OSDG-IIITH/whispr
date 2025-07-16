@@ -46,7 +46,7 @@ async def read_replies(
     return replies
 
 
-@router.get("/{reply_id}", response_model=ReplyWithUser)
+@router.get("/{reply_id}/", response_model=ReplyWithUser)
 async def read_reply(
     reply_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -126,7 +126,7 @@ async def create_reply(
     return reply
 
 
-@router.put("/{reply_id}", response_model=Reply)
+@router.put("/{reply_id}/", response_model=Reply)
 async def update_reply(
     reply_id: UUID,
     reply_in: ReplyUpdate,
@@ -172,7 +172,7 @@ async def update_reply(
     return updated_reply
 
 
-@router.delete("/{reply_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{reply_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_reply(
     reply_id: UUID,
     db: AsyncSession = Depends(get_db),

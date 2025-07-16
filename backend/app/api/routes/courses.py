@@ -91,7 +91,7 @@ async def read_courses(
     return [convert_course_to_with_instructors(course) for course in courses]
 
 
-@router.get("/{course_id}", response_model=Course)
+@router.get("/{course_id}/", response_model=Course)
 async def read_course(
     course_id: UUID,
     db: AsyncSession = Depends(get_db)

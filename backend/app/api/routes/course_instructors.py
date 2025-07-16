@@ -56,7 +56,7 @@ async def read_course_instructors(
     return course_instructors
 
 
-@router.get("/{course_instructor_id}", response_model=CourseInstructorDetail)
+@router.get("/{course_instructor_id}/", response_model=CourseInstructorDetail)
 async def read_course_instructor(
     course_instructor_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -149,7 +149,7 @@ combination already exists"
     return course_instructor
 
 
-@router.put("/{course_instructor_id}", response_model=CourseInstructor)
+@router.put("/{course_instructor_id}/", response_model=CourseInstructor)
 async def update_course_instructor(
     course_instructor_id: UUID,
     course_instructor_in: CourseInstructorUpdate,
@@ -210,7 +210,7 @@ combination already exists"
 
 
 @router.delete(
-    "/{course_instructor_id}",
+    "/{course_instructor_id}/",
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_course_instructor(

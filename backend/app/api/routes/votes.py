@@ -56,7 +56,7 @@ async def read_votes(
     return votes
 
 
-@router.get("/me", response_model=List[Vote])
+@router.get("/me/", response_model=List[Vote])
 async def read_my_votes(
     skip: int = 0,
     limit: int = 100,
@@ -209,7 +209,7 @@ async def create_vote(
     return vote
 
 
-@router.delete("/{vote_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{vote_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_vote(
     vote_id: UUID,
     db: AsyncSession = Depends(get_db),

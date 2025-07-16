@@ -249,7 +249,7 @@ async def get_feed(
     return paginated_reviews
 
 
-@router.get("/stats", response_model=dict)
+@router.get("/stats/", response_model=dict)
 async def get_feed_stats(
     db: AsyncSession = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)

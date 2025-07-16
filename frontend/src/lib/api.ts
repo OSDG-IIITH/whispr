@@ -143,11 +143,11 @@ export const authAPI = {
 // User API
 export const userAPI = {
   getUsers: async (skip = 0, limit = 100) => {
-    return apiCall<User[]>(`/users/?skip=${skip}&limit=${limit}`);
+    return apiCall<User[]>(`/users/?skip=${skip}&limit=${limit}/`);
   },
 
   getLeaderboard: async (limit = 10) => {
-    return apiCall<User[]>(`/users/leaderboard/?limit=${limit}`);
+    return apiCall<User[]>(`/users/leaderboard/?limit=${limit}/`);
   },
 
   browseUsers: async (
@@ -187,7 +187,7 @@ export const userAPI = {
         params.leaderboard_limit.toString()
       );
 
-    return apiCall<User[]>(`/users/browse/?${searchParams.toString()}`);
+    return apiCall<User[]>(`/users/browse/?${searchParams.toString()}/`);
   },
 
   getUserStats: async () => {
@@ -228,13 +228,13 @@ export const userAPI = {
 
   getFollowers: async (userId: string, skip = 0, limit = 100) => {
     return apiCall<User[]>(
-      `/users/${userId}/followers/?skip=${skip}&limit=${limit}`
+      `/users/${userId}/followers/?skip=${skip}&limit=${limit}/`
     );
   },
 
   getFollowing: async (userId: string, skip = 0, limit = 100) => {
     return apiCall<User[]>(
-      `/users/${userId}/following/?skip=${skip}&limit=${limit}`
+      `/users/${userId}/following/?skip=${skip}&limit=${limit}/`
     );
   },
 
@@ -268,7 +268,7 @@ export const reviewAPI = {
       }
     });
 
-    return apiCall<Review[]>(`/reviews/?${searchParams.toString()}`);
+    return apiCall<Review[]>(`/reviews/?${searchParams.toString()}/`);
   },
 
   getReview: async (reviewId: string) => {
@@ -326,7 +326,7 @@ export const voteAPI = {
       }
     });
 
-    return apiCall<Vote[]>(`/votes/?${searchParams.toString()}`);
+    return apiCall<Vote[]>(`/votes/?${searchParams.toString()}/`);
   },
 
   getMyVotes: async (
@@ -344,7 +344,7 @@ export const voteAPI = {
       }
     });
 
-    return apiCall<Vote[]>(`/votes/me/?${searchParams.toString()}`);
+    return apiCall<Vote[]>(`/votes/me/?${searchParams.toString()}/`);
   },
 
   createVote: async (voteData: {
@@ -382,7 +382,7 @@ export const replyAPI = {
       }
     });
 
-    return apiCall<Reply[]>(`/replies/?${searchParams.toString()}`);
+    return apiCall<Reply[]>(`/replies/?${searchParams.toString()}/`);
   },
 
   getReply: async (replyId: string) => {
@@ -432,7 +432,7 @@ export const reportAPI = {
       }
     });
 
-    return apiCall<Report[]>(`/reports/?${searchParams.toString()}`);
+    return apiCall<Report[]>(`/reports/?${searchParams.toString()}/`);
   },
 
   getReport: async (reportId: string) => {
@@ -451,7 +451,7 @@ export const reportAPI = {
     | "other";
     reason: string;
   }) => {
-    return apiCall<Report>("/reports", {
+    return apiCall<Report>("/reports/", {
       method: "POST",
       body: JSON.stringify(reportData),
     });
@@ -511,14 +511,14 @@ export const searchAPI = {
       }
     });
 
-    return apiCall<SearchApiResponse>(`/search/?${searchParams.toString()}`);
+    return apiCall<SearchApiResponse>(`/search/?${searchParams.toString()}/`);
   },
 };
 
 // Course API
 export const courseAPI = {
   getCourses: async (skip = 0, limit = 100) => {
-    return apiCall<Course[]>(`/courses/?skip=${skip}&limit=${limit}`);
+    return apiCall<Course[]>(`/courses/?skip=${skip}&limit=${limit}/`);
   },
 
   getCourse: async (courseCode: string) => {
@@ -531,20 +531,20 @@ export const courseAPI = {
 
   getCourseReviews: async (courseId: string, skip = 0, limit = 100) => {
     return apiCall<Review[]>(
-      `/reviews/?course_id=${courseId}&skip=${skip}&limit=${limit}`
+      `/reviews/?course_id=${courseId}&skip=${skip}&limit=${limit}/`
     );
   },
 
   // Add this function to get fresh course data
   refreshCourse: async (courseId: string) => {
-    return apiCall<Course>(`/courses/${courseId}/?refresh=true`);
+    return apiCall<Course>(`/courses/${courseId}/?refresh=true/`);
   },
 };
 
 // Professor API
 export const professorAPI = {
   getProfessors: async (skip = 0, limit = 100) => {
-    return apiCall<Professor[]>(`/professors/?skip=${skip}&limit=${limit}`);
+    return apiCall<Professor[]>(`/professors/?skip=${skip}&limit=${limit}/`);
   },
 
   getProfessor: async (professorId: string) => {
@@ -553,13 +553,13 @@ export const professorAPI = {
 
   getProfessorReviews: async (professorId: string, skip = 0, limit = 100) => {
     return apiCall<Review[]>(
-      `/professors/${professorId}/reviews/?skip=${skip}&limit=${limit}`
+      `/professors/${professorId}/reviews/?skip=${skip}&limit=${limit}/`
     );
   },
 
   // Add this function to get fresh professor data
   refreshProfessor: async (professorId: string) => {
-    return apiCall<Professor>(`/professors/${professorId}/?refresh=true`);
+    return apiCall<Professor>(`/professors/${professorId}/?refresh=true/`);
   },
 };
 
@@ -570,14 +570,14 @@ export const verificationAPI = {
       cas_url: string;
       session_token: string;
       expires_in_minutes: number;
-    }>("/verify/initiate", {
+    }>("/verify/initiate/", {
       method: "POST",
     });
   },
 
   getStatus: async () => {
     return apiCall<{ is_muffled: boolean; username: string; echoes: number }>(
-      "/verify/status"
+      "/verify/status/"
     );
   },
 };
@@ -598,7 +598,7 @@ export const notificationAPI = {
       }
     });
 
-    return apiCall<Notification[]>(`/notifications/?${searchParams.toString()}`);
+    return apiCall<Notification[]>(`/notifications/?${searchParams.toString()}/`);
   },
 
   getNotification: async (notificationId: string) => {
@@ -625,7 +625,7 @@ export const notificationAPI = {
   },
 
   markAllAsRead: async () => {
-    return apiCall<{ message: string }>("/notifications/mark-all-read", {
+    return apiCall<{ message: string }>("/notifications/mark-all-read/", {
       method: "POST",
     });
   },
@@ -640,14 +640,14 @@ export const notificationAPI = {
 // User Search API
 export const userSearchAPI = {
   searchUsers: async (query: string) => {
-    return apiCall<User[]>(`/users/search/?q=${encodeURIComponent(query)}`);
+    return apiCall<User[]>(`/users/search/?q=${encodeURIComponent(query)}/`);
   },
 };
 
 // Feed API
 export const feedAPI = {
   getFeed: async (skip = 0, limit = 20) => {
-    return apiCall<Review[]>(`/feed/?skip=${skip}&limit=${limit}`);
+    return apiCall<Review[]>(`/feed/?skip=${skip}&limit=${limit}/`);
   },
 
   getStats: async () => {

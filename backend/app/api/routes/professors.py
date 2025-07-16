@@ -111,7 +111,7 @@ async def read_professors(
     return professors
 
 
-@router.get("/{professor_id}", response_model=ProfessorWithSocialMedia)
+@router.get("/{professor_id}/", response_model=ProfessorWithSocialMedia)
 async def read_professor(
     professor_id: UUID,
     db: AsyncSession = Depends(get_db)
@@ -158,7 +158,7 @@ async def create_professor(
     return professor
 
 
-@router.put("/{professor_id}", response_model=Professor)
+@router.put("/{professor_id}/", response_model=Professor)
 async def update_professor(
     professor_id: UUID,
     professor_in: ProfessorUpdate,
@@ -190,7 +190,7 @@ async def update_professor(
     return updated_professor
 
 
-@router.delete("/{professor_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{professor_id}/", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_professor(
     professor_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -216,7 +216,7 @@ async def delete_professor(
 
 # Social media endpoints
 @router.post(
-    "/social-media",
+    "/social-media/",
     response_model=ProfessorSocialMedia,
     status_code=status.HTTP_201_CREATED
 )
@@ -251,7 +251,7 @@ async def create_professor_social_media(
 
 
 @router.put(
-    "/social-media/{social_media_id}", response_model=ProfessorSocialMedia
+    "/social-media/{social_media_id}/", response_model=ProfessorSocialMedia
 )
 async def update_professor_social_media(
     social_media_id: UUID,
@@ -288,7 +288,7 @@ async def update_professor_social_media(
 
 
 @router.delete(
-    "/social-media/{social_media_id}", status_code=status.HTTP_204_NO_CONTENT
+    "/social-media/{social_media_id}/", status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_professor_social_media(
     social_media_id: UUID,
