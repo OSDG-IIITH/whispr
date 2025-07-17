@@ -43,7 +43,7 @@ export function MentionLink({ username }: MentionLinkProps) {
       <UserHoverCard
         username={user.username}
         echoes={user.echoes}
-        isVerified={!user.is_muffled}
+        isVerified={!(user.is_muffled && !user.is_banned)}
         joinDate={user.created_at}
         reviewCount={0} // TODO: Add review count to user data
       >

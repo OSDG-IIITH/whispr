@@ -291,7 +291,7 @@ export function SearchClientContent() {
                   id: userData.id,
                   type: "user",
                   title: `@${userData.username}`,
-                  subtitle: userData.is_muffled ? "Unverified" : "Verified",
+                  subtitle: userData.is_muffled && !(userData.is_banned) ? "Unverified" : "Verified",
                   description: userData.bio || "No bio available",
                   metadata: {
                     echoes: userData.echoes,
@@ -300,6 +300,7 @@ export function SearchClientContent() {
                       userData.created_at
                     ).toLocaleDateString(),
                     isVerified: !userData.is_muffled,
+                    isBanned: userData.is_banned || false,
                   },
                   relevanceScore: result.relevance_score,
                   rawData: userData,

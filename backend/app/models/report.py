@@ -59,3 +59,9 @@ class Report(Base):
     reported_user = relationship("User", foreign_keys=[reported_user_id], back_populates="reports_received")
     review = relationship("Review", back_populates="reports")
     reply = relationship("Reply", back_populates="reports")
+
+    ## Admin handling fields
+    reviewed_by = Column(UUID(as_uuid=True), ForeignKey(
+        "users.id", ondelete="SET NULL"), nullable=True, index=True)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    admin_action = Column(String, nullable=True)  # Action taken by the admin (e.g., "banned user", "deleted content", etc)

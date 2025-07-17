@@ -35,7 +35,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       // Check if user needs verification
-      setShowVerificationBanner((user as User).is_muffled);
+      setShowVerificationBanner((user as User).is_muffled && !(user as User).is_banned);
 
       // Fetch user stats
       fetchStats();
@@ -187,10 +187,10 @@ export default function DashboardPage() {
                     <span className="text-secondary">Status</span>
                     <span
                       className={
-                        !(user as User).is_muffled ? "text-green-400" : "text-yellow-400"
+                        !(user as User).is_muffled && !(user as User).is_banned ? "text-green-400" : "text-yellow-400"
                       }
                     >
-                      {!(user as User).is_muffled ? "Verified" : "Unverified"}
+                      {!(user as User).is_muffled && !(user as User).is_banned ? "Verified" : "Unverified"}
                     </span>
                   </div>
                 </div>

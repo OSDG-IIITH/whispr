@@ -10,14 +10,20 @@ import {
   Calendar,
   Clock,
   ChevronDown,
+  Shield,
+  Users,
+  Flag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/providers/AuthProvider";
 
 interface SearchBarProps {
   onClose: () => void;
 }
 
 export function SearchBar({ onClose }: SearchBarProps) {
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("relevance");
@@ -484,6 +490,39 @@ export function SearchBar({ onClose }: SearchBarProps) {
           Search
         </motion.button>
       </div>
+
+      {/* Admin Navigation - Fixed the user reference */}
+      {user && (user as any).is_admin && (
+        <div className="border-t border-border pt-4 mt-4">
+          <div className="text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
+            Admin
+          </div>
+          <Link
+            href="/admin"
+            className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors"
+            onClick={onClose}
+          >
+            <Shield className="w-4 h-4" />
+            Dashboard
+          </Link>
+          <Link
+            href="/admin/users"
+            className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors"
+            onClick={onClose}
+          >
+            <Users className="w-4 h-4" />
+            Users
+          </Link>
+          <Link
+            href="/admin/reports"
+            className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors"
+            onClick={onClose}
+          >
+            <Flag className="w-4 h-4" />
+            Reports
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

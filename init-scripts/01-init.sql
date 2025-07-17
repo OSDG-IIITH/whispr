@@ -8,7 +8,7 @@ CREATE TABLE users (
     bio TEXT,
     student_since_year INTEGER,
     is_muffled BOOLEAN DEFAULT TRUE,
-    is_admin BOOLEAN DEFAULT FALSE,
+    -- is_admin BOOLEAN DEFAULT FALSE,
     echoes INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -189,7 +189,7 @@ CREATE TABLE reports (
     status VARCHAR(50) DEFAULT 'pending' CHECK (
         status IN (
             'pending',
-            'reviewed',
+            'under_review',  -- Add this status
             'resolved',
             'dismissed'
         )
@@ -262,3 +262,24 @@ CREATE TRIGGER update_votes_modtime BEFORE
 UPDATE ON votes FOR EACH ROW EXECUTE FUNCTION update_modified_column();
 CREATE TRIGGER update_professor_social_media_modtime BEFORE
 UPDATE ON professor_social_media FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+-- Add admin and ban fields to users table
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE NOT NULL,
+ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE NOT NULL,
+ADD COLUMN IF NOT EXISTS ban_reason TEXT,
+ADD COLUMN IF NOT EXISTS banned_until TIMESTAMP,
+ADD COLUMN IF NOT EXISTS banned_by VARCHAR,
+ADD COLUMN IF NOT EXISTS banned_at TIMESTAMP;
+
+-- Add admin review fields to reports table
+ALTER TABLE reports
+ADD COLUMN IF NOT EXISTS reviewed_by VARCHAR,
+ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS admin_action VARCHAR,
+ADD COLUMN IF NOT EXISTS admin_notes TEXT;
+
+-- Create indexes for admin queries
+CREATE INDEX IF NOT EXISTS idx_users_admin ON users(is_admin);
+CREATE INDEX IF NOT EXISTS idx_users_banned ON users(is_banned);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
