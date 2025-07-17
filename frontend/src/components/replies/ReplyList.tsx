@@ -123,13 +123,13 @@ export function ReplyList({
                 animate={{ opacity: 1, y: 0 }}
                 className="ml-12"
               >
-                <button
+                {/* <button
                   onClick={() => setShowReplyForm(true)}
                   className="flex items-center gap-2 text-sm text-secondary hover:text-primary transition-colors"
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>Add a reply</span>
-                </button>
+                </button> */}
               </motion.div>
             )}
           </motion.div>

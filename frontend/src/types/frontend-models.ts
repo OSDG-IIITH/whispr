@@ -190,6 +190,12 @@ export function convertReviewToFrontendReview(
   userVote?: Vote | null,
   currentUserId?: string
 ): FrontendReview {
+  // console.log("Review conversion:", {
+  //   reviewId: review.id,
+  //   reviewUserId: review.user_id,
+  //   currentUserId,
+  //   wouldBeOwn: review.user_id === currentUserId
+  // });
   return {
     id: review.id,
     user_id: review.user_id,
@@ -227,6 +233,12 @@ export function convertReplyToFrontendReply(
   userVote?: Vote | null,
   currentUserId?: string
 ): FrontendReply {
+  // console.log("Reply conversion:", {
+  //   replyId: reply.id,
+  //   replyUserId: reply.user_id,
+  //   currentUserId,
+  //   wouldBeOwn: reply.user_id === currentUserId
+  // });
   return {
     id: reply.id,
     author: {

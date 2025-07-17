@@ -63,12 +63,12 @@ export default function CoursePage() {
       setCourse(courseData);
 
       // Fetch course reviews
-      const reviewsData = await courseAPI.getCourseReviews(
-        courseData.id,
-        0,
-        100
-      );
-      setReviews(reviewsData);
+      // const reviewsData = await courseAPI.getCourseReviews(
+      //   courseData.id,
+      //   0,
+      //   100
+      // );
+      // setReviews(reviewsData);
 
       // Fetch user votes if logged in
       if (user) {
@@ -90,18 +90,27 @@ export default function CoursePage() {
 
   // Fetch replies for all reviews
   const fetchRepliesForReviews = useCallback(async (reviews: Review[]) => {
+    const currentUserId = (user as User).id;
     const repliesObj: Record<string, FrontendReply[]> = {};
     await Promise.all(
       reviews.map(async (review) => {
         const replies = await replyAPI.getReplies({ review_id: review.id });
         // Transform replies to FrontendReply
-        repliesObj[review.id] = replies.map((reply: Reply) =>
-          convertReplyToFrontendReply(reply)
-        );
+        repliesObj[review.id] = replies.map((reply: Reply) => {
+          // console.log("Raw reply from API:", reply); // See what the API returns
+          // console.log("Reply user_id:", reply.user_id); // Check if user_id exists
+          
+          const frontendReply = convertReplyToFrontendReply(reply, null, currentUserId);
+          // console.log("After conversion:", frontendReply); // See what conversion produces
+          
+          return frontendReply;
+        });
       })
     );
+    // console.log("The replies object:", repliesObj);
     setRepliesByReview(repliesObj);
-  }, []);
+    return repliesObj;
+  }, [user]);
 
   // Fetch reviews and their replies
   const fetchReviewsAndReplies = useCallback(async () => {
@@ -109,7 +118,8 @@ export default function CoursePage() {
     try {
       const reviewsData = await reviewAPI.getReviews({ course_id: course.id });
       setReviews(reviewsData);
-      await fetchRepliesForReviews(reviewsData);
+      const repliesData = await fetchRepliesForReviews(reviewsData);
+      // console.log("Fetched replies for reviews:", repliesData);
       // Also refresh user votes if logged in
       if (user) {
         try {
@@ -940,6 +950,7 @@ export default function CoursePage() {
                     ...reply,
                     userVote: getUserVoteForReply(reply.id),
                     isHighlighted: highlightedReplyId === reply.id,
+                    // isOwn: user ? reply.user_id === (user as User).id : false,
                   }))}
                   reviewId={review.id}
                   onVote={handleReplyVote}

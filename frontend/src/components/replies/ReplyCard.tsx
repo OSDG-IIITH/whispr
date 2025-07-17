@@ -33,6 +33,7 @@ export function ReplyCard({
   onDelete,
   onReport,
 }: ReplyCardProps) {
+  // console.log("Rendering ReplyCard for:", reply);
   const { showError } = useToast();
   const [showActions, setShowActions] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -117,48 +118,6 @@ export function ReplyCard({
                 {reply.isEdited && <span>(edited)</span>}
               </div>
             </div>
-
-            {/* Action Buttons */}
-            {!isEditing && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: showActions ? 1 : 0 }}
-                className="flex items-center gap-1"
-              >
-                {reply.isOwn ? (
-                  <>
-                    {onEdit && (
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                        title="Edit reply"
-                      >
-                        <Edit className="w-3 h-3" />
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                        title="Delete reply"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  onReport && (
-                    <button
-                      onClick={() => setShowReportModal(true)}
-                      className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
-                      title="Report reply"
-                    >
-                      <Flag className="w-3 h-3" />
-                    </button>
-                  )
-                )}
-              </motion.div>
-            )}
           </div>
 
           {/* Content or Edit Form */}
@@ -176,6 +135,50 @@ export function ReplyCard({
             )}
           </div>
         </div>
+
+        {/* Action Buttons */}
+            {!isEditing && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showActions ? 1 : 0 }}
+                className="flex flex-col items-end gap-1"
+              >
+                {reply.isOwn ? (
+                  <>
+                    <div className="flex justify-end gap-1 mt-auto pt-2">
+                      {onEdit && (
+                        <button
+                          onClick={() => setIsEditing(true)}
+                          className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                          title="Edit reply"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                          title="Delete reply"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    </>
+                  ) : (
+                    onReport && (
+                      <button
+                        onClick={() => setShowReportModal(true)}
+                        className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
+                        title="Report reply"
+                      >
+                        <Flag className="w-3 h-3" />
+                      </button>
+                    )
+                )}
+              </motion.div>
+            )}
       </div>
 
       {/* Report Modal */}
