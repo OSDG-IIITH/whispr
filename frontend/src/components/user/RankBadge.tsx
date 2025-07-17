@@ -33,7 +33,7 @@ export function RankBadge({ echoes, size = "md", showIcon = true, showProgress =
         className={`
           inline-flex items-center gap-1.5 rounded-full font-medium
           bg-gradient-to-r ${rank.gradient}
-          text-white shadow-sm
+          text-primary shadow-sm
           ${sizeClasses[size]}
         `}
       >

@@ -174,9 +174,8 @@ export function FeedReviewCard({
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${
-          i < rating ? "text-yellow-500 fill-current" : "text-secondary"
-        }`}
+        className={`w-4 h-4 ${i < rating ? "text-yellow-500 fill-current" : "text-secondary"
+          }`}
       />
     ));
   };
@@ -248,7 +247,7 @@ export function FeedReviewCard({
                     size="sm"
                   />
                 </UserHoverCard>
-
+                
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <UserHoverCard
@@ -265,9 +264,9 @@ export function FeedReviewCard({
                       }
                     >
                       <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
-                        {review.author?.username ||
+                        {(review.author?.username ||
                           review.user?.username ||
-                          "Unknown"}
+                          "Unknown").slice(0, 20)}
                       </span>
                     </UserHoverCard>
                     <RankBadge
@@ -284,11 +283,6 @@ export function FeedReviewCard({
                     </span>
                     {review.isEdited && <span>(edited)</span>}
                   </div>
-                </div>
-
-                {/* Rating */}
-                <div className="flex items-center gap-1">
-                  {renderStars(review.rating)}
                 </div>
 
                 {/* Action Buttons */}
@@ -334,6 +328,11 @@ export function FeedReviewCard({
                 </div>
               </div>
 
+              {/* Rating - move below header, responsive */}
+              <div className="flex items-center gap-1 mt-2 sm:mt-0 sm:mb-3 mb-2 w-full sm:w-auto">
+                {renderStars(review.rating)}
+              </div>
+
               {/* Content */}
               <div className="prose prose-invert prose-sm max-w-none mb-3">
                 <div className="text-foreground leading-relaxed whitespace-pre-wrap">
@@ -372,12 +371,12 @@ export function FeedReviewCard({
               >
                 Cancel
               </button>
-                <button
+              <button
                 onClick={handleDelete}
                 className="px-4 py-2 bg-red-500/10 text-red-500 font-medium rounded-lg hover:bg-red-500 hover:text-white transition-colors"
-                >
+              >
                 Delete
-                </button>
+              </button>
             </div>
           </div>
         </div>
