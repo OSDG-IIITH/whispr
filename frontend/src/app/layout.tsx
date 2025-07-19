@@ -117,7 +117,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.className} bg-black text-white antialiased pb-16`}
+        className={`${inter.className} bg-black text-white antialiased pb-16 mx-6`}
       >
         <AuthProvider>
           <ToastProvider>
