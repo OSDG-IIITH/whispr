@@ -200,9 +200,9 @@ CREATE TABLE reports (
         )
     ),
     admin_notes TEXT,
-    ADD COLUMN IF NOT EXISTS reviewed_by VARCHAR,
-    ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP,
-    ADD COLUMN IF NOT EXISTS admin_action VARCHAR,
+    reviewed_by VARCHAR,
+    reviewed_at TIMESTAMP,
+    admin_action VARCHAR,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CHECK (
