@@ -35,7 +35,9 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       // Check if user needs verification
-      setShowVerificationBanner((user as User).is_muffled);
+      setShowVerificationBanner(
+        (user as User).is_muffled && !(user as User).is_banned
+      );
 
       // Fetch user stats
       fetchStats();
@@ -162,7 +164,9 @@ export default function DashboardPage() {
                       size="xl"
                     />
                   </div>
-                  <h2 className="text-xl font-bold mb-2">{(user as User).username}</h2>
+                  <h2 className="text-xl font-bold mb-2">
+                    {(user as User).username}
+                  </h2>
                   <div className="flex items-center justify-center gap-2 mb-4">
                     <span className="text-sm text-secondary">Rank:</span>
                     <span className="text-sm font-semibold text-primary">
@@ -181,16 +185,22 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-secondary">Member since</span>
-                    <span>{new Date((user as User).created_at).getFullYear()}</span>
+                    <span>
+                      {new Date((user as User).created_at).getFullYear()}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-secondary">Status</span>
                     <span
                       className={
-                        !(user as User).is_muffled ? "text-green-400" : "text-yellow-400"
+                        !(user as User).is_muffled && !(user as User).is_banned
+                          ? "text-green-400"
+                          : "text-yellow-400"
                       }
                     >
-                      {!(user as User).is_muffled ? "Verified" : "Unverified"}
+                      {!(user as User).is_muffled && !(user as User).is_banned
+                        ? "Verified"
+                        : "Unverified"}
                     </span>
                   </div>
                 </div>

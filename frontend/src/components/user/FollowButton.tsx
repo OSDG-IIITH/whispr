@@ -38,7 +38,7 @@ export function FollowButton({
     if (loading || disabled) return;
 
     // Check if user is muffled
-    if (user?.is_muffled) {
+    if (user?.is_muffled && !user?.is_banned) {
       showError("You need to verify your account to follow users.");
       return;
     }
@@ -66,11 +66,13 @@ export function FollowButton({
     <button
       onClick={handleFollow}
       disabled={loading || disabled}
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${isFollowing
-        ? "bg-green-500/20 text-green-400 hover:bg-red-500/20 hover:text-red-400"
-        : "bg-primary/20 text-primary hover:bg-primary/30"
-        } ${loading || disabled ? "opacity-50 cursor-not-allowed" : ""
-        } ${className}`}
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+        isFollowing
+          ? "bg-green-500/20 text-green-400 hover:bg-red-500/20 hover:text-red-400"
+          : "bg-primary/20 text-primary hover:bg-primary/30"
+      } ${
+        loading || disabled ? "opacity-50 cursor-not-allowed" : ""
+      } ${className}`}
     >
       {loading ? (
         <Loader2 className="w-4 h-4 animate-spin" />

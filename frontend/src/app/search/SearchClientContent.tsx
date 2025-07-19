@@ -14,7 +14,14 @@ import {
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { searchAPI, SearchApiResponse } from "@/lib/api";
-import { User, Review, Reply, Professor, Course, CourseInstructor } from "@/types/backend-models";
+import {
+  User,
+  Review,
+  Reply,
+  Professor,
+  Course,
+  CourseInstructor,
+} from "@/types/backend-models";
 
 interface CourseMetadata {
   reviewCount: number;
@@ -60,25 +67,25 @@ interface UserMetadata {
 interface SearchResultData {
   id: string;
   type:
-  | "course"
-  | "professor"
-  | "review"
-  | "reply"
-  | "course_instructor"
-  | "user"
-  | "unknown";
+    | "course"
+    | "professor"
+    | "review"
+    | "reply"
+    | "course_instructor"
+    | "user"
+    | "unknown";
   title: string;
   subtitle?: string;
   description: string;
   rating?: number;
   metadata?:
-  | CourseMetadata
-  | ProfessorMetadata
-  | CourseInstructorMetadata
-  | ReviewMetadata
-  | ReplyMetadata
-  | UserMetadata
-  | Record<string, unknown>;
+    | CourseMetadata
+    | ProfessorMetadata
+    | CourseInstructorMetadata
+    | ReviewMetadata
+    | ReplyMetadata
+    | UserMetadata
+    | Record<string, unknown>;
   relevanceScore: number;
   rawData: unknown;
 }
@@ -162,7 +169,10 @@ export function SearchClientContent() {
 
         // Ensure response.results is an array before mapping
         if (!Array.isArray(response.results)) {
-          console.error("Search API did not return an array of results:", response);
+          console.error(
+            "Search API did not return an array of results:",
+            response
+          );
           setResults([]);
           setTotalResults(0);
           return;
@@ -170,7 +180,7 @@ export function SearchClientContent() {
 
         // Transform API results to our format
         const transformedResults: SearchResultData[] = response.results.map(
-          (result: SearchApiResponse['results'][number]) => {
+          (result: SearchApiResponse["results"][number]) => {
             let transformedResult: SearchResultData;
 
             switch (result.entity_type) {
@@ -222,11 +232,17 @@ export function SearchClientContent() {
                 transformedResult = {
                   id: ciData.id,
                   type: "course_instructor",
-                  title: `${ciData.course?.code || 'N/A'} - ${ciData.professor?.name || 'N/A'}`,
-                  subtitle: `${ciData.semester || 'N/A'} ${ciData.year || 'N/A'}`,
+                  title: `${ciData.course?.code || "N/A"} - ${
+                    ciData.professor?.name || "N/A"
+                  }`,
+                  subtitle: `${ciData.semester || "N/A"} ${
+                    ciData.year || "N/A"
+                  }`,
                   description:
                     ciData.summary ||
-                    `${ciData.professor?.name || 'N/A'} teaching ${ciData.course?.name || 'N/A'}`,
+                    `${ciData.professor?.name || "N/A"} teaching ${
+                      ciData.course?.name || "N/A"
+                    }`,
                   rating: ciData.average_rating
                     ? Number(ciData.average_rating)
                     : undefined,
@@ -248,7 +264,9 @@ export function SearchClientContent() {
                   id: reviewData.id,
                   type: "review",
                   title: "Review",
-                  subtitle: `by ${reviewData.user?.username || 'Unknown'} • ${reviewData.rating} stars`,
+                  subtitle: `by ${reviewData.user?.username || "Unknown"} • ${
+                    reviewData.rating
+                  } stars`,
                   description: reviewData.content || "No content available",
                   metadata: {
                     upvotes: reviewData.upvotes,
@@ -256,7 +274,7 @@ export function SearchClientContent() {
                     createdAt: new Date(
                       reviewData.created_at
                     ).toLocaleDateString(),
-                    username: reviewData.user?.username || 'Unknown',
+                    username: reviewData.user?.username || "Unknown",
                     rating: reviewData.rating,
                   },
                   relevanceScore: result.relevance_score,
@@ -270,7 +288,7 @@ export function SearchClientContent() {
                   id: replyData.id,
                   type: "reply",
                   title: "Reply",
-                  subtitle: `by ${replyData.user?.username || 'Unknown'}`,
+                  subtitle: `by ${replyData.user?.username || "Unknown"}`,
                   description: replyData.content || "No content available",
                   metadata: {
                     upvotes: replyData.upvotes,
@@ -278,7 +296,7 @@ export function SearchClientContent() {
                     createdAt: new Date(
                       replyData.created_at
                     ).toLocaleDateString(),
-                    username: replyData.user?.username || 'Unknown',
+                    username: replyData.user?.username || "Unknown",
                   },
                   relevanceScore: result.relevance_score,
                   rawData: replyData,
@@ -291,7 +309,10 @@ export function SearchClientContent() {
                   id: userData.id,
                   type: "user",
                   title: `@${userData.username}`,
-                  subtitle: userData.is_muffled ? "Unverified" : "Verified",
+                  subtitle:
+                    userData.is_muffled && !userData.is_banned
+                      ? "Unverified"
+                      : "Verified",
                   description: userData.bio || "No bio available",
                   metadata: {
                     echoes: userData.echoes,
@@ -300,6 +321,7 @@ export function SearchClientContent() {
                       userData.created_at
                     ).toLocaleDateString(),
                     isVerified: !userData.is_muffled,
+                    isBanned: userData.is_banned || false,
                   },
                   relevanceScore: result.relevance_score,
                   rawData: userData,
@@ -308,8 +330,10 @@ export function SearchClientContent() {
 
               default:
                 transformedResult = {
-                  id: (result.data as { id?: string }).id || Math.random().toString(),
-                  type: "unknown" as SearchResultData['type'],
+                  id:
+                    (result.data as { id?: string }).id ||
+                    Math.random().toString(),
+                  type: "unknown" as SearchResultData["type"],
                   title: "Unknown",
                   description: "Unknown result type",
                   metadata: {},
@@ -445,8 +469,9 @@ export function SearchClientContent() {
     return Array.from({ length: 5 }, (_, i) => (
       <span
         key={i}
-        className={`text-sm ${i < Math.floor(numRating) ? "text-yellow-500" : "text-secondary"
-          }`}
+        className={`text-sm ${
+          i < Math.floor(numRating) ? "text-yellow-500" : "text-secondary"
+        }`}
       >
         ★
       </span>
@@ -457,8 +482,6 @@ export function SearchClientContent() {
     course: "Courses",
     professor: "Professors",
     course_instructor: "Course Offerings",
-    // review: "Reviews",
-    // reply: "Replies",
   };
 
   const sortOptions = [
@@ -514,10 +537,11 @@ export function SearchClientContent() {
                 <button
                   key={type}
                   onClick={() => handleEntityTypeToggle(type)}
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg transition-colors ${entityTypes.length === 0 || entityTypes.includes(type)
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg transition-colors ${
+                    entityTypes.length === 0 || entityTypes.includes(type)
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                    }`}
+                  }`}
                 >
                   {label}
                 </button>
@@ -534,8 +558,9 @@ export function SearchClientContent() {
               <Filter className="w-4 h-4" />
               Advanced Filters
               <ChevronDown
-                className={`w-4 h-4 transition-transform ${showAdvancedFilters ? "rotate-180" : ""
-                  }`}
+                className={`w-4 h-4 transition-transform ${
+                  showAdvancedFilters ? "rotate-180" : ""
+                }`}
               />
             </button>
 
@@ -549,10 +574,11 @@ export function SearchClientContent() {
                     className="sr-only"
                   />
                   <div
-                    className={`w-4 h-4 rounded border-2 transition-colors ${deepSearch
+                    className={`w-4 h-4 rounded border-2 transition-colors ${
+                      deepSearch
                         ? "bg-primary border-primary"
                         : "border-border hover:border-primary/50"
-                      }`}
+                    }`}
                   >
                     {deepSearch && (
                       <svg
@@ -682,7 +708,9 @@ export function SearchClientContent() {
               className="text-center py-8 sm:py-12 px-4"
             >
               <Search className="w-12 h-12 sm:w-16 sm:h-16 text-secondary mx-auto mb-4" />
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">No results found</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                No results found
+              </h3>
               <p className="text-secondary text-sm sm:text-base">
                 Try different keywords, enable deep search, or adjust your
                 filters
@@ -718,7 +746,7 @@ export function SearchClientContent() {
 
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <span className="text-xs text-secondary bg-muted px-2 py-1 rounded whitespace-nowrap">
-                              {(result.relevanceScore).toFixed(0)}% match
+                              {result.relevanceScore.toFixed(0)}% match
                             </span>
                           </div>
                         </div>
@@ -732,22 +760,28 @@ export function SearchClientContent() {
                           {(result.type === "course" ||
                             result.type === "professor" ||
                             result.type === "course_instructor") &&
-                            (result.metadata as
-                              | CourseMetadata
-                              | ProfessorMetadata
-                              | CourseInstructorMetadata)?.reviewCount !==
-                            undefined && (
+                            (
+                              result.metadata as
+                                | CourseMetadata
+                                | ProfessorMetadata
+                                | CourseInstructorMetadata
+                            )?.reviewCount !== undefined && (
                               <span className="flex items-center gap-1 sm:gap-2 flex-wrap">
                                 <span className="whitespace-nowrap">
-                                  {(result.metadata as
-                                    | CourseMetadata
-                                    | ProfessorMetadata
-                                    | CourseInstructorMetadata).reviewCount}{" "}
-                                  {(result.metadata as
-                                    | CourseMetadata
-                                    | ProfessorMetadata
-                                    | CourseInstructorMetadata).reviewCount ===
-                                    1
+                                  {
+                                    (
+                                      result.metadata as
+                                        | CourseMetadata
+                                        | ProfessorMetadata
+                                        | CourseInstructorMetadata
+                                    ).reviewCount
+                                  }{" "}
+                                  {(
+                                    result.metadata as
+                                      | CourseMetadata
+                                      | ProfessorMetadata
+                                      | CourseInstructorMetadata
+                                  ).reviewCount === 1
                                     ? "review"
                                     : "reviews"}
                                 </span>
@@ -768,9 +802,13 @@ export function SearchClientContent() {
                             (result.metadata as ReviewMetadata | ReplyMetadata)
                               ?.upvotes !== undefined && (
                               <span className="whitespace-nowrap">
-                                {(result.metadata as
-                                  | ReviewMetadata
-                                  | ReplyMetadata).upvotes}{" "}
+                                {
+                                  (
+                                    result.metadata as
+                                      | ReviewMetadata
+                                      | ReplyMetadata
+                                  ).upvotes
+                                }{" "}
                                 upvotes
                               </span>
                             )}
@@ -779,9 +817,13 @@ export function SearchClientContent() {
                             (result.metadata as ReviewMetadata | ReplyMetadata)
                               ?.createdAt && (
                               <span className="whitespace-nowrap">
-                                {(result.metadata as
-                                  | ReviewMetadata
-                                  | ReplyMetadata).createdAt}
+                                {
+                                  (
+                                    result.metadata as
+                                      | ReviewMetadata
+                                      | ReplyMetadata
+                                  ).createdAt
+                                }
                               </span>
                             )}
                           {result.type === "user" &&
@@ -796,10 +838,14 @@ export function SearchClientContent() {
                             (result.metadata as CourseInstructorMetadata)
                               ?.year && (
                               <span className="whitespace-nowrap">
-                                {(result.metadata as CourseInstructorMetadata)
-                                  .semester}{" "}
-                                {(result.metadata as CourseInstructorMetadata)
-                                  .year}
+                                {
+                                  (result.metadata as CourseInstructorMetadata)
+                                    .semester
+                                }{" "}
+                                {
+                                  (result.metadata as CourseInstructorMetadata)
+                                    .year
+                                }
                               </span>
                             )}
                         </div>
@@ -831,7 +877,9 @@ export function SearchClientContent() {
 
         {loading && results.length > 0 && (
           <div className="text-center mt-4 px-4">
-            <div className="text-secondary text-sm sm:text-base">Loading more results...</div>
+            <div className="text-secondary text-sm sm:text-base">
+              Loading more results...
+            </div>
           </div>
         )}
       </div>

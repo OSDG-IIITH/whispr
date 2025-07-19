@@ -17,6 +17,7 @@ import {
   Calendar,
   Hash,
 } from "lucide-react";
+import { UserAvatar } from "@/components/user/UserAvatar";
 import Link from "next/link";
 import { userAPI } from "@/lib/api";
 import { convertUserToFrontendUser } from "@/types/frontend-models";
@@ -455,9 +456,16 @@ export function ProfilesClientContent() {
                   <div className="bg-card border border-border rounded-xl p-4 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-base truncate">
-                          @{user.username}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <UserAvatar
+                            username={user.username}
+                            echoes={user.echoes || 0}
+                            size="md"
+                          />
+                          <h3 className="font-semibold text-base truncate">
+                            @{user.username}
+                          </h3>
+                        </div>
                         {user.student_since_year && (
                           <div className="flex items-center gap-1 text-secondary mt-1">
                             <Calendar className="w-3 h-3" />

@@ -91,6 +91,10 @@ class Settings(BaseSettings):
                 return [domain.strip() for domain in v.split(',') if domain.strip()]
         return v
 
+    # Admin user settings
+    ADMIN_DEFAULT_USERNAME: str = os.getenv("ADMIN_DEFAULT_USERNAME", "admin")
+    ADMIN_DEFAULT_PASSWORD: str = os.getenv("ADMIN_DEFAULT_PASSWORD", "admin123")
+
     class Config:
         """
         Configuration for Pydantic settings.

@@ -92,7 +92,7 @@ export function ReplyCard({
                 username={reply.author.username}
                 echoes={reply.author.echoes}
                 size="sm"
-                />
+              />
             </UserHoverCard>
 
             <div className="flex-1">
@@ -101,7 +101,7 @@ export function ReplyCard({
                   username={reply.author.username}
                   echoes={reply.author.echoes}
                   isVerified={reply.author.isVerified}
-                    >
+                >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {reply.author.username}
                   </span>
@@ -117,48 +117,6 @@ export function ReplyCard({
                 {reply.isEdited && <span>(edited)</span>}
               </div>
             </div>
-
-            {/* Action Buttons */}
-            {!isEditing && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: showActions ? 1 : 0 }}
-                className="flex items-center gap-1"
-              >
-                {reply.isOwn ? (
-                  <>
-                    {onEdit && (
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                        title="Edit reply"
-                      >
-                        <Edit className="w-3 h-3" />
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                        title="Delete reply"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  onReport && (
-                    <button
-                      onClick={() => setShowReportModal(true)}
-                      className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
-                      title="Report reply"
-                    >
-                      <Flag className="w-3 h-3" />
-                    </button>
-                  )
-                )}
-              </motion.div>
-            )}
           </div>
 
           {/* Content or Edit Form */}
@@ -176,6 +134,50 @@ export function ReplyCard({
             )}
           </div>
         </div>
+
+        {/* Action Buttons */}
+        {!isEditing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showActions ? 1 : 0 }}
+            className="flex flex-col items-end gap-1"
+          >
+            {reply.isOwn ? (
+              <>
+                <div className="flex justify-end gap-1 mt-auto pt-2">
+                  {onEdit && (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                      title="Edit reply"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                      title="Delete reply"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              onReport && (
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
+                  title="Report reply"
+                >
+                  <Flag className="w-3 h-3" />
+                </button>
+              )
+            )}
+          </motion.div>
+        )}
       </div>
 
       {/* Report Modal */}
@@ -192,7 +194,10 @@ export function ReplyCard({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full">
             <h3 className="font-semibold mb-4">Delete Reply</h3>
-            <p className="mb-6 text-secondary">Are you sure you want to delete this reply? This action cannot be undone.</p>
+            <p className="mb-6 text-secondary">
+              Are you sure you want to delete this reply? This action cannot be
+              undone.
+            </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}

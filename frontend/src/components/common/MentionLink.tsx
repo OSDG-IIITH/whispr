@@ -45,7 +45,7 @@ export function MentionLink({ username }: MentionLinkProps) {
       <UserHoverCard
         username={user.username}
         echoes={user.echoes}
-        isVerified={!user.is_muffled}
+        isVerified={!(user.is_muffled && !user.is_banned)}
         joinDate={user.created_at}
         reviewCount={0} // TODO: Add review count to user data
       >
@@ -61,11 +61,7 @@ export function MentionLink({ username }: MentionLinkProps) {
 
   // If user doesn't exist or error, show plain mention
   if (error) {
-    return (
-      <span className="text-secondary font-medium">
-        @{username}
-      </span>
-    );
+    return <span className="text-secondary font-medium">@{username}</span>;
   }
 
   // Loading or plain mention

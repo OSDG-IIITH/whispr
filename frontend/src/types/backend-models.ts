@@ -9,6 +9,7 @@ export interface User {
   bio?: string;
   student_since_year?: number;
   is_muffled: boolean;
+  is_banned: boolean;
   is_admin: boolean;
   echoes: number;
   created_at: string;
@@ -145,7 +146,15 @@ export interface Vote {
 export interface Notification {
   id: string;
   username: string;
-  type: "MENTION" | "VOTE" | "REPLY" | "RANK_CHANGE" | "SYSTEM" | "FOLLOW" | "FOLLOWER_REVIEW" | "FOLLOWER_REPLY";
+  type:
+    | "MENTION"
+    | "VOTE"
+    | "REPLY"
+    | "RANK_CHANGE"
+    | "SYSTEM"
+    | "FOLLOW"
+    | "FOLLOWER_REVIEW"
+    | "FOLLOWER_REPLY";
   content: string;
   source_id?: string;
   source_type?: string;

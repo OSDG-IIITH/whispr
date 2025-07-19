@@ -87,13 +87,15 @@ export function ReplyList({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className={reply.isHighlighted ? 'animate-pulse' : ''}
+                className={reply.isHighlighted ? "animate-pulse" : ""}
               >
-                <div className={`transition-all duration-300 ${
-                  reply.isHighlighted 
-                    ? 'ring-2 ring-primary ring-opacity-50 bg-primary/5 rounded-xl p-2' 
-                    : ''
-                }`}>
+                <div
+                  className={`transition-all duration-300 ${
+                    reply.isHighlighted
+                      ? "ring-2 ring-primary ring-opacity-50 bg-primary/5 rounded-xl p-2"
+                      : ""
+                  }`}
+                >
                   <ReplyCard
                     reply={reply}
                     onVote={onVote}
@@ -114,22 +116,6 @@ export function ReplyList({
                   onSubmit={handleSubmitReply}
                   onCancel={() => setShowReplyForm(false)}
                 />
-              </motion.div>
-            )}
-
-            {!showReplyForm && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="ml-12"
-              >
-                <button
-                  onClick={() => setShowReplyForm(true)}
-                  className="flex items-center gap-2 text-sm text-secondary hover:text-primary transition-colors"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Add a reply</span>
-                </button>
               </motion.div>
             )}
           </motion.div>

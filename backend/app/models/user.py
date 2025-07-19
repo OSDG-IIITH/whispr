@@ -3,7 +3,7 @@ User model for authentication and profile information.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Boolean, Column, String, Integer, DateTime, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -24,12 +24,19 @@ class User(Base):
     bio = Column(Text, nullable=True)
     student_since_year = Column(Integer, nullable=True)
     is_muffled = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
     echoes = Column(Integer, default=0)
 
+    # Admin and moderation fields
+    is_admin = Column(Boolean, default=False)
+    is_banned = Column(Boolean, default=False)
+    ban_reason = Column(Text, nullable=True)
+    banned_until = Column(DateTime(timezone=True), nullable=True) # None for permanent ban
+    banned_by = Column(String(50), nullable=True) # Username of the admin who banned the user
+    banned_at = Column(DateTime(timezone=True), nullable=True) # When the user was banned
+
     # Timestamps
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     following = relationship(

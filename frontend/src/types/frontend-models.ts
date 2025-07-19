@@ -170,7 +170,7 @@ export function convertUserToFrontendUser(
 ): FrontendUser {
   return {
     ...user,
-    isVerified: !user.is_muffled,
+    isVerified: !(user.is_muffled && !user.is_banned),
     isFollowing: isFollowing,
   };
 }
@@ -190,6 +190,12 @@ export function convertReviewToFrontendReview(
   userVote?: Vote | null,
   currentUserId?: string
 ): FrontendReview {
+  // console.log("Review conversion:", {
+  //   reviewId: review.id,
+  //   reviewUserId: review.user_id,
+  //   currentUserId,
+  //   wouldBeOwn: review.user_id === currentUserId
+  // });
   return {
     id: review.id,
     user_id: review.user_id,
@@ -200,11 +206,15 @@ export function convertReviewToFrontendReview(
       : undefined,
     course: review.course as FrontendCourse,
     professor: review.professor as FrontendProfessor,
-    course_instructors: review.course_instructors?.map(ci => ci as FrontendCourseInstructor) || [],
+    course_instructors:
+      review.course_instructors?.map((ci) => ci as FrontendCourseInstructor) ||
+      [],
     author: {
       username: review.user?.username || "Unknown",
       echoes: review.user?.echoes || 0,
-      isVerified: review.user ? !review.user.is_muffled : false,
+      isVerified: review.user
+        ? !(review.user.is_muffled && review.user.is_banned)
+        : false,
     },
     content: review.content,
     rating: review.rating,
@@ -232,7 +242,9 @@ export function convertReplyToFrontendReply(
     author: {
       username: reply.user?.username || "Unknown",
       echoes: reply.user?.echoes || 0,
-      isVerified: reply.user ? !reply.user.is_muffled : false,
+      isVerified: reply.user
+        ? !(reply.user.is_muffled && reply.user.is_banned)
+        : false,
     },
     content: reply.content,
     upvotes: reply.upvotes,

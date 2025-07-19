@@ -11,6 +11,8 @@ from app.core.config import settings
 from app.api.routes import api_router
 from app.db.init_db import create_tables
 
+from create_admin import create_admin_user
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -22,6 +24,10 @@ async def lifespan(_app: FastAPI):
     """
     # Create tables on startup
     await create_tables()
+    try:
+        await create_admin_user()
+    except Exception as e:
+        print(f"Error creating admin user: {e}")
     yield
     # Cleanup resources on shutdown
 

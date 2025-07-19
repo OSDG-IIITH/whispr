@@ -8,19 +8,11 @@ import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { ReplyForm } from "@/components/replies/ReplyForm";
 import { ReplyList } from "@/components/replies/ReplyList";
-import {
-  courseAPI,
-  reviewAPI,
-  voteAPI,
-  replyAPI,
-} from "@/lib/api";
-import { Course, Review, Vote, Reply, User } from "@/types/backend-models";
+import { courseAPI, reviewAPI, voteAPI, replyAPI } from "@/lib/api";
+import { Course, Review, Vote, User } from "@/types/backend-models";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
-import {
-  convertReplyToFrontendReply,
-  FrontendReply,
-} from "@/types/frontend-models";
+import { FrontendReply } from "@/types/frontend-models";
 import Loader from "@/components/common/Loader";
 
 export default function CoursePage() {
@@ -62,14 +54,6 @@ export default function CoursePage() {
       const courseData = await courseAPI.getCourse(courseCode);
       setCourse(courseData);
 
-      // Fetch course reviews
-      const reviewsData = await courseAPI.getCourseReviews(
-        courseData.id,
-        0,
-        100
-      );
-      setReviews(reviewsData);
-
       // Fetch user votes if logged in
       if (user) {
         try {
@@ -88,28 +72,12 @@ export default function CoursePage() {
     }
   }, [courseCode, user]);
 
-  // Fetch replies for all reviews
-  const fetchRepliesForReviews = useCallback(async (reviews: Review[]) => {
-    const repliesObj: Record<string, FrontendReply[]> = {};
-    await Promise.all(
-      reviews.map(async (review) => {
-        const replies = await replyAPI.getReplies({ review_id: review.id });
-        // Transform replies to FrontendReply
-        repliesObj[review.id] = replies.map((reply: Reply) =>
-          convertReplyToFrontendReply(reply)
-        );
-      })
-    );
-    setRepliesByReview(repliesObj);
-  }, []);
-
   // Fetch reviews and their replies
   const fetchReviewsAndReplies = useCallback(async () => {
     if (!course) return;
     try {
       const reviewsData = await reviewAPI.getReviews({ course_id: course.id });
       setReviews(reviewsData);
-      await fetchRepliesForReviews(reviewsData);
       // Also refresh user votes if logged in
       if (user) {
         try {
@@ -122,7 +90,7 @@ export default function CoursePage() {
     } catch (err) {
       console.error("Error fetching reviews:", err);
     }
-  }, [course, user, fetchRepliesForReviews]);
+  }, [course, user]);
 
   // Replace fetchReviews with fetchReviewsAndReplies
   useEffect(() => {
@@ -831,7 +799,10 @@ export default function CoursePage() {
               onClick={() => {
                 if (!user) {
                   showError("Please log in to submit a review");
-                } else if ((user as User).is_muffled) {
+                } else if (
+                  (user as User).is_muffled &&
+                  !(user as User).is_banned
+                ) {
                   showError("Please verify your account to rate and review.");
                 } else {
                   setShowReviewForm(true);
@@ -900,6 +871,7 @@ export default function CoursePage() {
                 username: review.user?.username || "Anonymous",
                 echoes: review.user?.echoes || 0,
                 isVerified: !review.user?.is_muffled,
+                isBanned: review.user?.is_banned || false,
               },
               content: review.content || "",
               rating: review.rating,
@@ -940,6 +912,7 @@ export default function CoursePage() {
                     ...reply,
                     userVote: getUserVoteForReply(reply.id),
                     isHighlighted: highlightedReplyId === reply.id,
+                    // isOwn: user ? reply.user_id === (user as User).id : false,
                   }))}
                   reviewId={review.id}
                   onVote={handleReplyVote}

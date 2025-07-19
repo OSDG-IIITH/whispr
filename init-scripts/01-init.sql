@@ -7,9 +7,14 @@ CREATE TABLE users (
     hashed_password VARCHAR(255) NOT NULL,
     bio TEXT,
     student_since_year INTEGER,
-    is_muffled BOOLEAN DEFAULT TRUE,
-    is_admin BOOLEAN DEFAULT FALSE,
     echoes INTEGER DEFAULT 0,
+    is_muffled BOOLEAN DEFAULT TRUE,
+    is_admin BOOLEAN DEFAULT FALSE NOT NULL,
+    is_banned BOOLEAN DEFAULT FALSE NOT NULL,
+    ban_reason TEXT,
+    banned_until TIMESTAMP,
+    banned_by VARCHAR,
+    banned_at TIMESTAMP,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -189,12 +194,15 @@ CREATE TABLE reports (
     status VARCHAR(50) DEFAULT 'pending' CHECK (
         status IN (
             'pending',
-            'reviewed',
+            'under_review',
             'resolved',
             'dismissed'
         )
     ),
     admin_notes TEXT,
+    ADD COLUMN IF NOT EXISTS reviewed_by VARCHAR,
+    ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS admin_action VARCHAR,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CHECK (
@@ -242,6 +250,9 @@ CREATE INDEX idx_course_instructors_professor_id ON course_instructors(professor
 CREATE INDEX idx_course_instructors_course_id ON course_instructors(course_id);
 CREATE INDEX idx_course_instructor_reviews_review_id ON course_instructor_reviews(review_id);
 CREATE INDEX idx_course_instructor_reviews_course_instructor_id ON course_instructor_reviews(course_instructor_id);
+CREATE INDEX IF NOT EXISTS idx_users_admin ON users(is_admin);
+CREATE INDEX IF NOT EXISTS idx_users_banned ON users(is_banned);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
 -- Add some trigger functions to handle updated_at timestamps
 CREATE OR REPLACE FUNCTION update_modified_column() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = now();
 RETURN NEW;

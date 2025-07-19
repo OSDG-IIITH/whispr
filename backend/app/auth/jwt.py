@@ -172,7 +172,7 @@ async def get_current_unmuffled_user(
     Raises:
         HTTPException: If the user is muffled.
     """
-    if current_user.is_muffled:
+    if current_user.is_muffled and not current_user.is_banned:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are muffled. Please verify your email to post content."
@@ -198,7 +198,7 @@ async def get_current_admin_user(
     if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="The user doesn't have enough privileges"
+            detail="The user doesn't have enough privileges, Admin access required"
         )
     return current_user
 

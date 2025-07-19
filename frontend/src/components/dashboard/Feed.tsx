@@ -441,7 +441,7 @@ export function Feed() {
               onReply={handleReply}
               onFollowChange={handleFollowChange}
               currentUserId={user?.id}
-              showVoteButtons={!!user && !user.is_muffled}
+              showVoteButtons={!!user && !user.is_muffled && !user.is_banned}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onReport={handleReport}
