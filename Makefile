@@ -1,4 +1,4 @@
-.PHONY: up up_n down build rebuild logs ps shell-backend shell-frontend shell-db clean setup-frontend help start dev dev-up dev-down dev-build dev-rebuild dev-logs
+.PHONY: up up_n down build rebuild logs ps shell-backend shell-frontend shell-db clean setup-frontend help start dev dev-up dev-down dev-build dev-rebuild dev-logs backup restore setup-cron
 
 # Default target
 help:
@@ -27,6 +27,12 @@ help:
 	@echo "  make shell-db        - Open a shell in the database container"
 	@echo "  make clean           - Remove all containers, volumes, and networks"
 	@echo "  make setup-frontend  - Initialize the Next.js frontend project"
+	@echo ""
+	@echo "Database commands:"
+	@echo "  make backup          - Create a backup of the database to backups/ folder"
+	@echo "  make restore         - Restore database from the latest backup"
+	@echo "  make restore FILE=<filename> - Restore database from a specific backup file"
+	@echo "  make setup-cron      - Set up automated backups using cron"
 
 # Start all containers
 up:
@@ -118,3 +124,80 @@ start:
 	@echo "All services started successfully with health checks."
 	@echo "Access the application at http://localhost"
 	@echo "API documentation available at http://localhost/api/docs"
+
+# Database backup and restore commands
+# Create a backup of the database
+backup:
+	@echo "Creating database backup..."
+	@mkdir -p backups
+	@timestamp=$$(date +"%Y%m%d_%H%M%S"); \
+	backup_file="backups/whispr_backup_$$timestamp"; \
+	echo "Backing up database to $$backup_file.sql..."; \
+	docker-compose exec -T db pg_dump -U postgres -d whispr --no-owner --no-privileges > "$$backup_file.sql"; \
+	if [ $$? -eq 0 ]; then \
+		echo "Database dump successful, compressing backup..."; \
+		if command -v zip >/dev/null 2>&1; then \
+			zip "$$backup_file.zip" "$$backup_file.sql" && rm "$$backup_file.sql" && final_file="$$backup_file.zip"; \
+		elif command -v gzip >/dev/null 2>&1; then \
+			gzip "$$backup_file.sql" && final_file="$$backup_file.sql.gz"; \
+		else \
+			echo "Warning: No compression tool found (zip/gzip). Keeping uncompressed SQL file."; \
+			final_file="$$backup_file.sql"; \
+		fi; \
+		if [ -f "$$final_file" ]; then \
+			echo "Backup completed successfully: $$final_file"; \
+			echo "Backup size: $$(du -h "$$final_file" | cut -f1)"; \
+		else \
+			echo "Error: Backup file was not created properly!"; \
+			exit 1; \
+		fi; \
+	else \
+		echo "Database backup failed!"; \
+		exit 1; \
+	fi
+
+# Restore database from backup
+restore:
+	@if [ -n "$(FILE)" ]; then \
+		backup_file="$(FILE)"; \
+	else \
+		backup_file=$$(ls -t backups/whispr_backup_*.zip backups/whispr_backup_*.gz backups/whispr_backup_*.sql 2>/dev/null | head -n1); \
+	fi; \
+	if [ -z "$$backup_file" ]; then \
+		echo "No backup file found. Please specify a file with FILE=filename or create a backup first with 'make backup'"; \
+		exit 1; \
+	fi; \
+	echo "Restoring database from $$backup_file..."; \
+	if [ ! -f "$$backup_file" ]; then \
+		echo "Backup file $$backup_file not found!"; \
+		exit 1; \
+	fi; \
+	temp_sql="temp_restore_$$(date +%s).sql"; \
+	echo "Extracting backup file..."; \
+	case "$$backup_file" in \
+		*.zip) unzip -p "$$backup_file" > "$$temp_sql" ;; \
+		*.gz) gunzip -c "$$backup_file" > "$$temp_sql" ;; \
+		*.sql) cp "$$backup_file" "$$temp_sql" ;; \
+		*) echo "Unsupported backup file format: $$backup_file"; exit 1 ;; \
+	esac; \
+	echo "Dropping existing database connections..."; \
+	docker-compose exec -T db psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'whispr' AND pid <> pg_backend_pid();" || true; \
+	echo "Dropping and recreating database..."; \
+	docker-compose exec -T db dropdb -U postgres --if-exists whispr; \
+	docker-compose exec -T db createdb -U postgres whispr; \
+	echo "Restoring database schema and data..."; \
+	docker-compose exec -T db psql -U postgres -d whispr < "$$temp_sql"; \
+	if [ $$? -eq 0 ]; then \
+		echo "Database restore completed successfully from $$backup_file"; \
+		rm "$$temp_sql"; \
+	else \
+		echo "Database restore failed!"; \
+		rm "$$temp_sql"; \
+		exit 1; \
+	fi
+
+# Set up automated database backups using cron
+setup-cron:
+	@echo "Setting up automated database backups..."
+	@chmod +x scripts/setup-backup-cron.sh
+	@./scripts/setup-backup-cron.sh
