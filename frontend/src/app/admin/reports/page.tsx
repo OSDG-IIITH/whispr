@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Flag, Ban, X, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";

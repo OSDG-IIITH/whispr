@@ -73,8 +73,14 @@ export interface AdminStats {
 
 export interface AdminReport {
   id: string;
-  reporter_id: string;
-  reported_user_id?: string;
+  reporter: {
+    id: string;
+    username: string;
+  };
+  reported_user?: {
+    id: string;
+    username: string;
+  };
   review_id?: string;
   reply_id?: string;
   report_type: string;
@@ -84,7 +90,6 @@ export interface AdminReport {
   reviewed_by?: string;
   reviewed_at?: string;
   admin_action?: string;
-  admin_notes?: string;
 }
 
 export interface BanUserRequest {
