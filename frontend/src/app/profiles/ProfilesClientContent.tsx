@@ -350,11 +350,10 @@ export function ProfilesClientContent() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                  showFilters
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${showFilters
                     ? "bg-primary text-black"
                     : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                }`}
+                  }`}
               >
                 <Filter className="w-4 h-4" />
                 <span className="text-sm">Filters</span>
@@ -422,7 +421,22 @@ export function ProfilesClientContent() {
                     type="number"
                     placeholder="Enter minimum..."
                     value={minEchoes}
-                    onChange={(e) => setMinEchoes(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow empty string for clearing the field
+                      if (value === '') {
+                        setMinEchoes('');
+                        return;
+                      }
+
+                      const numValue = parseInt(value);
+                      // Prevent negative values and extremely large numbers
+                      if (!isNaN(numValue) && numValue >= 0 && value.length <= 10) {
+                        setMinEchoes(value);
+                      }
+                    }}
+                    min="0"
+                    max="9999999999"
                     className="w-full py-2 px-3 bg-input border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm"
                   />
                 </div>
