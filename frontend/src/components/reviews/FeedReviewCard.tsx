@@ -18,7 +18,7 @@ import { RankBadge } from "@/components/user/RankBadge";
 import { VoteButtons } from "./VoteButtons";
 import { ReviewForm } from "./ReviewForm";
 import { ReportModal } from "@/components/common/ReportModal";
-import { formatDate } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { MentionTextWithHover } from "@/components/common/MentionTextWithHover";
 import { useToast } from "@/providers/ToastProvider";
 
@@ -247,7 +247,7 @@ export function FeedReviewCard({
                     size="sm"
                   />
                 </UserHoverCard>
-                
+
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <UserHoverCard
@@ -277,7 +277,7 @@ export function FeedReviewCard({
                   </div>
                   <div className="flex items-center gap-2 text-xs text-secondary">
                     <span>
-                      {formatDate(
+                      {formatDateTime(
                         review.createdAt || review.created_at || new Date()
                       )}
                     </span>

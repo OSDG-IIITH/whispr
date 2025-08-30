@@ -8,7 +8,7 @@ import { UserHoverCard } from "@/components/user/UserHoverCard";
 import { RankBadge } from "@/components/user/RankBadge";
 import { VoteButtons } from "@/components/reviews/VoteButtons";
 import { ReportModal } from "@/components/common/ReportModal";
-import { formatDate } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { FrontendReply } from "@/types/frontend-models";
 import { MentionTextWithHover } from "@/components/common/MentionTextWithHover";
 import { ReplyForm } from "./ReplyForm";
@@ -93,7 +93,7 @@ export function ReplyCard({
                 username={reply.author.username}
                 echoes={reply.author.echoes}
                 size="sm"
-                />
+              />
             </UserHoverCard>
 
             <div className="flex-1">
@@ -102,7 +102,7 @@ export function ReplyCard({
                   username={reply.author.username}
                   echoes={reply.author.echoes}
                   isVerified={reply.author.isVerified}
-                    >
+                >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {reply.author.username}
                   </span>
@@ -114,7 +114,7 @@ export function ReplyCard({
                 />
               </div>
               <div className="flex items-center gap-2 text-xs text-secondary">
-                <span>{formatDate(reply.createdAt)}</span>
+                <span>{formatDateTime(reply.createdAt)}</span>
                 {reply.isEdited && <span>(edited)</span>}
               </div>
             </div>
@@ -137,48 +137,48 @@ export function ReplyCard({
         </div>
 
         {/* Action Buttons */}
-            {!isEditing && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: showActions ? 1 : 0 }}
-                className="flex flex-col items-end gap-1"
-              >
-                {reply.isOwn ? (
-                  <>
-                    <div className="flex justify-end gap-1 mt-auto pt-2">
-                      {onEdit && (
-                        <button
-                          onClick={() => setIsEditing(true)}
-                          className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                          title="Edit reply"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      )}
-                      {onDelete && (
-                        <button
-                          onClick={() => setShowDeleteConfirm(true)}
-                          className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                          title="Delete reply"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                    </>
-                  ) : (
-                    onReport && (
-                      <button
-                        onClick={() => setShowReportModal(true)}
-                        className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
-                        title="Report reply"
-                      >
-                        <Flag className="w-3 h-3" />
-                      </button>
-                    )
-                )}
-              </motion.div>
+        {!isEditing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showActions ? 1 : 0 }}
+            className="flex flex-col items-end gap-1"
+          >
+            {reply.isOwn ? (
+              <>
+                <div className="flex justify-end gap-1 mt-auto pt-2">
+                  {onEdit && (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="p-1.5 text-secondary hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                      title="Edit reply"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="p-1.5 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                      title="Delete reply"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              onReport && (
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="p-1.5 text-secondary hover:text-yellow-400 hover:bg-yellow-400/10 rounded-lg transition-colors"
+                  title="Report reply"
+                >
+                  <Flag className="w-3 h-3" />
+                </button>
+              )
             )}
+          </motion.div>
+        )}
       </div>
 
       {/* Report Modal */}

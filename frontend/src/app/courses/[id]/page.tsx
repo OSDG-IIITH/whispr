@@ -99,10 +99,10 @@ export default function CoursePage() {
         repliesObj[review.id] = replies.map((reply: Reply) => {
           // console.log("Raw reply from API:", reply); // See what the API returns
           // console.log("Reply user_id:", reply.user_id); // Check if user_id exists
-          
+
           const frontendReply = convertReplyToFrontendReply(reply, null, currentUserId);
           // console.log("After conversion:", frontendReply); // See what conversion produces
-          
+
           return frontendReply;
         });
       })
@@ -320,10 +320,10 @@ export default function CoursePage() {
         prevReviews.map((review) =>
           review.id === reviewId
             ? {
-                ...review,
-                upvotes: currentReview.upvotes,
-                downvotes: currentReview.downvotes,
-              }
+              ...review,
+              upvotes: currentReview.upvotes,
+              downvotes: currentReview.downvotes,
+            }
             : review
         )
       );
@@ -472,10 +472,10 @@ export default function CoursePage() {
         [reviewId]: prevReplies[reviewId].map((reply) =>
           reply.id === replyId
             ? {
-                ...reply,
-                upvotes: currentReply.upvotes,
-                downvotes: currentReply.downvotes,
-              }
+              ...reply,
+              upvotes: currentReply.upvotes,
+              downvotes: currentReply.downvotes,
+            }
             : reply
         ),
       }));
@@ -561,15 +561,15 @@ export default function CoursePage() {
         setCourse((prevCourse: Course | null) =>
           prevCourse
             ? {
-                ...prevCourse,
-                review_count: prevCourse.review_count + 1,
-                average_rating: String(
-                  (parseFloat(prevCourse.average_rating) *
-                    prevCourse.review_count +
-                    data.rating) /
-                    (prevCourse.review_count + 1)
-                ),
-              }
+              ...prevCourse,
+              review_count: prevCourse.review_count + 1,
+              average_rating: String(
+                (parseFloat(prevCourse.average_rating) *
+                  prevCourse.review_count +
+                  data.rating) /
+                (prevCourse.review_count + 1)
+              ),
+            }
             : null
         );
       }
@@ -686,11 +686,10 @@ export default function CoursePage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < Math.floor(rating)
+        className={`w-5 h-5 ${i < Math.floor(rating)
             ? "text-yellow-500 fill-current"
             : "text-secondary"
-        }`}
+          }`}
       />
     ));
   };
@@ -854,8 +853,8 @@ export default function CoursePage() {
               {submittingReview
                 ? "Submitting..."
                 : user
-                ? "Rate & Review"
-                : "Login to Review"}
+                  ? "Rate & Review"
+                  : "Login to Review"}
             </button>
           </div>
         </motion.div>
@@ -891,11 +890,10 @@ export default function CoursePage() {
                 <button
                   key={option}
                   onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${
-                    sortBy === option
+                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${sortBy === option
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
+                    }`}
                 >
                   {option.charAt(0).toUpperCase() + option.slice(1)}
                 </button>
@@ -904,25 +902,38 @@ export default function CoursePage() {
           </div>
 
           <ReviewList
-            reviews={reviews.map((review) => ({
-              id: review.id,
-              author: {
-                username: review.user?.username || "Anonymous",
-                echoes: review.user?.echoes || 0,
-                isVerified: !review.user?.is_muffled,
-                isBanned: review.user?.is_banned || false,
-              },
-              content: review.content || "",
-              rating: review.rating,
-              upvotes: review.upvotes,
-              downvotes: review.downvotes,
-              replyCount: repliesByReview[review.id]?.length || 0,
-              createdAt: review.created_at,
-              isEdited: review.is_edited,
-              userVote: getUserVoteForReview(review.id),
-              isOwn: user ? review.user_id === (user as User).id : false,
-              isHighlighted: highlightedReviewId === review.id,
-            }))}
+            reviews={reviews
+              .sort((a, b) => {
+                switch (sortBy) {
+                  case "newest":
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                  case "oldest":
+                    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                  case "rating":
+                    return b.rating - a.rating;
+                  default:
+                    return 0;
+                }
+              })
+              .map((review) => ({
+                id: review.id,
+                author: {
+                  username: review.user?.username || "Anonymous",
+                  echoes: review.user?.echoes || 0,
+                  isVerified: !review.user?.is_muffled,
+                  isBanned: review.user?.is_banned || false,
+                },
+                content: review.content || "",
+                rating: review.rating,
+                upvotes: review.upvotes,
+                downvotes: review.downvotes,
+                replyCount: repliesByReview[review.id]?.length || 0,
+                createdAt: review.created_at,
+                isEdited: review.is_edited,
+                userVote: getUserVoteForReview(review.id),
+                isOwn: user ? review.user_id === (user as User).id : false,
+                isHighlighted: highlightedReviewId === review.id,
+              }))}
             onVote={handleVote}
             onReply={(reviewId) => handleReply(reviewId)}
             onEdit={handleEdit}

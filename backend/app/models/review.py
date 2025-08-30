@@ -48,7 +48,7 @@ class Review(Base):
         "CourseInstructorReview", back_populates="review",
         cascade="all, delete-orphan")
     replies = relationship("Reply", back_populates="review",
-                           cascade="all, delete-orphan")
+                           cascade="all, delete-orphan", order_by="Reply.created_at.desc()")
     votes = relationship("Vote", back_populates="review",
                          cascade="all, delete-orphan")
     reports = relationship("Report", back_populates="review",

@@ -69,7 +69,7 @@ async def read_reviews(
     if filters:
         query = query.where(and_(*filters))
 
-    query = query.offset(skip).limit(limit)
+    query = query.offset(skip).limit(limit).order_by(ReviewModel.created_at.desc())
     result = await db.execute(query)
     reviews = result.unique().scalars().all()
 
