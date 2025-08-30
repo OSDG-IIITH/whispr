@@ -328,6 +328,13 @@ async def update_review(
 
     update_data = review_in.dict(exclude_unset=True)
 
+    # Check if content is being added to a rating-only review
+    content_added = (
+        "content" in update_data and 
+        update_data["content"] is not None and 
+        getattr(review, "content", None) is None
+    )
+
     # Mark as edited if content or rating is updated
     if "content" in update_data or "rating" in update_data:
         update_data["is_edited"] = True
@@ -359,6 +366,11 @@ async def update_review(
             await _update_professor_stats(db, professor_id)
         for course_instructor_id in course_instructor_ids:
             await _update_course_instructor_stats(db, course_instructor_id)
+
+    # Update echo points if content was added to a rating-only review
+    if content_added:
+        from app.core.echo_points import update_user_echo_points
+        await update_user_echo_points(db, current_user.id, notify=True)
 
     # Commit the transaction
     await db.commit()
