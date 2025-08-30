@@ -4,10 +4,11 @@ Routes for review-related endpoints.
 
 from typing import List, Any, Optional
 from uuid import UUID
+from enum import Enum
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, update, delete, func, and_
+from sqlalchemy import select, insert, update, delete, func, and_, desc, asc, case
 from sqlalchemy.orm import joinedload
 
 from app.db.session import get_db
@@ -27,6 +28,17 @@ from app.core.notifications import notify_on_mention, notify_followers_on_review
 router = APIRouter()
 
 
+class SortBy(str, Enum):
+    """Available sorting options for reviews."""
+    DATE_NEW = "date_new"  # Newest first
+    DATE_OLD = "date_old"  # Oldest first
+    VOTES_HIGH = "votes_high"  # Highest net votes first
+    VOTES_LOW = "votes_low"  # Lowest net votes first
+    RATING_HIGH = "rating_high"  # Highest rating first
+    RATING_LOW = "rating_low"  # Lowest rating first
+    CONTROVERSIAL = "controversial"  # Most controversial (high total votes)
+
+
 @router.get("/", response_model=List[ReviewWithRelations])
 async def read_reviews(
     skip: int = 0,
@@ -35,6 +47,7 @@ async def read_reviews(
     professor_id: Optional[UUID] = None,
     course_instructor_id: Optional[UUID] = None,
     user_id: Optional[UUID] = None,
+    sort_by: SortBy = Query(SortBy.DATE_NEW, description="Sort reviews by"),
     db: AsyncSession = Depends(get_db)
 ) -> Any:
     """
@@ -69,7 +82,32 @@ async def read_reviews(
     if filters:
         query = query.where(and_(*filters))
 
-    query = query.offset(skip).limit(limit).order_by(ReviewModel.created_at.desc())
+    # Apply sorting
+    if sort_by == SortBy.DATE_NEW:
+        query = query.order_by(desc(ReviewModel.created_at))
+    elif sort_by == SortBy.DATE_OLD:
+        query = query.order_by(asc(ReviewModel.created_at))
+    elif sort_by == SortBy.VOTES_HIGH:
+        # Sort by net votes (upvotes - downvotes) descending
+        net_votes = ReviewModel.upvotes - ReviewModel.downvotes
+        query = query.order_by(desc(net_votes), desc(ReviewModel.created_at))
+    elif sort_by == SortBy.VOTES_LOW:
+        # Sort by net votes (upvotes - downvotes) ascending
+        net_votes = ReviewModel.upvotes - ReviewModel.downvotes
+        query = query.order_by(asc(net_votes), desc(ReviewModel.created_at))
+    elif sort_by == SortBy.RATING_HIGH:
+        query = query.order_by(desc(ReviewModel.rating), desc(ReviewModel.created_at))
+    elif sort_by == SortBy.RATING_LOW:
+        query = query.order_by(asc(ReviewModel.rating), desc(ReviewModel.created_at))
+    elif sort_by == SortBy.CONTROVERSIAL:
+        # Sort by total votes (upvotes + downvotes) descending - most controversial first
+        total_votes = ReviewModel.upvotes + ReviewModel.downvotes
+        query = query.order_by(desc(total_votes), desc(ReviewModel.created_at))
+    else:
+        # Default to newest first
+        query = query.order_by(desc(ReviewModel.created_at))
+
+    query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     reviews = result.unique().scalars().all()
 

@@ -259,6 +259,7 @@ export const reviewAPI = {
       professor_id?: string;
       course_instructor_id?: string;
       user_id?: string;
+      sort_by?: string;
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
@@ -444,11 +445,11 @@ export const reportAPI = {
     reply_id?: string;
     reported_user_id?: string;
     report_type:
-      | "spam"
-      | "harassment"
-      | "inappropriate"
-      | "misinformation"
-      | "other";
+    | "spam"
+    | "harassment"
+    | "inappropriate"
+    | "misinformation"
+    | "other";
     reason: string;
   }) => {
     return apiCall<Report>("/reports", {
