@@ -10,10 +10,10 @@ import { ReviewSortSelector } from "@/components/reviews/ReviewSortSelector";
 import { ReplyForm } from "@/components/replies/ReplyForm";
 import { ReplyList } from "@/components/replies/ReplyList";
 import { courseAPI, reviewAPI, voteAPI, replyAPI } from "@/lib/api";
-import { Course, Review, Vote, User } from "@/types/backend-models";
+import { Course, Review, Vote, User, Reply } from "@/types/backend-models";
 import { useToast } from "@/providers/ToastProvider";
 import { useAuth } from "@/providers/AuthProvider";
-import { FrontendReply } from "@/types/frontend-models";
+import { FrontendReply, convertReplyToFrontendReply } from "@/types/frontend-models";
 import Loader from "@/components/common/Loader";
 
 export default function CoursePage() {
