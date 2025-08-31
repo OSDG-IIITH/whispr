@@ -8,7 +8,7 @@ import { UserHoverCard } from "@/components/user/UserHoverCard";
 import { RankBadge } from "@/components/user/RankBadge";
 import { VoteButtons } from "@/components/reviews/VoteButtons";
 import { ReportModal } from "@/components/common/ReportModal";
-import { formatDate } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { FrontendReply } from "@/types/frontend-models";
 import { MentionTextWithHover } from "@/components/common/MentionTextWithHover";
 import { ReplyForm } from "./ReplyForm";
@@ -113,7 +113,7 @@ export function ReplyCard({
                 />
               </div>
               <div className="flex items-center gap-2 text-xs text-secondary">
-                <span>{formatDate(reply.createdAt)}</span>
+                <span>{formatDateTime(reply.createdAt)}</span>
                 {reply.isEdited && <span>(edited)</span>}
               </div>
             </div>

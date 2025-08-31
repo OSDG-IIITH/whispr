@@ -259,6 +259,7 @@ export const reviewAPI = {
       professor_id?: string;
       course_instructor_id?: string;
       user_id?: string;
+      sort_by?: string;
     } = {}
   ) => {
     const searchParams = new URLSearchParams();

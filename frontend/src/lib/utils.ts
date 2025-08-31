@@ -83,6 +83,24 @@ export function formatDate(date: Date | string): string {
 }
 
 /**
+ * Format date and time to readable format (e.g., "Jan 15, 2023 at 2:30 PM")
+ */
+export function formatDateTime(date: Date | string): string {
+    const target = new Date(date);
+    const dateStr = target.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+    const timeStr = target.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+    return `${dateStr} at ${timeStr}`;
+}
+
+/**
  * Validate email format
  */
 export function isValidEmail(email: string): boolean {
@@ -95,6 +113,33 @@ export function isValidEmail(email: string): boolean {
  */
 export function isIIITHEmail(email: string): boolean {
     return email.endsWith("@iiit.ac.in") || email.endsWith("@students.iiit.ac.in");
+}
+
+/**
+ * Parse content and highlight mentions (deprecated - use MentionText component instead)
+ */
+export function highlightMentions(content: string): React.ReactNode {
+    const mentionRegex = /@(\w+)/g;
+    const parts = content.split(mentionRegex);
+
+    return parts.map((part, index) => {
+        // Every odd index is a username (captured group)
+        if (index % 2 === 1) {
+            return React.createElement(
+                'span',
+                {
+                    key: index,
+                    className: "text-primary font-medium hover:underline cursor-pointer",
+                    onClick: () => {
+                        // Navigate to user profile
+                        window.location.href = `/profile/${part}`;
+                    }
+                },
+                `@${part}`
+            );
+        }
+        return part;
+    });
 }
 
 /**

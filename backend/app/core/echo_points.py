@@ -23,7 +23,8 @@ async def calculate_user_echo_points(
     
     Echo points calculation:
     - Base points:
-      - +5 for each review created
+      - +5 for each review with content
+      - +2 for each rating without content
       - +1 for each reply created
     - Vote points:
       - +1 for each upvote on your review
@@ -31,11 +32,15 @@ async def calculate_user_echo_points(
       - +0.5 for each upvote on your reply
       - -0.5 for each downvote on your reply
     """
-    # Get base points for reviews (5 points each)
-    stmt = select(func.count(ReviewModel.id)).where(ReviewModel.user_id == user_id)
+    # Get base points for reviews (5 points for reviews with content, 2 for ratings only)
+    stmt = select(func.sum(
+        case(
+            (ReviewModel.content.isnot(None), 5),
+            else_=2
+        )
+    )).where(ReviewModel.user_id == user_id)
     result = await db.execute(stmt)
-    review_count = result.scalar_one() or 0
-    review_base_points = review_count * 5
+    review_base_points = result.scalar_one() or 0
 
     # Get base points for replies (1 point each)
     stmt = select(func.count(ReplyModel.id)).where(ReplyModel.user_id == user_id)

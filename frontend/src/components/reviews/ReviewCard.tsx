@@ -9,7 +9,7 @@ import { UserHoverCard } from "@/components/user/UserHoverCard";
 import { RankBadge } from "@/components/user/RankBadge";
 import { VoteButtons } from "./VoteButtons";
 import { ReportModal } from "@/components/common/ReportModal";
-import { formatDate } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { FrontendReview } from "@/types/frontend-models";
 import { MentionTextWithHover } from "@/components/common/MentionTextWithHover";
 import { ReviewForm } from "./ReviewForm";
@@ -116,7 +116,7 @@ export function ReviewCard({
                 username={review.author.username}
                 echoes={review.author.echoes}
                 size="sm"
-                />
+              />
             </UserHoverCard>
 
             <div className="flex-1">
@@ -125,7 +125,7 @@ export function ReviewCard({
                   username={review.author.username}
                   echoes={review.author.echoes}
                   isVerified={review.author.isVerified}
-                    >
+                >
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {review.author.username}
                   </span>
@@ -137,7 +137,7 @@ export function ReviewCard({
                 />
               </div>
               <div className="flex items-center gap-2 text-xs text-secondary">
-                <span>{formatDate(review.createdAt)}</span>
+                <span>{formatDateTime(review.createdAt)}</span>
                 {review.isEdited && <span>(edited)</span>}
               </div>
             </div>
@@ -189,7 +189,7 @@ export function ReviewCard({
                 </button>
               )}
 
-              
+
             </div>
           )}
 

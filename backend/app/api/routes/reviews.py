@@ -4,10 +4,11 @@ Routes for review-related endpoints.
 
 from typing import List, Any, Optional
 from uuid import UUID
+from enum import Enum
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, update, delete, func, and_
+from sqlalchemy import select, insert, update, delete, func, and_, desc, asc, case
 from sqlalchemy.orm import joinedload
 
 from app.db.session import get_db
@@ -27,6 +28,17 @@ from app.core.notifications import notify_on_mention, notify_followers_on_review
 router = APIRouter()
 
 
+class SortBy(str, Enum):
+    """Available sorting options for reviews."""
+    DATE_NEW = "date_new"  # Newest first
+    DATE_OLD = "date_old"  # Oldest first
+    VOTES_HIGH = "votes_high"  # Highest net votes first
+    VOTES_LOW = "votes_low"  # Lowest net votes first
+    RATING_HIGH = "rating_high"  # Highest rating first
+    RATING_LOW = "rating_low"  # Lowest rating first
+    CONTROVERSIAL = "controversial"  # Most controversial (high total votes)
+
+
 @router.get("/", response_model=List[ReviewWithRelations])
 async def read_reviews(
     skip: int = 0,
@@ -35,6 +47,7 @@ async def read_reviews(
     professor_id: Optional[UUID] = None,
     course_instructor_id: Optional[UUID] = None,
     user_id: Optional[UUID] = None,
+    sort_by: SortBy = Query(SortBy.DATE_NEW, description="Sort reviews by"),
     db: AsyncSession = Depends(get_db)
 ) -> Any:
     """
@@ -68,6 +81,31 @@ async def read_reviews(
 
     if filters:
         query = query.where(and_(*filters))
+
+    # Apply sorting
+    if sort_by == SortBy.DATE_NEW:
+        query = query.order_by(desc(ReviewModel.created_at))
+    elif sort_by == SortBy.DATE_OLD:
+        query = query.order_by(asc(ReviewModel.created_at))
+    elif sort_by == SortBy.VOTES_HIGH:
+        # Sort by net votes (upvotes - downvotes) descending
+        net_votes = ReviewModel.upvotes - ReviewModel.downvotes
+        query = query.order_by(desc(net_votes), desc(ReviewModel.created_at))
+    elif sort_by == SortBy.VOTES_LOW:
+        # Sort by net votes (upvotes - downvotes) ascending
+        net_votes = ReviewModel.upvotes - ReviewModel.downvotes
+        query = query.order_by(asc(net_votes), desc(ReviewModel.created_at))
+    elif sort_by == SortBy.RATING_HIGH:
+        query = query.order_by(desc(ReviewModel.rating), desc(ReviewModel.created_at))
+    elif sort_by == SortBy.RATING_LOW:
+        query = query.order_by(asc(ReviewModel.rating), desc(ReviewModel.created_at))
+    elif sort_by == SortBy.CONTROVERSIAL:
+        # Sort by total votes (upvotes + downvotes) descending - most controversial first
+        total_votes = ReviewModel.upvotes + ReviewModel.downvotes
+        query = query.order_by(desc(total_votes), desc(ReviewModel.created_at))
+    else:
+        # Default to newest first
+        query = query.order_by(desc(ReviewModel.created_at))
 
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
@@ -290,6 +328,13 @@ async def update_review(
 
     update_data = review_in.dict(exclude_unset=True)
 
+    # Check if content is being added to a rating-only review
+    content_added = (
+        "content" in update_data and 
+        update_data["content"] is not None and 
+        getattr(review, "content", None) is None
+    )
+
     # Mark as edited if content or rating is updated
     if "content" in update_data or "rating" in update_data:
         update_data["is_edited"] = True
@@ -321,6 +366,11 @@ async def update_review(
             await _update_professor_stats(db, professor_id)
         for course_instructor_id in course_instructor_ids:
             await _update_course_instructor_stats(db, course_instructor_id)
+
+    # Update echo points if content was added to a rating-only review
+    if content_added:
+        from app.core.echo_points import update_user_echo_points
+        await update_user_echo_points(db, current_user.id, notify=True)
 
     # Commit the transaction
     await db.commit()

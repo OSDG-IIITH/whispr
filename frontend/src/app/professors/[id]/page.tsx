@@ -13,6 +13,7 @@ import {
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { ReviewSortSelector } from "@/components/reviews/ReviewSortSelector";
 import { ReplyForm } from "@/components/replies/ReplyForm";
 import { ReplyList } from "@/components/replies/ReplyList";
 import {
@@ -46,7 +47,7 @@ export default function ProfessorPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("date_new");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [activeReplyReviewId, setActiveReplyReviewId] = useState<string | null>(
     null
@@ -120,6 +121,7 @@ export default function ProfessorPage() {
     try {
       const reviewsData = await reviewAPI.getReviews({
         professor_id: professor.id,
+        sort_by: sortBy,
       });
       setReviews(reviewsData);
       await fetchRepliesForReviews(reviewsData);
@@ -135,7 +137,7 @@ export default function ProfessorPage() {
     } catch (err) {
       console.error("Error fetching reviews:", err);
     }
-  }, [professor, user, fetchRepliesForReviews]);
+  }, [professor, user, fetchRepliesForReviews, sortBy]);
 
   // Replace fetchReviews with fetchReviewsAndReplies
   useEffect(() => {
@@ -149,6 +151,13 @@ export default function ProfessorPage() {
       fetchReviewsAndReplies();
     }
   }, [professor, fetchReviewsAndReplies]);
+
+  // Refetch reviews when sort order changes
+  useEffect(() => {
+    if (professor && sortBy) {
+      fetchReviewsAndReplies();
+    }
+  }, [sortBy]);
 
   // Handle query parameters for highlighting and scrolling to specific reviews/replies
   useEffect(() => {
@@ -323,10 +332,10 @@ export default function ProfessorPage() {
         prevReviews.map((review) =>
           review.id === reviewId
             ? {
-                ...review,
-                upvotes: currentReview.upvotes,
-                downvotes: currentReview.downvotes,
-              }
+              ...review,
+              upvotes: currentReview.upvotes,
+              downvotes: currentReview.downvotes,
+            }
             : review
         )
       );
@@ -472,10 +481,10 @@ export default function ProfessorPage() {
         [reviewId]: prevReplies[reviewId].map((reply) =>
           reply.id === replyId
             ? {
-                ...reply,
-                upvotes: currentReply.upvotes,
-                downvotes: currentReply.downvotes,
-              }
+              ...reply,
+              upvotes: currentReply.upvotes,
+              downvotes: currentReply.downvotes,
+            }
             : reply
         ),
       }));
@@ -551,15 +560,15 @@ export default function ProfessorPage() {
         setProfessor((prevProfessor: Professor | null) =>
           prevProfessor
             ? {
-                ...prevProfessor,
-                review_count: prevProfessor.review_count + 1,
-                average_rating: String(
-                  (parseFloat(prevProfessor.average_rating) *
-                    prevProfessor.review_count +
-                    data.rating) /
-                    (prevProfessor.review_count + 1)
-                ),
-              }
+              ...prevProfessor,
+              review_count: prevProfessor.review_count + 1,
+              average_rating: String(
+                (parseFloat(prevProfessor.average_rating) *
+                  prevProfessor.review_count +
+                  data.rating) /
+                (prevProfessor.review_count + 1)
+              ),
+            }
             : null
         );
       }
@@ -676,11 +685,10 @@ export default function ProfessorPage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < Math.floor(rating)
-            ? "text-yellow-500 fill-current"
-            : "text-secondary"
-        }`}
+        className={`w-5 h-5 ${i < Math.floor(rating)
+          ? "text-yellow-500 fill-current"
+          : "text-secondary"
+          }`}
       />
     ));
   };
@@ -865,8 +873,8 @@ export default function ProfessorPage() {
               {submittingReview
                 ? "Submitting..."
                 : user
-                ? "Rate & Review"
-                : "Login to Review"}
+                  ? "Rate & Review"
+                  : "Login to Review"}
             </button>
           </div>
         </motion.div>
@@ -893,49 +901,38 @@ export default function ProfessorPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-2 sm:gap-0">
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
             <h3 className="text-lg sm:text-2xl font-bold">
               Reviews ({reviews.length})
             </h3>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-secondary text-xs sm:text-base">Sort:</span>
-              {["newest", "oldest", "rating"].map((option) => (
-                <button
-                  key={option}
-                  onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${
-                    sortBy === option
-                      ? "bg-primary text-black"
-                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
-                >
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </button>
-              ))}
-            </div>
+            <ReviewSortSelector
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              className="w-full sm:w-auto"
+            />
           </div>
 
           <ReviewList
-            reviews={reviews.map((review) => ({
-              id: review.id,
-              author: {
-                username: review.user?.username || "Anonymous",
-                echoes: review.user?.echoes || 0,
-                isVerified: !review.user?.is_muffled,
-                isBanned: review.user?.is_banned || false,
-              },
-              content: review.content || "",
-              rating: review.rating,
-              upvotes: review.upvotes,
-              downvotes: review.downvotes,
-              replyCount: repliesByReview[review.id]?.length || 0,
-              createdAt: review.created_at,
-              isEdited: review.is_edited,
-              userVote: getUserVoteForReview(review.id),
-              isOwn: user ? review.user_id === user.id : false,
-              isHighlighted: highlightedReviewId === review.id,
-            }))}
+            reviews={reviews
+              .map((review) => ({
+                id: review.id,
+                author: {
+                  username: review.user?.username || "Anonymous",
+                  echoes: review.user?.echoes || 0,
+                  isVerified: !review.user?.is_muffled,
+                  isBanned: review.user?.is_banned || false,
+                },
+                content: review.content || "",
+                rating: review.rating,
+                upvotes: review.upvotes,
+                downvotes: review.downvotes,
+                replyCount: repliesByReview[review.id]?.length || 0,
+                createdAt: review.created_at,
+                isEdited: review.is_edited,
+                userVote: getUserVoteForReview(review.id),
+                isOwn: user ? review.user_id === user.id : false,
+                isHighlighted: highlightedReviewId === review.id,
+              }))}
             onVote={handleVote}
             onReply={(reviewId) => handleReply(reviewId)}
             onEdit={handleEdit}

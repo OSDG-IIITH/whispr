@@ -39,7 +39,7 @@ async def read_replies(
     if user_id:
         query = query.where(ReplyModel.user_id == user_id)
 
-    query = query.offset(skip).limit(limit)
+    query = query.offset(skip).limit(limit).order_by(ReplyModel.created_at.desc())
     result = await db.execute(query)
     replies = result.unique().scalars().all()
 

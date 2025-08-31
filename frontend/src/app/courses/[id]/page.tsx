@@ -6,6 +6,7 @@ import { Star, BookOpen, Plus, ArrowLeft } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { ReviewSortSelector } from "@/components/reviews/ReviewSortSelector";
 import { ReplyForm } from "@/components/replies/ReplyForm";
 import { ReplyList } from "@/components/replies/ReplyList";
 import { courseAPI, reviewAPI, voteAPI, replyAPI } from "@/lib/api";
@@ -27,7 +28,7 @@ export default function CoursePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("date_new");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [activeReplyReviewId, setActiveReplyReviewId] = useState<string | null>(
     null
@@ -72,11 +73,38 @@ export default function CoursePage() {
     }
   }, [courseCode, user]);
 
+  // Fetch replies for all reviews
+  const fetchRepliesForReviews = useCallback(async (reviews: Review[]) => {
+    const currentUserId = (user as User).id;
+    const repliesObj: Record<string, FrontendReply[]> = {};
+    await Promise.all(
+      reviews.map(async (review) => {
+        const replies = await replyAPI.getReplies({ review_id: review.id });
+        // Transform replies to FrontendReply
+        repliesObj[review.id] = replies.map((reply: Reply) => {
+          // console.log("Raw reply from API:", reply); // See what the API returns
+          // console.log("Reply user_id:", reply.user_id); // Check if user_id exists
+
+          const frontendReply = convertReplyToFrontendReply(reply, null, currentUserId);
+          // console.log("After conversion:", frontendReply); // See what conversion produces
+
+          return frontendReply;
+        });
+      })
+    );
+    // console.log("The replies object:", repliesObj);
+    setRepliesByReview(repliesObj);
+    return repliesObj;
+  }, [user]);
+
   // Fetch reviews and their replies
   const fetchReviewsAndReplies = useCallback(async () => {
     if (!course) return;
     try {
-      const reviewsData = await reviewAPI.getReviews({ course_id: course.id });
+      const reviewsData = await reviewAPI.getReviews({
+        course_id: course.id,
+        sort_by: sortBy
+      });
       setReviews(reviewsData);
       // Also refresh user votes if logged in
       if (user) {
@@ -90,7 +118,7 @@ export default function CoursePage() {
     } catch (err) {
       console.error("Error fetching reviews:", err);
     }
-  }, [course, user]);
+  }, [course, user, fetchRepliesForReviews, sortBy]);
 
   // Replace fetchReviews with fetchReviewsAndReplies
   useEffect(() => {
@@ -104,6 +132,13 @@ export default function CoursePage() {
       fetchReviewsAndReplies();
     }
   }, [course, fetchReviewsAndReplies]);
+
+  // Refetch reviews when sort order changes
+  useEffect(() => {
+    if (course && sortBy) {
+      fetchReviewsAndReplies();
+    }
+  }, [sortBy]);
 
   // Handle query parameters for highlighting and scrolling to specific reviews/replies
   useEffect(() => {
@@ -278,10 +313,10 @@ export default function CoursePage() {
         prevReviews.map((review) =>
           review.id === reviewId
             ? {
-                ...review,
-                upvotes: currentReview.upvotes,
-                downvotes: currentReview.downvotes,
-              }
+              ...review,
+              upvotes: currentReview.upvotes,
+              downvotes: currentReview.downvotes,
+            }
             : review
         )
       );
@@ -430,10 +465,10 @@ export default function CoursePage() {
         [reviewId]: prevReplies[reviewId].map((reply) =>
           reply.id === replyId
             ? {
-                ...reply,
-                upvotes: currentReply.upvotes,
-                downvotes: currentReply.downvotes,
-              }
+              ...reply,
+              upvotes: currentReply.upvotes,
+              downvotes: currentReply.downvotes,
+            }
             : reply
         ),
       }));
@@ -519,15 +554,15 @@ export default function CoursePage() {
         setCourse((prevCourse: Course | null) =>
           prevCourse
             ? {
-                ...prevCourse,
-                review_count: prevCourse.review_count + 1,
-                average_rating: String(
-                  (parseFloat(prevCourse.average_rating) *
-                    prevCourse.review_count +
-                    data.rating) /
-                    (prevCourse.review_count + 1)
-                ),
-              }
+              ...prevCourse,
+              review_count: prevCourse.review_count + 1,
+              average_rating: String(
+                (parseFloat(prevCourse.average_rating) *
+                  prevCourse.review_count +
+                  data.rating) /
+                (prevCourse.review_count + 1)
+              ),
+            }
             : null
         );
       }
@@ -644,11 +679,10 @@ export default function CoursePage() {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-5 h-5 ${
-          i < Math.floor(rating)
-            ? "text-yellow-500 fill-current"
-            : "text-secondary"
-        }`}
+        className={`w-5 h-5 ${i < Math.floor(rating)
+          ? "text-yellow-500 fill-current"
+          : "text-secondary"
+          }`}
       />
     ));
   };
@@ -815,8 +849,8 @@ export default function CoursePage() {
               {submittingReview
                 ? "Submitting..."
                 : user
-                ? "Rate & Review"
-                : "Login to Review"}
+                  ? "Rate & Review"
+                  : "Login to Review"}
             </button>
           </div>
         </motion.div>
@@ -843,47 +877,36 @@ export default function CoursePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-2 sm:gap-0">
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
             <h3 className="text-lg sm:text-2xl font-bold">Reviews</h3>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-secondary text-xs sm:text-base">Sort:</span>
-              {["newest", "oldest", "rating"].map((option) => (
-                <button
-                  key={option}
-                  onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 text-xs sm:text-sm rounded-lg transition-colors ${
-                    sortBy === option
-                      ? "bg-primary text-black"
-                      : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
-                >
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </button>
-              ))}
-            </div>
+            <ReviewSortSelector
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+              className="w-full sm:w-auto"
+            />
           </div>
 
           <ReviewList
-            reviews={reviews.map((review) => ({
-              id: review.id,
-              author: {
-                username: review.user?.username || "Anonymous",
-                echoes: review.user?.echoes || 0,
-                isVerified: !review.user?.is_muffled,
-                isBanned: review.user?.is_banned || false,
-              },
-              content: review.content || "",
-              rating: review.rating,
-              upvotes: review.upvotes,
-              downvotes: review.downvotes,
-              replyCount: repliesByReview[review.id]?.length || 0,
-              createdAt: review.created_at,
-              isEdited: review.is_edited,
-              userVote: getUserVoteForReview(review.id),
-              isOwn: user ? review.user_id === (user as User).id : false,
-              isHighlighted: highlightedReviewId === review.id,
-            }))}
+            reviews={reviews
+              .map((review) => ({
+                id: review.id,
+                author: {
+                  username: review.user?.username || "Anonymous",
+                  echoes: review.user?.echoes || 0,
+                  isVerified: !review.user?.is_muffled,
+                  isBanned: review.user?.is_banned || false,
+                },
+                content: review.content || "",
+                rating: review.rating,
+                upvotes: review.upvotes,
+                downvotes: review.downvotes,
+                replyCount: repliesByReview[review.id]?.length || 0,
+                createdAt: review.created_at,
+                isEdited: review.is_edited,
+                userVote: getUserVoteForReview(review.id),
+                isOwn: user ? review.user_id === (user as User).id : false,
+                isHighlighted: highlightedReviewId === review.id,
+              }))}
             onVote={handleVote}
             onReply={(reviewId) => handleReply(reviewId)}
             onEdit={handleEdit}

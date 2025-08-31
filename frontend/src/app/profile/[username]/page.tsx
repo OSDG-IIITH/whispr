@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -36,16 +36,26 @@ export default function ProfilePage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userVotes, setUserVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showKillSwitch, setShowKillSwitch] = useState(false);
   const [filterBy, setFilterBy] = useState("all");
   const [isFollowing, setIsFollowing] = useState(false);
   const [, setFollowingCount] = useState(0);
+  
+  // Track if we've already determined user doesn't exist for this username
+  const userNotFoundRef = useRef<string | null>(null);
 
   const username = params.username as string;
   const isOwnProfile = currentUser?.username === username;
 
   const fetchProfileData = useCallback(async () => {
+    // Don't refetch if we already determined this username doesn't exist
+    if (userNotFoundRef.current === username) {
+      return;
+    }
+    
     setLoading(true);
+    setError(null);
     try {
       // Fetch user profile
       const userData = await userAPI.getUserByUsername(username);
@@ -79,14 +89,28 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error("Failed to fetch profile data:", error);
-      showError("Failed to load profile. Please try again.");
+      if (error instanceof Error && (
+        error.message.includes("User not found") || 
+        error.message.includes("HTTP 404") || 
+        error.message.includes("404")
+      )) {
+        setError("USER_NOT_FOUND");
+        userNotFoundRef.current = username; // Mark this username as not found
+      } else {
+        setError("FETCH_ERROR");
+        showError("Failed to load profile. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
-  }, [username, currentUser, isOwnProfile, showError]);
+  }, [username, currentUser, isOwnProfile, showError]); // Removed error from dependencies
 
   useEffect(() => {
     if (username) {
+      // Reset error state and user not found tracking when username changes
+      setError(null);
+      setProfileUser(null);
+      userNotFoundRef.current = null;
       fetchProfileData();
     }
   }, [username, fetchProfileData]);
@@ -376,13 +400,33 @@ export default function ProfilePage() {
     );
   }
 
-  if (!profileUser) {
+  if (error === "USER_NOT_FOUND" || (!profileUser && !loading)) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <p className="text-secondary mb-4">User not found</p>
           <button onClick={() => router.back()} className="btn btn-primary">
             Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (error === "FETCH_ERROR") {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-secondary mb-4">Failed to load profile</p>
+          <button 
+            onClick={() => {
+              setError(null);
+              userNotFoundRef.current = null;
+              fetchProfileData();
+            }} 
+            className="btn btn-primary"
+          >
+            Try Again
           </button>
         </div>
       </div>
