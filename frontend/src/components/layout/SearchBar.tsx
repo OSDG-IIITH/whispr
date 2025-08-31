@@ -49,20 +49,20 @@ export function SearchBar({ onClose }: SearchBarProps) {
           filter === "all"
             ? ""
             : filter === "professors"
-            ? "professor"
-            : filter === "courses"
-            ? "course"
-            : filter === "users"
-            ? "user"
-            : filter,
+              ? "professor"
+              : filter === "courses"
+                ? "course"
+                : filter === "users"
+                  ? "user"
+                  : filter,
         sort_by:
           sort === "newest"
             ? "created_at"
             : sort === "oldest"
-            ? "created_at"
-            : sort === "rating"
-            ? "rating"
-            : "relevance",
+              ? "created_at"
+              : sort === "rating"
+                ? "rating"
+                : "relevance",
         sort_order: sort === "oldest" ? "asc" : "desc",
       });
       router.push(`/search?${params.toString()}`);
@@ -160,11 +160,10 @@ export function SearchBar({ onClose }: SearchBarProps) {
                 <button
                   key={f.id}
                   onClick={() => setFilter(f.id)}
-                  className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                    filter === f.id
+                  className={`px-3 py-2 text-sm rounded-lg transition-colors ${filter === f.id
                       ? "bg-primary text-black"
                       : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary"
-                  }`}
+                    }`}
                 >
                   {f.label}
                 </button>
@@ -238,11 +237,10 @@ export function SearchBar({ onClose }: SearchBarProps) {
                           setSemester(option.id);
                           setShowSemesterDropdown(false);
                         }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                          semester === option.id
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg ${semester === option.id
                             ? "bg-primary/10 text-primary"
                             : "text-foreground"
-                        }`}
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -311,11 +309,10 @@ export function SearchBar({ onClose }: SearchBarProps) {
                           setYear(option.id);
                           setShowYearDropdown(false);
                         }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                          year === option.id
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg ${year === option.id
                             ? "bg-primary/10 text-primary"
                             : "text-foreground"
-                        }`}
+                          }`}
                       >
                         {option.label}
                       </button>
@@ -401,11 +398,10 @@ export function SearchBar({ onClose }: SearchBarProps) {
                     setSort(option.id);
                     setShowSortDropdown(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                    sort === option.id
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg ${sort === option.id
                       ? "bg-primary/10 text-primary"
                       : "text-foreground"
-                  }`}
+                    }`}
                 >
                   {option.label}
                 </button>
@@ -455,11 +451,10 @@ export function SearchBar({ onClose }: SearchBarProps) {
           <motion.button
             key={f.id}
             onClick={() => setFilter(f.id)}
-            className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-              filter === f.id
+            className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${filter === f.id
                 ? "bg-primary text-black scale-105 shadow-md"
                 : "bg-muted text-secondary hover:bg-primary/10 hover:text-primary hover:scale-102"
-            }`}
+              }`}
             initial={{ opacity: 0, y: 10 }}
             animate={{
               opacity: 1,
@@ -492,7 +487,7 @@ export function SearchBar({ onClose }: SearchBarProps) {
       </div>
 
       {/* Admin Navigation - Fixed the user reference */}
-      {user && user.is_admin && (
+      {user && (user as { is_admin?: boolean }).is_admin && (
         <div className="border-t border-border pt-4 mt-4">
           <div className="text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
             Admin

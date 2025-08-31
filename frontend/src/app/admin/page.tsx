@@ -35,7 +35,7 @@ export default function AdminDashboardPage() {
   }, [showError]);
 
   useEffect(() => {
-    if (user && !user.is_admin) {
+    if (user && !(user as { is_admin?: boolean }).is_admin) {
       showError("Access denied. Admin privileges required.");
       return;
     }
@@ -51,7 +51,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (!user || !user.is_admin) {
+  if (!user || !(user as { is_admin?: boolean }).is_admin) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">

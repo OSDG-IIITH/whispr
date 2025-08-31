@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Search, Ban, Shield, AlertTriangle } from "lucide-react";
+import {
+  Search,
+  Ban,
+  Shield,
+  AlertTriangle,
+} from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { adminAPI } from "@/lib/admin-api";
@@ -96,7 +101,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  if (!user || !user.is_admin) {
+  if (!user || !(user as { is_admin?: boolean }).is_admin) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -144,11 +149,10 @@ export default function AdminUsersPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setFilterBanned(!filterBanned)}
-                className={`px-4 py-2 rounded-lg border transition-colors ${
-                  filterBanned
+                className={`px-4 py-2 rounded-lg border transition-colors ${filterBanned
                     ? "bg-red-500/20 border-red-500 text-red-300"
                     : "bg-background/50 border-border hover:border-primary"
-                }`}
+                  }`}
               >
                 <Ban className="w-4 h-4 inline mr-2" />
                 Banned Only
@@ -156,11 +160,10 @@ export default function AdminUsersPage() {
 
               <button
                 onClick={() => setFilterAdmin(!filterAdmin)}
-                className={`px-4 py-2 rounded-lg border transition-colors ${
-                  filterAdmin
+                className={`px-4 py-2 rounded-lg border transition-colors ${filterAdmin
                     ? "bg-blue-500/20 border-blue-500 text-blue-300"
                     : "bg-background/50 border-border hover:border-primary"
-                }`}
+                  }`}
               >
                 <Shield className="w-4 h-4 inline mr-2" />
                 Admins Only
@@ -260,18 +263,11 @@ export default function AdminUsersPage() {
 
                           {userData.id !== user.id && (
                             <button
-                              onClick={() =>
-                                handleToggleAdmin(
-                                  userData.id,
-                                  userData.username,
-                                  userData.is_admin
-                                )
-                              }
-                              className={`px-3 py-1 border rounded hover:opacity-80 transition-colors text-sm ${
-                                userData.is_admin
+                              onClick={() => handleToggleAdmin(userData.id, userData.username, userData.is_admin)}
+                              className={`px-3 py-1 border rounded hover:opacity-80 transition-colors text-sm ${userData.is_admin
                                   ? "bg-yellow-500/20 text-yellow-300 border-yellow-500"
                                   : "bg-blue-500/20 text-blue-300 border-blue-500"
-                              }`}
+                                }`}
                             >
                               {userData.is_admin
                                 ? "Remove Admin"
@@ -292,9 +288,7 @@ export default function AdminUsersPage() {
         {showBanModal && selectedUser && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-card border border-primary/20 rounded-xl p-6 max-w-md w-full mx-4">
-              <h2 className="text-xl font-bold mb-4">
-                Ban User: {selectedUser.username}
-              </h2>
+              <h2 className="text-xl font-bold mb-4">Ban User: {selectedUser.username}</h2>
 
               <div className="space-y-4">
                 <div>

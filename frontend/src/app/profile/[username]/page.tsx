@@ -41,7 +41,7 @@ export default function ProfilePage() {
   const [filterBy, setFilterBy] = useState("all");
   const [isFollowing, setIsFollowing] = useState(false);
   const [, setFollowingCount] = useState(0);
-  
+
   // Track if we've already determined user doesn't exist for this username
   const userNotFoundRef = useRef<string | null>(null);
 
@@ -53,7 +53,7 @@ export default function ProfilePage() {
     if (userNotFoundRef.current === username) {
       return;
     }
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -90,8 +90,8 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Failed to fetch profile data:", error);
       if (error instanceof Error && (
-        error.message.includes("User not found") || 
-        error.message.includes("HTTP 404") || 
+        error.message.includes("User not found") ||
+        error.message.includes("HTTP 404") ||
         error.message.includes("404")
       )) {
         setError("USER_NOT_FOUND");
@@ -400,7 +400,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (error === "USER_NOT_FOUND" || (!profileUser && !loading)) {
+  if (error === "USER_NOT_FOUND" || !profileUser) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -418,12 +418,12 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <p className="text-secondary mb-4">Failed to load profile</p>
-          <button 
+          <button
             onClick={() => {
               setError(null);
               userNotFoundRef.current = null;
               fetchProfileData();
-            }} 
+            }}
             className="btn btn-primary"
           >
             Try Again
@@ -461,7 +461,6 @@ export default function ProfilePage() {
     0
   );
   reviews.reduce((sum, review) => sum + (review.downvotes || 0), 0);
-  // const profileViews = 0; // TODO: Implement profile views when backend supports it
 
   const stats = [
     {

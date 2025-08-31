@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Flag, Ban, X, AlertTriangle } from "lucide-react";
+import {
+  Flag,
+  Ban,
+  X,
+  AlertTriangle,
+} from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { adminAPI } from "@/lib/admin-api";
@@ -97,7 +102,7 @@ export default function AdminReportsPage() {
     }
   };
 
-  if (!user || !user.is_admin) {
+  if (!user || !(user as { is_admin?: boolean }).is_admin) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -131,21 +136,18 @@ export default function AdminReportsPage() {
           className="bg-card/50 backdrop-blur-xl border border-primary/20 rounded-xl p-6 mb-6"
         >
           <div className="flex gap-2">
-            {["all", "pending", "under_review", "resolved", "dismissed"].map(
-              (status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-2 rounded-lg border transition-colors capitalize ${
-                    statusFilter === status
-                      ? "bg-primary/20 border-primary text-primary"
-                      : "bg-background/50 border-border hover:border-primary"
+            {["all", "pending", "under_review", "resolved", "dismissed"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2 rounded-lg border transition-colors capitalize ${statusFilter === status
+                    ? "bg-primary/20 border-primary text-primary"
+                    : "bg-background/50 border-border hover:border-primary"
                   }`}
-                >
-                  {status.replace("_", " ")}
-                </button>
-              )
-            )}
+              >
+                {status.replace("_", " ")}
+              </button>
+            ))}
           </div>
         </motion.div>
 
