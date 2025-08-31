@@ -122,7 +122,7 @@ export default function CoursePage() {
         sort_by: sortBy
       });
       setReviews(reviewsData);
-      const repliesData = await fetchRepliesForReviews(reviewsData);
+      await fetchRepliesForReviews(reviewsData);
       // console.log("Fetched replies for reviews:", repliesData);
       // Also refresh user votes if logged in
       if (user) {
@@ -149,14 +149,14 @@ export default function CoursePage() {
     if (course) {
       fetchReviewsAndReplies();
     }
-  }, [course, fetchReviewsAndReplies]);
+  }, [course, fetchReviewsAndReplies, user, fetchRepliesForReviews, sortBy]);
 
   // Refetch reviews when sort order changes
   useEffect(() => {
     if (course && sortBy) {
       fetchReviewsAndReplies();
     }
-  }, [sortBy]);
+  }, [course, sortBy, fetchReviewsAndReplies, user, fetchRepliesForReviews]);
 
   // Handle query parameters for highlighting and scrolling to specific reviews/replies
   useEffect(() => {

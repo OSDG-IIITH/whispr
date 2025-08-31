@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Users,
   Flag,
   Shield,
   Ban,
-  CheckCircle,
   AlertTriangle,
   UserCheck,
-  UserX,
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -24,16 +22,7 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user && !(user as any).is_admin) {
-      showError("Access denied. Admin privileges required.");
-      return;
-    }
-    
-    fetchStats();
-  }, [user]);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const statsData = await adminAPI.getStats();
       setStats(statsData);
@@ -43,7 +32,16 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
+
+  useEffect(() => {
+    if (user && !(user as { is_admin?: boolean }).is_admin) {
+      showError("Access denied. Admin privileges required.");
+      return;
+    }
+
+    fetchStats();
+  }, [user, fetchStats, showError]);
 
   if (loading) {
     return (
@@ -53,7 +51,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (!user || !(user as any).is_admin) {
+  if (!user || !(user as { is_admin?: boolean }).is_admin) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">

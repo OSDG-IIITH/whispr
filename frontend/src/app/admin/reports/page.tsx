@@ -1,15 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Flag,
-  User,
-  MessageSquare,
-  Eye,
   Ban,
-  Trash2,
-  CheckCircle,
   X,
   AlertTriangle,
 } from "lucide-react";
@@ -31,11 +26,7 @@ export default function AdminReportsPage() {
   const [actionNotes, setActionNotes] = useState("");
   const [banDuration, setBanDuration] = useState<number | undefined>(undefined);
 
-  useEffect(() => {
-    fetchReports();
-  }, [statusFilter]);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
       const reportsData = await adminAPI.getReports({
@@ -49,14 +40,18 @@ export default function AdminReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, showError]);
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const handleTakeAction = async () => {
     if (!selectedReport || !actionType) return;
 
     try {
       const newStatus = actionType === "dismiss" ? "dismissed" : "resolved";
-      
+
       await adminAPI.takeActionOnReport(selectedReport.id, {
         status: newStatus,
         action: actionType,
@@ -105,7 +100,7 @@ export default function AdminReportsPage() {
     }
   };
 
-  if (!user || !(user as any).is_admin) {
+  if (!user || !(user as { is_admin?: boolean }).is_admin) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -141,11 +136,10 @@ export default function AdminReportsPage() {
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-lg border transition-colors capitalize ${
-                  statusFilter === status
+                className={`px-4 py-2 rounded-lg border transition-colors capitalize ${statusFilter === status
                     ? "bg-primary/20 border-primary text-primary"
                     : "bg-background/50 border-border hover:border-primary"
-                }`}
+                  }`}
               >
                 {status.replace("_", " ")}
               </button>
@@ -240,7 +234,7 @@ export default function AdminReportsPage() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-card border border-primary/20 rounded-xl p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
               <h2 className="text-xl font-bold mb-4">Take Action on Report</h2>
-              
+
               <div className="space-y-4 mb-6">
                 <div className="bg-background/50 p-4 rounded-lg">
                   <div className="font-semibold mb-2">Report Details</div>
@@ -251,7 +245,7 @@ export default function AdminReportsPage() {
                     <div><strong>Reason:</strong> {selectedReport.reason}</div>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Action</label>
                   <select
@@ -266,7 +260,7 @@ export default function AdminReportsPage() {
                     <option value="ban_user">Ban User</option>
                   </select>
                 </div>
-                
+
                 {actionType === "ban_user" && (
                   <div>
                     <label className="block text-sm font-medium mb-2">Ban Duration</label>
@@ -284,7 +278,7 @@ export default function AdminReportsPage() {
                     </select>
                   </div>
                 )}
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Admin Notes</label>
                   <textarea
@@ -296,7 +290,7 @@ export default function AdminReportsPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={() => {

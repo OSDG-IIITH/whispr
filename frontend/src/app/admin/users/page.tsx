@@ -1,15 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Search,
-  Filter,
   Ban,
   Shield,
-  UserX,
-  UserCheck,
-  Calendar,
   AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -31,11 +27,7 @@ export default function AdminUsersPage() {
   const [banReason, setBanReason] = useState("");
   const [banDuration, setBanDuration] = useState<number | undefined>(undefined);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [searchQuery, filterBanned, filterAdmin]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const usersData = await adminAPI.getUsers({
@@ -51,7 +43,11 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, filterBanned, filterAdmin, showError]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleBanUser = async () => {
     if (!selectedUser || !banReason.trim()) return;
@@ -61,7 +57,7 @@ export default function AdminUsersPage() {
         reason: banReason,
         duration_days: banDuration,
       });
-      
+
       showSuccess(`User ${selectedUser.username} has been banned.`);
       setShowBanModal(false);
       setSelectedUser(null);
@@ -101,7 +97,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  if (!user || !(user as any).is_admin) {
+  if (!user || !(user as { is_admin?: boolean }).is_admin) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
@@ -143,27 +139,25 @@ export default function AdminUsersPage() {
                 className="w-full pl-10 pr-4 py-2 bg-background/50 border border-border rounded-lg focus:border-primary focus:outline-none"
               />
             </div>
-            
+
             <div className="flex gap-2">
               <button
                 onClick={() => setFilterBanned(!filterBanned)}
-                className={`px-4 py-2 rounded-lg border transition-colors ${
-                  filterBanned
+                className={`px-4 py-2 rounded-lg border transition-colors ${filterBanned
                     ? "bg-red-500/20 border-red-500 text-red-300"
                     : "bg-background/50 border-border hover:border-primary"
-                }`}
+                  }`}
               >
                 <Ban className="w-4 h-4 inline mr-2" />
                 Banned Only
               </button>
-              
+
               <button
                 onClick={() => setFilterAdmin(!filterAdmin)}
-                className={`px-4 py-2 rounded-lg border transition-colors ${
-                  filterAdmin
+                className={`px-4 py-2 rounded-lg border transition-colors ${filterAdmin
                     ? "bg-blue-500/20 border-blue-500 text-blue-300"
                     : "bg-background/50 border-border hover:border-primary"
-                }`}
+                  }`}
               >
                 <Shield className="w-4 h-4 inline mr-2" />
                 Admins Only
@@ -251,15 +245,14 @@ export default function AdminUsersPage() {
                               Ban
                             </button>
                           )}
-                          
+
                           {userData.id !== user.id && (
                             <button
                               onClick={() => handleToggleAdmin(userData.id, userData.username, userData.is_admin)}
-                              className={`px-3 py-1 border rounded hover:opacity-80 transition-colors text-sm ${
-                                userData.is_admin
+                              className={`px-3 py-1 border rounded hover:opacity-80 transition-colors text-sm ${userData.is_admin
                                   ? "bg-yellow-500/20 text-yellow-300 border-yellow-500"
                                   : "bg-blue-500/20 text-blue-300 border-blue-500"
-                              }`}
+                                }`}
                             >
                               {userData.is_admin ? "Remove Admin" : "Make Admin"}
                             </button>
@@ -279,7 +272,7 @@ export default function AdminUsersPage() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-card border border-primary/20 rounded-xl p-6 max-w-md w-full mx-4">
               <h2 className="text-xl font-bold mb-4">Ban User: {selectedUser.username}</h2>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Reason for ban</label>
@@ -291,7 +284,7 @@ export default function AdminUsersPage() {
                     rows={3}
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Ban Duration</label>
                   <select
@@ -308,7 +301,7 @@ export default function AdminUsersPage() {
                   </select>
                 </div>
               </div>
-              
+
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => {

@@ -157,7 +157,7 @@ export default function ProfessorPage() {
     if (professor && sortBy) {
       fetchReviewsAndReplies();
     }
-  }, [sortBy]);
+  }, [professor, sortBy, fetchReviewsAndReplies]);
 
   // Handle query parameters for highlighting and scrolling to specific reviews/replies
   useEffect(() => {
