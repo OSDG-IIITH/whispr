@@ -61,7 +61,7 @@ export function UserAvatar({ username, echoes = 0, size = "md", className = "" }
   };
 
   return (
-    <span className={`${sizeClasses[size]} relative ${className} inline-block`}>
+    <span className={`${sizeClasses[size]} align-middle relative ${className} inline-block`}>
       <Image
         src={avatarUrl}
         alt={`${username}'s avatar`}

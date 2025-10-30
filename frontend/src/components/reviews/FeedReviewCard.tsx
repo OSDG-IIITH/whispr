@@ -225,7 +225,7 @@ export function FeedReviewCard({
             {/* Content */}
             <div className="flex-1 min-w-0">
               {/* Header */}
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-3 mb-3">
                 <UserHoverCard
                   username={
                     review.author?.username ||
@@ -251,42 +251,34 @@ export function FeedReviewCard({
                 </UserHoverCard>
 
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <UserHoverCard
-                      username={
-                        review.author?.username ||
-                        review.user?.username ||
-                        "Unknown"
-                      }
-                      echoes={review.author?.echoes || review.user?.echoes || 0}
-                      isVerified={
-                        review.author?.isVerified ||
-                        review.user?.isVerified ||
-                        false
-                      }
-                    >
+                  <UserHoverCard
+                    username={
+                      review.author?.username ||
+                      review.user?.username ||
+                      "Unknown"
+                    }
+                    echoes={review.author?.echoes || review.user?.echoes || 0}
+                    isVerified={
+                      review.author?.isVerified ||
+                      review.user?.isVerified ||
+                      false
+                    }
+                  >
+                    <div className="flex flex-col">
+                      <RankBadge
+                        echoes={
+                          review.author?.echoes || review.user?.echoes || 0
+                        }
+                        size="sm"
+                        showIcon={false}
+                      />
                       <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
-                        {(
-                          review.author?.username ||
+                        {review.author?.username ||
                           review.user?.username ||
-                          "Unknown"
-                        ).slice(0, 20)}
+                          "Unknown"}
                       </span>
-                    </UserHoverCard>
-                    <RankBadge
-                      echoes={review.author?.echoes || review.user?.echoes || 0}
-                      size="sm"
-                      showIcon={false}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-secondary">
-                    <span>
-                      {formatDateTime(
-                        review.createdAt || review.created_at || new Date()
-                      )}
-                    </span>
-                    {review.isEdited && <span>(edited)</span>}
-                  </div>
+                    </div>
+                  </UserHoverCard>
                 </div>
 
                 {/* Action Buttons */}
@@ -331,7 +323,17 @@ export function FeedReviewCard({
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1 mt-2 sm:mt-0 sm:mb-3 mb-2 w-full sm:w-auto">
+
+              <div className="flex items-center gap-2 text-xs text-secondary">
+                <span>
+                  {formatDateTime(
+                    review.createdAt || review.created_at || new Date()
+                  )}
+                </span>
+                {review.isEdited && <span>(edited)</span>}
+              </div>
+
+              <div className="flex items-center gap-1 mt-2 mb-2 w-full sm:w-auto">
                 {renderStars(review.rating)}
               </div>
 

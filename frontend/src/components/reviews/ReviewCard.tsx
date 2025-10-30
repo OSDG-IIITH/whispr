@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Edit, Trash2, Flag, Star, BookOpen, GraduationCap } from "lucide-react";
+import {
+  MessageSquare,
+  Edit,
+  Trash2,
+  Flag,
+  Star,
+  BookOpen,
+  GraduationCap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { UserHoverCard } from "@/components/user/UserHoverCard";
@@ -19,7 +27,10 @@ interface ReviewCardProps {
   review: FrontendReview;
   onVote: (reviewId: string, type: "up" | "down") => Promise<void> | void;
   onReply: (reviewId: string) => Promise<void> | void;
-  onEdit?: (reviewId: string, data: { content: string; rating: number }) => Promise<void> | void;
+  onEdit?: (
+    reviewId: string,
+    data: { content: string; rating: number }
+  ) => Promise<void> | void;
   onDelete?: (reviewId: string) => Promise<void> | void;
   onReport?: (
     reviewId: string,
@@ -56,7 +67,10 @@ export function ReviewCard({
   };
 
   // Inline edit submit handler
-  const handleEditSubmit = async (data: { content: string; rating: number }) => {
+  const handleEditSubmit = async (data: {
+    content: string;
+    rating: number;
+  }) => {
     if (!onEdit) return;
     try {
       await onEdit(review.id, data);
@@ -78,8 +92,9 @@ export function ReviewCard({
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${i < rating ? "text-yellow-500 fill-current" : "text-secondary"
-          }`}
+        className={`w-4 h-4 ${
+          i < rating ? "text-yellow-500 fill-current" : "text-secondary"
+        }`}
       />
     ));
   };
@@ -106,7 +121,7 @@ export function ReviewCard({
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Header */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-3 mb-3">
             <UserHoverCard
               username={review.author.username}
               echoes={review.author.echoes}
@@ -120,57 +135,61 @@ export function ReviewCard({
             </UserHoverCard>
 
             <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <UserHoverCard
-                  username={review.author.username}
-                  echoes={review.author.echoes}
-                  isVerified={review.author.isVerified}
-                >
+              <UserHoverCard
+                username={review.author.username}
+                echoes={review.author.echoes}
+                isVerified={review.author.isVerified}
+              >
+                <div className="flex flex-col">
+                  <RankBadge
+                    echoes={review.author.echoes}
+                    size="sm"
+                    showIcon={false}
+                  />
                   <span className="font-medium text-sm hover:text-primary transition-colors cursor-pointer">
                     {review.author.username}
                   </span>
-                </UserHoverCard>
-                <RankBadge
-                  echoes={review.author.echoes}
-                  size="sm"
-                  showIcon={false}
-                />
-              </div>
-              <div className="flex items-center gap-2 text-xs text-secondary">
-                <span>{formatDateTime(review.createdAt)}</span>
-                {review.isEdited && <span>(edited)</span>}
-              </div>
-            </div>
-
-            {/* Rating */}
-            <div className="flex items-center gap-1">
-              {renderStars(review.rating)}
+                </div>
+              </UserHoverCard>
             </div>
           </div>
 
-          {(review.course_instructors && review.course_instructors.length > 0 || review.professor || review.course) && (
+          {((review.course_instructors &&
+            review.course_instructors.length > 0) ||
+            review.professor ||
+            review.course) && (
             <div className="flex flex-wrap items-center gap-2 mb-3">
               {/* Course Instructor Tags (Time Period and Professor) */}
-              {review.course_instructors && review.course_instructors.map((ci, index) => (
-                <span key={index} className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30 flex items-center gap-1">
-                  {ci.semester && ci.year
-                    ? `${ci.semester} '${ci.year.toString().slice(-2)}`
-                    : ci.semester || ci.year}
-                  {ci.professor && (
-                    <button
-                      onClick={() => ci.professor?.id && handleProfessorClick(ci.professor.id)}
-                      className="text-green-400 hover:text-green-300 transition-colors"
-                    >
-                      ({ci.professor.name || 'Unknown'})
-                    </button>
-                  )}
-                </span>
-              ))}
+              {review.course_instructors &&
+                review.course_instructors.map((ci, index) => (
+                  <span
+                    key={index}
+                    className="bg-green-500/20 text-green-400 px-2 py-1 text-xs rounded-full border border-green-500/30 flex items-center gap-1"
+                  >
+                    {ci.semester && ci.year
+                      ? `${ci.semester} '${ci.year.toString().slice(-2)}`
+                      : ci.semester || ci.year}
+                    {ci.professor && (
+                      <button
+                        onClick={() =>
+                          ci.professor?.id &&
+                          handleProfessorClick(ci.professor.id)
+                        }
+                        className="text-green-400 hover:text-green-300 transition-colors"
+                      >
+                        ({ci.professor.name || "Unknown"})
+                      </button>
+                    )}
+                  </span>
+                ))}
 
               {/* Professor Tags (clickable) */}
               {review.professor && (
                 <button
-                  onClick={() => review.professor?.id && handleProfessorClick(review.professor.id)}
+                  onClick={() =>
+                    review.professor?.id &&
+                    handleProfessorClick(review.professor.id)
+                  }
                   className="bg-blue-500/20 text-blue-400 px-2 py-1 text-xs rounded-full border border-blue-500/30 hover:bg-blue-500/30 transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <GraduationCap className="w-3 h-3" />
@@ -181,17 +200,27 @@ export function ReviewCard({
               {/* Course Tag (for professor page showing which course was reviewed) - clickable */}
               {review.course && (
                 <button
-                  onClick={() => review.course?.code && handleCourseClick(review.course.code)}
+                  onClick={() =>
+                    review.course?.code && handleCourseClick(review.course.code)
+                  }
                   className="bg-orange-500/20 text-orange-400 px-2 py-1 text-xs rounded-full border border-orange-500/30 hover:bg-orange-500/30 transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <BookOpen className="w-3 h-3" />
                   {review.course.code}
                 </button>
               )}
-
-
             </div>
           )}
+
+          <div className="flex items-center gap-2 text-xs text-secondary">
+            <span>{formatDateTime(review.createdAt)}</span>
+            {review.isEdited && <span>(edited)</span>}
+          </div>
+
+          {/* Rating */}
+          <div className="flex items-center gap-1 mt-2 mb-2 w-full sm:w-auto">
+            {renderStars(review.rating)}
+          </div>
 
           {/* Content or Edit Form */}
           <div className="prose prose-invert prose-sm max-w-none mb-3">
@@ -207,7 +236,9 @@ export function ReviewCard({
               />
             ) : (
               <div className="text-foreground leading-relaxed whitespace-pre-wrap">
-                {review.content ? <MentionTextWithHover content={review.content} /> : null}
+                {review.content ? (
+                  <MentionTextWithHover content={review.content} />
+                ) : null}
               </div>
             )}
           </div>
@@ -222,7 +253,8 @@ export function ReviewCard({
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>
-                    Reply{review.replyCount > 0 ? ` (${review.replyCount})` : ""}
+                    Reply
+                    {review.replyCount > 0 ? ` (${review.replyCount})` : ""}
                   </span>
                 </button>
               )}
@@ -287,7 +319,10 @@ export function ReviewCard({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full">
             <h3 className="font-semibold mb-4">Delete Review</h3>
-            <p className="mb-6 text-secondary">Are you sure you want to delete this review? This action cannot be undone.</p>
+            <p className="mb-6 text-secondary">
+              Are you sure you want to delete this review? This action cannot be
+              undone.
+            </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
