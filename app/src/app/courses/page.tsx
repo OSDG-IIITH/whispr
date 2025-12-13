@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -9,36 +9,16 @@ import {
   BookOpen,
 } from "lucide-react";
 import Link from "next/link";
-import { courseAPI } from "@/lib/api";
+import { useCourses } from "@/hooks/useData";
 import { Course } from "@/types/backend-models";
 import Loader from "@/components/common/Loader";
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { courses, isLoading: loading, isError, mutate } = useCourses(0, 1000);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("ALL");
   const [selectedYear, setSelectedYear] = useState("ALL");
   const [sortBy, setSortBy] = useState("rating");
-
-  useEffect(() => {
-    fetchCourses();
-  }, []);
-
-  const fetchCourses = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const coursesData = await courseAPI.getCourses(0, 1000); // Get all courses
-      setCourses(coursesData);
-    } catch (err) {
-      console.error("Error fetching courses:", err);
-      setError("Failed to load courses. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
@@ -115,14 +95,14 @@ export default function CoursesPage() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <BookOpen className="w-16 h-16 text-secondary mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">Error Loading Courses</h3>
-          <p className="text-secondary mb-4">{error}</p>
-          <button onClick={fetchCourses} className="btn btn-primary h-10 w-24">
+          <p className="text-secondary mb-4">Failed to load courses. Please try again later.</p>
+          <button onClick={() => mutate()} className="btn btn-primary h-10 w-24">
             Try Again
           </button>
         </div>
