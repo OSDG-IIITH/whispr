@@ -90,12 +90,7 @@ export async function GET(request: NextRequest) {
             prisma.report.count({ where }),
         ])
 
-        return NextResponse.json({
-            reports,
-            total,
-            skip,
-            limit,
-        })
+        return NextResponse.json(reports)
     } catch (error) {
         console.error('Get admin reports error:', error)
         return NextResponse.json(
