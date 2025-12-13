@@ -30,7 +30,7 @@ export async function GET(
 
         // Get followers (users who follow this user)
         const followers = await prisma.userFollower.findMany({
-            where: { following_id: userId },
+            where: { followed_id: userId },
             skip,
             take: limit,
             include: {

@@ -34,7 +34,7 @@ export async function GET(
             skip,
             take: limit,
             include: {
-                following: {
+                followed: {
                     select: {
                         id: true,
                         username: true,
@@ -54,7 +54,7 @@ export async function GET(
 
         // Return just the following user objects
         const followingUsers = following
-            .map(f => f.following)
+            .map(f => f.followed)
             .filter(u => !u.is_banned)
 
         return NextResponse.json(followingUsers)
