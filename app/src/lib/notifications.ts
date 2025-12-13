@@ -49,22 +49,21 @@ export async function createMentionNotifications(params: {
         select: { username: true },
     })
 
-    const existingUsernames = existingUsers.map(u => u.username)
+    if (existingUsers.length === 0) return
 
-    // Create notifications for each mentioned user
-    for (const username of existingUsernames) {
-        await prisma.notification.create({
-            data: {
-                username,
-                type: 'MENTION',
-                content: `@${actorUsername} mentioned you in a ${sourceType}`,
-                source_id: sourceId,
-                source_type: sourceType,
-                actor_username: actorUsername,
-                is_read: false,
-            },
-        })
-    }
+    // Batch create notifications for all mentioned users
+    await prisma.notification.createMany({
+        data: existingUsers.map(u => ({
+            username: u.username,
+            type: 'MENTION',
+            content: `@${actorUsername} mentioned you in a ${sourceType}`,
+            source_id: sourceId,
+            source_type: sourceType,
+            actor_username: actorUsername,
+            is_read: false,
+        })),
+        skipDuplicates: true,
+    })
 }
 
 /**
@@ -80,10 +79,10 @@ export async function createFollowerActivityNotifications(params: {
 }): Promise<void> {
     const { actorId, actorUsername, sourceId, sourceType, contentPreview } = params
 
-    // Get all followers of the actor
+    // Get all followers of the actor (only select what we need)
     const followers = await prisma.userFollower.findMany({
         where: { followed_id: actorId },
-        include: {
+        select: {
             follower: {
                 select: { username: true, is_banned: true },
             },
@@ -99,22 +98,21 @@ export async function createFollowerActivityNotifications(params: {
     const truncatedPreview = contentPreview
         ? (contentPreview.length > 50 ? contentPreview.slice(0, 50) + '...' : contentPreview)
         : ''
-    const content = truncatedPreview
+    const notificationContent = truncatedPreview
         ? `@${actorUsername} posted a new ${sourceType}: "${truncatedPreview}"`
         : `@${actorUsername} posted a new ${sourceType}`
 
-    // Create notifications for each follower
-    for (const follower of activeFollowers) {
-        await prisma.notification.create({
-            data: {
-                username: follower.follower.username,
-                type: notificationType,
-                content,
-                source_id: sourceId,
-                source_type: sourceType,
-                actor_username: actorUsername,
-                is_read: false,
-            },
-        })
-    }
+    // Batch create notifications for all followers
+    await prisma.notification.createMany({
+        data: activeFollowers.map(f => ({
+            username: f.follower.username,
+            type: notificationType,
+            content: notificationContent,
+            source_id: sourceId,
+            source_type: sourceType,
+            actor_username: actorUsername,
+            is_read: false,
+        })),
+        skipDuplicates: true,
+    })
 }
