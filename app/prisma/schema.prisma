@@ -337,3 +337,24 @@ model Report {
   @@index([status], name: "idx_reports_status")
   @@map("reports")
 }
+
+// =============================================================================
+// ADMIN AUDIT LOG TABLE (for tracking admin actions)
+// =============================================================================
+model AdminAuditLog {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  admin_id     String   @db.Uuid
+  admin_name   String   @db.VarChar(50)
+  action_type  String   @db.VarChar(50)  // CREATE, UPDATE, DELETE, MERGE, BAN, UNBAN, etc.
+  entity_type  String   @db.VarChar(50)  // PROFESSOR, COURSE, USER, REPORT, etc.
+  entity_id    String?  @db.Uuid
+  entity_name  String?  @db.VarChar(255)
+  details      Json?                      // Flexible JSON for action-specific data
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([admin_id], name: "idx_audit_log_admin_id")
+  @@index([action_type], name: "idx_audit_log_action_type")
+  @@index([entity_type], name: "idx_audit_log_entity_type")
+  @@index([created_at], name: "idx_audit_log_created_at")
+  @@map("admin_audit_log")
+}

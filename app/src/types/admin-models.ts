@@ -53,3 +53,128 @@ export interface AdminActionRequest {
   notes?: string;
   ban_duration_days?: number;
 }
+
+// =============================================================================
+// Professor Management Types
+// =============================================================================
+
+export interface AdminProfessor {
+  id: string;
+  name: string;
+  lab?: string;
+  review_summary?: string;
+  review_count: number;
+  average_rating: string;
+  courses_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProfessorUpdateRequest {
+  name?: string;
+  lab?: string;
+}
+
+export interface ProfessorMergeRequest {
+  canonical_id: string;
+  variant_id: string;
+}
+
+export interface ProfessorMergePreview {
+  canonical: AdminProfessor;
+  variant: AdminProfessor;
+  courses_to_transfer: number;
+  reviews_to_transfer: number;
+}
+
+// =============================================================================
+// Course Management Types
+// =============================================================================
+
+export interface AdminCourse {
+  id: string;
+  code: string;
+  name: string;
+  credits?: number;
+  description?: string;
+  official_document_url?: string;
+  review_summary?: string;
+  review_count: number;
+  average_rating: string;
+  instructors_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CourseUpdateRequest {
+  code?: string;
+  name?: string;
+  credits?: number;
+  description?: string;
+  official_document_url?: string;
+}
+
+export interface CourseInstructorInfo {
+  id: string;
+  professor_id: string;
+  professor_name: string;
+  semester?: string;
+  year?: number;
+  review_count: number;
+  average_rating: string;
+}
+
+// =============================================================================
+// Audit Log Types
+// =============================================================================
+
+export type AuditActionType =
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE"
+  | "MERGE"
+  | "BAN"
+  | "UNBAN"
+  | "MAKE_ADMIN"
+  | "REMOVE_ADMIN"
+  | "REPORT_DISMISS"
+  | "REPORT_RESOLVE";
+
+export type AuditEntityType =
+  | "PROFESSOR"
+  | "COURSE"
+  | "USER"
+  | "REPORT"
+  | "COURSE_INSTRUCTOR";
+
+export interface AuditLogEntry {
+  id: string;
+  admin_id: string;
+  admin_name: string;
+  action_type: AuditActionType;
+  entity_type: AuditEntityType;
+  entity_id?: string;
+  entity_name?: string;
+  details?: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface AuditLogFilters {
+  admin_id?: string;
+  action_type?: AuditActionType;
+  entity_type?: AuditEntityType;
+  from_date?: string;
+  to_date?: string;
+  skip?: number;
+  limit?: number;
+}
+
+// =============================================================================
+// Enhanced Admin Stats
+// =============================================================================
+
+export interface EnhancedAdminStats extends AdminStats {
+  total_professors: number;
+  total_courses: number;
+  total_reviews: number;
+}

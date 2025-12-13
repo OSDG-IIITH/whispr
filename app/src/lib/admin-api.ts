@@ -1,3 +1,21 @@
+import {
+  AdminUser,
+  AdminStats,
+  AdminReport,
+  BanUserRequest,
+  AdminActionRequest,
+  AdminProfessor,
+  ProfessorUpdateRequest,
+  ProfessorMergeRequest,
+  ProfessorMergePreview,
+  AdminCourse,
+  CourseUpdateRequest,
+  AuditLogEntry,
+  AuditLogFilters,
+  AuditActionType,
+  AuditEntityType,
+} from "@/types/admin-models";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 async function apiCall<T>(
@@ -49,66 +67,36 @@ async function apiCall<T>(
   }
 }
 
-export interface AdminUser {
-  id: string;
-  username: string;
-  email?: string;
-  echoes: number;
-  is_admin: boolean;
-  is_muffled: boolean;
-  is_banned: boolean;
-  ban_reason?: string;
-  banned_until?: string;
-  banned_by?: string;
-  banned_at?: string;
-  created_at: string;
-}
-
-export interface AdminStats {
-  total_users: number;
-  banned_users: number;
-  pending_reports: number;
-  under_review_reports: number;
-}
-
-export interface AdminReport {
-  id: string;
-  reporter: {
-    id: string;
-    username: string;
-  };
-  reported_user?: {
-    id: string;
-    username: string;
-  };
-  review_id?: string;
-  reply_id?: string;
-  report_type: string;
-  reason: string;
-  status: string;
-  created_at: string;
-  reviewed_by?: string;
-  reviewed_at?: string;
-  admin_action?: string;
-}
-
-export interface BanUserRequest {
-  reason: string;
-  duration_days?: number;
-}
-
-export interface AdminActionRequest {
-  status: string;
-  action: string;
-  notes?: string;
-  ban_duration_days?: number;
-}
+// Re-export types for convenience
+export type {
+  AdminUser,
+  AdminStats,
+  AdminReport,
+  BanUserRequest,
+  AdminActionRequest,
+  AdminProfessor,
+  ProfessorUpdateRequest,
+  ProfessorMergeRequest,
+  ProfessorMergePreview,
+  AdminCourse,
+  CourseUpdateRequest,
+  AuditLogEntry,
+  AuditLogFilters,
+  AuditActionType,
+  AuditEntityType,
+};
 
 export const adminAPI = {
+  // =============================================================================
+  // Stats
+  // =============================================================================
   getStats: async (): Promise<AdminStats> => {
     return apiCall<AdminStats>("/admin/stats");
   },
 
+  // =============================================================================
+  // User Management
+  // =============================================================================
   getUsers: async (
     params: {
       skip?: number;
@@ -117,7 +105,7 @@ export const adminAPI = {
       banned_only?: boolean;
       admin_only?: boolean;
     } = {}
-  ): Promise<AdminUser[]> => {
+  ): Promise<{ users: AdminUser[]; total: number }> => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -125,7 +113,7 @@ export const adminAPI = {
       }
     });
 
-    return apiCall<AdminUser[]>(`/admin/users?${searchParams.toString()}`);
+    return apiCall<{ users: AdminUser[]; total: number }>(`/admin/users?${searchParams.toString()}`);
   },
 
   banUser: async (
@@ -156,6 +144,9 @@ export const adminAPI = {
     });
   },
 
+  // =============================================================================
+  // Report Management
+  // =============================================================================
   getReports: async (
     params: {
       skip?: number;
@@ -182,5 +173,133 @@ export const adminAPI = {
       method: "PUT",
       body: JSON.stringify(action),
     });
+  },
+
+  // =============================================================================
+  // Professor Management
+  // =============================================================================
+  getProfessors: async (
+    params: {
+      skip?: number;
+      limit?: number;
+      search?: string;
+      lab?: string;
+    } = {}
+  ): Promise<{ professors: AdminProfessor[]; total: number; labs: string[] }> => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.append(key, value.toString());
+      }
+    });
+
+    return apiCall<{ professors: AdminProfessor[]; total: number; labs: string[] }>(
+      `/admin/professors?${searchParams.toString()}`
+    );
+  },
+
+  getProfessor: async (id: string): Promise<AdminProfessor & { courses: unknown[]; reviews_count: number }> => {
+    return apiCall(`/admin/professors/${id}`);
+  },
+
+  updateProfessor: async (
+    id: string,
+    data: ProfessorUpdateRequest
+  ): Promise<AdminProfessor> => {
+    return apiCall<AdminProfessor>(`/admin/professors/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteProfessor: async (id: string): Promise<void> => {
+    return apiCall<void>(`/admin/professors/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  previewMerge: async (
+    canonicalId: string,
+    variantId: string
+  ): Promise<ProfessorMergePreview> => {
+    return apiCall<ProfessorMergePreview>(`/admin/professors/merge`, {
+      method: "POST",
+      body: JSON.stringify({
+        canonical_id: canonicalId,
+        variant_id: variantId,
+        preview: true,
+      }),
+    });
+  },
+
+  mergeProfessors: async (
+    request: ProfessorMergeRequest
+  ): Promise<{ success: boolean; message: string; canonical_id: string }> => {
+    return apiCall(`/admin/professors/merge`, {
+      method: "POST",
+      body: JSON.stringify(request),
+    });
+  },
+
+  // =============================================================================
+  // Course Management
+  // =============================================================================
+  getCourses: async (
+    params: {
+      skip?: number;
+      limit?: number;
+      search?: string;
+    } = {}
+  ): Promise<{ courses: AdminCourse[]; total: number }> => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.append(key, value.toString());
+      }
+    });
+
+    return apiCall<{ courses: AdminCourse[]; total: number }>(
+      `/admin/courses?${searchParams.toString()}`
+    );
+  },
+
+  getCourse: async (id: string): Promise<AdminCourse & { instructors: unknown[]; reviews_count: number }> => {
+    return apiCall(`/admin/courses/${id}`);
+  },
+
+  updateCourse: async (
+    id: string,
+    data: CourseUpdateRequest
+  ): Promise<AdminCourse> => {
+    return apiCall<AdminCourse>(`/admin/courses/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteCourse: async (id: string): Promise<void> => {
+    return apiCall<void>(`/admin/courses/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // =============================================================================
+  // Audit Log
+  // =============================================================================
+  getAuditLogs: async (
+    params: AuditLogFilters = {}
+  ): Promise<{
+    logs: AuditLogEntry[];
+    total: number;
+    admins: { id: string; name: string }[];
+  }> => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.append(key, value.toString());
+      }
+    });
+
+    return apiCall(`/admin/audit-log?${searchParams.toString()}`);
   },
 };

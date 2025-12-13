@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { getCurrentUser, requireAdminUser } from '@/lib/auth'
+import { logAdminAction } from '@/lib/audit-logger'
 
 export async function PUT(
     request: NextRequest,
@@ -80,6 +81,12 @@ export async function PUT(
             data: updateData,
         })
 
+        // Determine the audit action type based on status/action
+        let auditActionType: 'REPORT_RESOLVE' | 'REPORT_DISMISS' = 'REPORT_RESOLVE'
+        if (status === 'dismissed') {
+            auditActionType = 'REPORT_DISMISS'
+        }
+
         // If action is to ban the reported user
         if (action === 'ban' && report.reported_user_id) {
             const bannedUntil = ban_duration_days
@@ -95,6 +102,22 @@ export async function PUT(
                     banned_by: currentUser.username,
                     banned_at: new Date(),
                     updated_at: new Date(),
+                },
+            })
+
+            // Also log the ban action
+            await logAdminAction({
+                adminId: currentUser.id,
+                adminName: currentUser.username,
+                actionType: 'BAN',
+                entityType: 'USER',
+                entityId: report.reported_user_id,
+                entityName: report.reported_user?.username,
+                details: {
+                    reason: `Banned due to report: ${report.reason}`,
+                    duration_days: ban_duration_days || 'permanent',
+                    banned_until: bannedUntil?.toISOString() || null,
+                    via_report_id: reportId,
                 },
             })
         }
@@ -127,6 +150,22 @@ export async function PUT(
                 })
             }
         }
+
+        // Log the report action
+        await logAdminAction({
+            adminId: currentUser.id,
+            adminName: currentUser.username,
+            actionType: auditActionType,
+            entityType: 'REPORT',
+            entityId: reportId,
+            entityName: report.reason?.slice(0, 50),
+            details: {
+                status: status,
+                action: action,
+                notes: notes,
+                reported_user: report.reported_user?.username,
+            },
+        })
 
         return NextResponse.json({
             message: 'Report action completed successfully',

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { logAdminAction } from '@/lib/audit-logger'
 
 export async function POST(
     request: NextRequest,
@@ -62,6 +63,21 @@ export async function POST(
                 banned_by: currentUser.username,
                 banned_at: new Date(),
                 updated_at: new Date(),
+            },
+        })
+
+        // Log the action
+        await logAdminAction({
+            adminId: currentUser.id,
+            adminName: currentUser.username,
+            actionType: 'BAN',
+            entityType: 'USER',
+            entityId: userId,
+            entityName: targetUser.username,
+            details: {
+                reason: reason || 'No reason provided',
+                duration_days: duration_days || 'permanent',
+                banned_until: bannedUntil?.toISOString() || null,
             },
         })
 
@@ -136,6 +152,19 @@ export async function DELETE(
                 banned_by: null,
                 banned_at: null,
                 updated_at: new Date(),
+            },
+        })
+
+        // Log the action
+        await logAdminAction({
+            adminId: currentUser.id,
+            adminName: currentUser.username,
+            actionType: 'UNBAN',
+            entityType: 'USER',
+            entityId: userId,
+            entityName: targetUser.username,
+            details: {
+                previous_ban_reason: targetUser.ban_reason,
             },
         })
 

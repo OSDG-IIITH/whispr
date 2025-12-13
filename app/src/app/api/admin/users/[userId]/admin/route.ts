@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { getCurrentUser, requireAdminUser } from '@/lib/auth'
+import { logAdminAction } from '@/lib/audit-logger'
 
 export async function POST(
     request: NextRequest,
@@ -57,6 +58,16 @@ export async function POST(
                 is_admin: true,
                 updated_at: new Date(),
             },
+        })
+
+        // Log the action
+        await logAdminAction({
+            adminId: currentUser.id,
+            adminName: currentUser.username,
+            actionType: 'MAKE_ADMIN',
+            entityType: 'USER',
+            entityId: userId,
+            entityName: targetUser.username,
         })
 
         return NextResponse.json({
@@ -128,6 +139,16 @@ export async function DELETE(
                 is_admin: false,
                 updated_at: new Date(),
             },
+        })
+
+        // Log the action
+        await logAdminAction({
+            adminId: currentUser.id,
+            adminName: currentUser.username,
+            actionType: 'REMOVE_ADMIN',
+            entityType: 'USER',
+            entityId: userId,
+            entityName: targetUser.username,
         })
 
         return NextResponse.json({

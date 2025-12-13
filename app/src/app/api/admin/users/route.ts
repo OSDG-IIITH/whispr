@@ -50,30 +50,36 @@ export async function GET(request: NextRequest) {
             where.is_admin = true
         }
 
-        const users = await prisma.user.findMany({
-            where,
-            skip,
-            take: limit,
-            select: {
-                id: true,
-                username: true,
-                bio: true,
-                student_since_year: true,
-                is_muffled: true,
-                is_admin: true,
-                is_banned: true,
-                ban_reason: true,
-                banned_until: true,
-                banned_by: true,
-                banned_at: true,
-                echoes: true,
-                created_at: true,
-                updated_at: true,
-            },
-            orderBy: { created_at: 'desc' },
-        })
+        const [users, total] = await Promise.all([
+            prisma.user.findMany({
+                where,
+                skip,
+                take: limit,
+                select: {
+                    id: true,
+                    username: true,
+                    bio: true,
+                    student_since_year: true,
+                    is_muffled: true,
+                    is_admin: true,
+                    is_banned: true,
+                    ban_reason: true,
+                    banned_until: true,
+                    banned_by: true,
+                    banned_at: true,
+                    echoes: true,
+                    created_at: true,
+                    updated_at: true,
+                },
+                orderBy: { created_at: 'desc' },
+            }),
+            prisma.user.count({ where }),
+        ])
 
-        return NextResponse.json(users)
+        return NextResponse.json({
+            users,
+            total,
+        })
     } catch (error) {
         console.error('Admin get users error:', error)
         return NextResponse.json(
