@@ -18,7 +18,7 @@ Whispr is a comprehensive review platform that allows users to review and rate c
 
 ```
 whispr/
-├── frontend/              # Next.js application (frontend + API)
+├── app/                   # Next.js application (frontend + API)
 │   ├── prisma/            # Prisma schema
 │   ├── src/
 │   │   ├── app/           # Next.js App Router
@@ -51,7 +51,7 @@ cd whispr
 
 2. Install dependencies:
 ```bash
-cd frontend
+cd app
 npm install
 ```
 
@@ -120,7 +120,7 @@ ALLOWED_EMAIL_DOMAINS="students.iiit.ac.in,research.iiit.ac.in,iiit.ac.in"
 Deploy to Vercel:
 
 ```bash
-cd frontend
+cd app
 vercel --prod
 ```
 
