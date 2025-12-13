@@ -141,19 +141,19 @@ CREATE OR REPLACE FUNCTION create_spring_2025_course(
 )
 RETURNS VOID AS $$
 DECLARE
-    course_id UUID;
+    v_course_id UUID;
     faculty_name VARCHAR(255);
-    professor_id UUID;
+    v_professor_id UUID;
     faculty_array TEXT[];
 BEGIN
     -- Check if course already exists (by code)
-    SELECT id INTO course_id FROM courses WHERE code = course_code;
+    SELECT id INTO v_course_id FROM courses WHERE code = course_code;
 
     -- If course doesn't exist, create it
-    IF course_id IS NULL THEN
-        course_id := uuid_generate_v4();
+    IF v_course_id IS NULL THEN
+        v_course_id := uuid_generate_v4();
         INSERT INTO courses (id, code, name, credits, description, review_count, average_rating)
-        VALUES (course_id, course_code, course_name, course_credits, 
+        VALUES (v_course_id, course_code, course_name, course_credits, 
                 'Spring 2025 course: ' || course_name, 0, 0.0);
     END IF;
     
@@ -170,12 +170,12 @@ BEGIN
         
         -- Skip if empty or contains TBD (if minimal data)
         IF faculty_name != '' AND faculty_name NOT LIKE '%TBD%' AND faculty_name != 'Guest Speakers' THEN
-            professor_id := get_or_create_professor(faculty_name);
+            v_professor_id := get_or_create_professor(faculty_name);
             
             -- Create course instructor relationship for Spring 2025
             -- Uses ON CONFLICT DO NOTHING to prevent duplicates if script is run twice
             INSERT INTO course_instructors (id, professor_id, course_id, semester, year, review_count, average_rating)
-            VALUES (uuid_generate_v4(), professor_id, course_id, 'SPRING', 2025, 0, 0.0)
+            VALUES (uuid_generate_v4(), v_professor_id, v_course_id, 'SPRING', 2025, 0, 0.0)
             ON CONFLICT (professor_id, course_id, semester, year) DO NOTHING;
         END IF;
     END LOOP;
