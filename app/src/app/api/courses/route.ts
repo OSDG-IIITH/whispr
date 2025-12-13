@@ -29,7 +29,11 @@ export async function GET(request: NextRequest) {
             orderBy: { code: 'asc' },
         })
 
-        return NextResponse.json(courses)
+        return NextResponse.json(courses, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+            },
+        })
     } catch (error) {
         console.error('Get courses error:', error)
         return NextResponse.json(

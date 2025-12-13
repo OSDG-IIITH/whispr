@@ -32,7 +32,11 @@ export async function GET(request: NextRequest) {
             take: limit,
         })
 
-        return NextResponse.json(users)
+        return NextResponse.json(users, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+            },
+        })
     } catch (error) {
         console.error('Get leaderboard error:', error)
         return NextResponse.json(

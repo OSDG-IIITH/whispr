@@ -30,7 +30,11 @@ export async function GET(request: NextRequest) {
             orderBy: { name: 'asc' },
         })
 
-        return NextResponse.json(professors)
+        return NextResponse.json(professors, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+            },
+        })
     } catch (error) {
         console.error('Get professors error:', error)
         return NextResponse.json(
