@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         if (status) where.status = status
         if (reportType) where.report_type = reportType
 
-        const [reports, total] = await Promise.all([
+        const [reports] = await Promise.all([
             prisma.report.findMany({
                 where,
                 skip,
