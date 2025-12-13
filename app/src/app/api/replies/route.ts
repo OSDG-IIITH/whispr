@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { getCurrentUser, requireUnmuffledUser } from '@/lib/auth'
 import { Prisma } from '@prisma/client'
+import { createMentionNotifications } from '@/lib/notifications'
 
 export async function GET(request: NextRequest) {
     try {
@@ -166,6 +167,14 @@ export async function POST(request: NextRequest) {
         await prisma.user.update({
             where: { id: currentUser.id },
             data: { echoes: { increment: 5 } },
+        })
+
+        // Create @mention notifications for reply
+        await createMentionNotifications({
+            content: content.trim(),
+            actorUsername: currentUser.username,
+            sourceId: reply.id,
+            sourceType: 'reply',
         })
 
         return NextResponse.json(reply, { status: 201 })

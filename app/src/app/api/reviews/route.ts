@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { getCurrentUser, requireUnmuffledUser } from '@/lib/auth'
 import { Prisma } from '@prisma/client'
+import { createMentionNotifications, createFollowerActivityNotifications } from '@/lib/notifications'
 
 type SortBy = 'date_new' | 'date_old' | 'votes_high' | 'votes_low' | 'rating_high' | 'rating_low' | 'controversial'
 
@@ -252,6 +253,25 @@ export async function POST(request: NextRequest) {
         await prisma.user.update({
             where: { id: currentUser.id },
             data: { echoes: { increment: 10 } },
+        })
+
+        // Create @mention notifications
+        if (content) {
+            await createMentionNotifications({
+                content,
+                actorUsername: currentUser.username,
+                sourceId: review.id,
+                sourceType: 'review',
+            })
+        }
+
+        // Notify followers about new review
+        await createFollowerActivityNotifications({
+            actorId: currentUser.id,
+            actorUsername: currentUser.username,
+            sourceId: review.id,
+            sourceType: 'review',
+            contentPreview: content,
         })
 
         const formattedReview = {
