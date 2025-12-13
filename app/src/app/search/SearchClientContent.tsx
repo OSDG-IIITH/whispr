@@ -744,11 +744,11 @@ export function SearchClientContent() {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 flex-shrink-0">
+                          {/* <div className="flex items-center gap-2 flex-shrink-0">
                             <span className="text-xs text-secondary bg-muted px-2 py-1 rounded whitespace-nowrap">
                               {result.relevanceScore.toFixed(0)}% match
                             </span>
-                          </div>
+                          </div> */}
                         </div>
 
                         <p className="text-secondary text-sm sm:text-base mb-3 line-clamp-2 sm:line-clamp-3">
