@@ -26,10 +26,10 @@ async function fetcher<T>(url: string): Promise<T> {
 
 // SWR configuration for different data types
 const STALE_TIMES = {
-    courses: 5 * 60 * 1000,      // 5 minutes - rarely changes
-    professors: 5 * 60 * 1000,   // 5 minutes - rarely changes
-    leaderboard: 60 * 1000,      // 1 minute - changes more often
-    user: 30 * 1000,             // 30 seconds - user data
+    courses: 60 * 1000,      // 1 minute
+    professors: 60 * 1000,   // 1 minute
+    leaderboard: 60 * 1000,  // 1 minute
+    user: 60 * 1000,         // 1 minute
 } as const;
 
 /**
