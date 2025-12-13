@@ -1,0 +1,339 @@
+// Prisma Schema for Whispr
+// IMPORTANT: This schema is designed to be 100% compatible with the original PostgreSQL schema
+// to allow data migration from the existing database.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =============================================================================
+// USERS TABLE - Exact match with original schema
+// =============================================================================
+model User {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  username         String    @unique @db.VarChar(50)
+  hashed_password  String    @db.VarChar(255)
+  bio              String?   @db.Text
+  student_since_year Int?
+  echoes           Int       @default(0)
+  is_muffled       Boolean   @default(true)
+  is_admin         Boolean   @default(false)
+  is_banned        Boolean   @default(false)
+  ban_reason       String?   @db.Text
+  banned_until     DateTime? @db.Timestamptz(6)
+  banned_by        String?   @db.VarChar
+  banned_at        DateTime? @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  reviews                   Review[]
+  replies                   Reply[]
+  votes                     Vote[]
+  followers                 UserFollower[]        @relation("followed")
+  following                 UserFollower[]        @relation("follower")
+  notifications_received    Notification[]        @relation("notification_recipient")
+  notifications_triggered   Notification[]        @relation("notification_actor")
+  reports_made              Report[]              @relation("reporter")
+  reports_received          Report[]              @relation("reported_user")
+  verification_sessions     VerificationSession[]
+
+  @@index([username], name: "idx_users_username")
+  @@index([is_admin], name: "idx_users_admin")
+  @@index([is_banned], name: "idx_users_banned")
+  @@map("users")
+}
+
+// =============================================================================
+// PROFESSORS TABLE
+// =============================================================================
+model Professor {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name           String   @db.VarChar(255)
+  lab            String?  @db.VarChar(255)
+  review_summary String?  @db.Text
+  review_count   Int      @default(0)
+  average_rating Decimal  @default(0.0) @db.Decimal(3, 2)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  social_media       ProfessorSocialMedia[]
+  course_instructors CourseInstructor[]
+  reviews            Review[]
+
+  @@index([name], name: "idx_professors_name")
+  @@map("professors")
+}
+
+// =============================================================================
+// PROFESSOR SOCIAL MEDIA TABLE
+// =============================================================================
+model ProfessorSocialMedia {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  professor_id String   @db.Uuid
+  platform     String   @db.VarChar(50)
+  url          String   @db.Text
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  professor Professor @relation(fields: [professor_id], references: [id], onDelete: Cascade)
+
+  @@index([professor_id], name: "idx_professor_social_media_professor_id")
+  @@map("professor_social_media")
+}
+
+// =============================================================================
+// COURSES TABLE
+// =============================================================================
+model Course {
+  id                   String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  code                 String   @unique @db.VarChar(20)
+  name                 String   @db.VarChar(255)
+  credits              Int?
+  description          String?  @db.Text
+  official_document_url String? @db.Text
+  review_summary       String?  @db.Text
+  review_count         Int      @default(0)
+  average_rating       Decimal  @default(0.0) @db.Decimal(3, 2)
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  course_instructors CourseInstructor[]
+  reviews            Review[]
+
+  @@index([code], name: "idx_courses_code")
+  @@index([name], name: "idx_courses_name")
+  @@map("courses")
+}
+
+// =============================================================================
+// COURSE INSTRUCTORS TABLE (linking professors to courses)
+// =============================================================================
+model CourseInstructor {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  professor_id   String   @db.Uuid
+  course_id      String   @db.Uuid
+  semester       String?  @db.VarChar(20) // CHECK (semester IN ('SPRING', 'MONSOON'))
+  year           Int?
+  summary        String?  @db.Text
+  review_count   Int      @default(0)
+  average_rating Decimal  @default(0.0) @db.Decimal(3, 2)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  professor                  Professor                @relation(fields: [professor_id], references: [id], onDelete: Cascade)
+  course                     Course                   @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  course_instructor_reviews  CourseInstructorReview[]
+
+  @@unique([professor_id, course_id, semester, year])
+  @@index([professor_id], name: "idx_course_instructors_professor_id")
+  @@index([course_id], name: "idx_course_instructors_course_id")
+  @@map("course_instructors")
+}
+
+// =============================================================================
+// REVIEWS TABLE
+// =============================================================================
+model Review {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id      String   @db.Uuid
+  course_id    String?  @db.Uuid
+  professor_id String?  @db.Uuid
+  rating       Int      // CHECK (rating >= 1 AND rating <= 5)
+  content      String?  @db.Text
+  upvotes      Int      @default(0)
+  downvotes    Int      @default(0)
+  is_edited    Boolean  @default(false)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  user                       User                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  course                     Course?                  @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  professor                  Professor?               @relation(fields: [professor_id], references: [id], onDelete: Cascade)
+  replies                    Reply[]
+  votes                      Vote[]
+  reports                    Report[]
+  course_instructor_reviews  CourseInstructorReview[]
+
+  @@index([user_id], name: "idx_reviews_user_id")
+  @@index([course_id], name: "idx_reviews_course_id")
+  @@index([professor_id], name: "idx_reviews_professor_id")
+  @@map("reviews")
+}
+
+// =============================================================================
+// COURSE INSTRUCTOR REVIEWS TABLE (linking reviews to course instructors)
+// =============================================================================
+model CourseInstructorReview {
+  id                   String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  review_id            String @db.Uuid
+  course_instructor_id String @db.Uuid
+
+  review            Review           @relation(fields: [review_id], references: [id], onDelete: Cascade)
+  course_instructor CourseInstructor @relation(fields: [course_instructor_id], references: [id], onDelete: Cascade)
+
+  @@unique([review_id, course_instructor_id])
+  @@index([review_id], name: "idx_course_instructor_reviews_review_id")
+  @@index([course_instructor_id], name: "idx_course_instructor_reviews_course_instructor_id")
+  @@map("course_instructor_reviews")
+}
+
+// =============================================================================
+// REPLIES TABLE
+// =============================================================================
+model Reply {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  review_id  String   @db.Uuid
+  user_id    String   @db.Uuid
+  content    String   @db.Text
+  upvotes    Int      @default(0)
+  downvotes  Int      @default(0)
+  is_edited  Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  review  Review   @relation(fields: [review_id], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  votes   Vote[]
+  reports Report[]
+
+  @@index([review_id], name: "idx_replies_review_id")
+  @@index([user_id], name: "idx_replies_user_id")
+  @@map("replies")
+}
+
+// =============================================================================
+// VOTES TABLE
+// =============================================================================
+model Vote {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  review_id  String?  @db.Uuid
+  reply_id   String?  @db.Uuid
+  vote_type  Boolean  // TRUE for upvote, FALSE for downvote
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  user   User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  review Review? @relation(fields: [review_id], references: [id], onDelete: Cascade)
+  reply  Reply?  @relation(fields: [reply_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, review_id])
+  @@unique([user_id, reply_id])
+  @@index([user_id], name: "idx_votes_user_id")
+  @@index([review_id], name: "idx_votes_review_id")
+  @@index([reply_id], name: "idx_votes_reply_id")
+  @@map("votes")
+}
+
+// =============================================================================
+// USER FOLLOWERS TABLE
+// =============================================================================
+model UserFollower {
+  follower_id String   @db.Uuid
+  followed_id String   @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  follower User @relation("follower", fields: [follower_id], references: [id], onDelete: Cascade)
+  followed User @relation("followed", fields: [followed_id], references: [id], onDelete: Cascade)
+
+  @@id([follower_id, followed_id])
+  @@index([follower_id], name: "idx_user_followers_follower_id")
+  @@index([followed_id], name: "idx_user_followers_followed_id")
+  @@map("user_followers")
+}
+
+// =============================================================================
+// USED EMAILS TABLE (for tracking verified emails)
+// =============================================================================
+model UsedEmail {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email       String    @unique @db.VarChar(255)
+  verified_at DateTime? @db.Timestamptz(6)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([email], name: "idx_used_emails_email")
+  @@map("used_emails")
+}
+
+// =============================================================================
+// VERIFICATION SESSIONS TABLE (for CAS verification flow)
+// =============================================================================
+model VerificationSession {
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id       String   @db.Uuid
+  session_token String   @unique @db.VarChar(255)
+  expires_at    DateTime @db.Timestamptz(6)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([session_token], name: "idx_verification_sessions_session_token")
+  @@index([user_id], name: "idx_verification_sessions_user_id")
+  @@map("verification_sessions")
+}
+
+// =============================================================================
+// NOTIFICATIONS TABLE
+// =============================================================================
+model Notification {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  username       String   @db.VarChar(50)
+  type           String   @db.VarChar(50) // CHECK (type IN ('MENTION', 'VOTE', 'REPLY', 'RANK_CHANGE', 'SYSTEM', 'FOLLOW', 'FOLLOWER_REVIEW', 'FOLLOWER_REPLY'))
+  content        String   @db.Text
+  source_id      String?  @db.Uuid
+  source_type    String?  @db.VarChar(50)
+  actor_username String?  @db.VarChar(50)
+  is_read        Boolean  @default(false)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  recipient User  @relation("notification_recipient", fields: [username], references: [username], onDelete: Cascade)
+  actor     User? @relation("notification_actor", fields: [actor_username], references: [username], onDelete: Cascade)
+
+  @@index([username], name: "idx_notifications_username")
+  @@index([actor_username], name: "idx_notifications_actor_username")
+  @@index([source_id, source_type], name: "idx_notifications_source")
+  @@index([type], name: "idx_notifications_type")
+  @@map("notifications")
+}
+
+// =============================================================================
+// REPORTS TABLE
+// =============================================================================
+model Report {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  reporter_id      String    @db.Uuid
+  review_id        String?   @db.Uuid
+  reply_id         String?   @db.Uuid
+  reported_user_id String?   @db.Uuid
+  report_type      String    @db.VarChar(50) // CHECK (report_type IN ('spam', 'harassment', 'inappropriate', 'misinformation', 'other'))
+  reason           String    @db.Text
+  status           String    @default("pending") @db.VarChar(50) // CHECK (status IN ('pending', 'under_review', 'resolved', 'dismissed'))
+  admin_notes      String?   @db.Text
+  reviewed_by      String?   @db.VarChar
+  reviewed_at      DateTime? @db.Timestamptz(6)
+  admin_action     String?   @db.VarChar
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  reporter      User    @relation("reporter", fields: [reporter_id], references: [id], onDelete: Cascade)
+  reported_user User?   @relation("reported_user", fields: [reported_user_id], references: [id], onDelete: Cascade)
+  review        Review? @relation(fields: [review_id], references: [id], onDelete: Cascade)
+  reply         Reply?  @relation(fields: [reply_id], references: [id], onDelete: Cascade)
+
+  @@index([status], name: "idx_reports_status")
+  @@map("reports")
+}

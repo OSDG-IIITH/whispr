@@ -3,20 +3,9 @@ const nextConfig = {
   images: {
     domains: ["localhost", "api.dicebear.com", "osdg.iiit.ac.in"],
   },
-  // Enable standalone output for production Docker builds
+  // Enable standalone output for production Docker builds (optional)
   // output: "standalone",
-  // Set base path for deployment under /whispr
-  basePath: "/whispr",
-  // Ensure trailing slash is handled properly
-  trailingSlash: true,
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "/whispr/api/:path*",
-      },
-    ];
-  },
 };
 
 export default nextConfig;
+
