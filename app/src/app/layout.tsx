@@ -47,72 +47,72 @@ export const metadata: Metadata = {
   icons: {
     apple: [
       {
-        url: "/whispr/apple-icon-57x57.png",
+        url: "/apple-icon-57x57.png",
         sizes: "57x57",
         type: "image/png",
       },
       {
-        url: "/whispr/apple-icon-60x60.png",
+        url: "/apple-icon-60x60.png",
         sizes: "60x60",
         type: "image/png",
       },
       {
-        url: "/whispr/apple-icon-72x72.png",
+        url: "/apple-icon-72x72.png",
         sizes: "72x72",
         type: "image/png",
       },
       {
-        url: "/whispr/apple-icon-76x76.png",
+        url: "/apple-icon-76x76.png",
         sizes: "76x76",
         type: "image/png",
       },
       {
-        url: "/whispr/apple-icon-114x114.png",
+        url: "/apple-icon-114x114.png",
         sizes: "114x114",
         type: "image/png",
       },
       {
-        url: "/whispr/apple-icon-120x120.png",
+        url: "/apple-icon-120x120.png",
         sizes: "120x120",
         type: "image/png",
       },
       {
-        url: "/whispr/apple-icon-144x144.png",
+        url: "/apple-icon-144x144.png",
         sizes: "144x144",
         type: "image/png",
       },
       {
-        url: "/whispr/apple-icon-152x152.png",
+        url: "/apple-icon-152x152.png",
         sizes: "152x152",
         type: "image/png",
       },
       {
-        url: "/whispr/apple-icon-180x180.png",
+        url: "/apple-icon-180x180.png",
         sizes: "180x180",
         type: "image/png",
       },
     ],
     icon: [
-      { url: "/whispr/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/whispr/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/whispr/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
       {
-        url: "/whispr/android-icon-192x192.png",
+        url: "/android-icon-192x192.png",
         sizes: "192x192",
         type: "image/png",
       },
     ],
   },
-  manifest: "/whispr/manifest.json",
+  manifest: "/manifest.json",
   openGraph: {
     title: "Whispr - Anonymous Course & Professor Reviews",
     description:
       "Privacy-first anonymous review platform for IIITH students. Share honest feedback about courses and professors with institutional authentication.",
-    url: "https://osdg.iiit.ac.in/whispr",
+    url: "https://whispr.vercel.app",
     siteName: "Whispr",
     images: [
       {
-        url: "https://osdg.iiit.ac.in/whispr/logo.png",
+        url: "https://whispr.vercel.app/logo.png",
         width: 1200,
         height: 630,
         alt: "Whispr - Anonymous Review Platform for IIITH",
@@ -126,16 +126,16 @@ export const metadata: Metadata = {
     title: "Whispr - Anonymous Course & Professor Reviews",
     description:
       "Privacy-first anonymous review platform for IIITH students. Share honest feedback with institutional authentication.",
-    images: ["https://osdg.iiit.ac.in/whispr/logo.png"],
+    images: ["https://whispr.vercel.app/logo.png"],
   },
   alternates: {
-    canonical: "https://osdg.iiit.ac.in/whispr",
+    canonical: "https://whispr.vercel.app",
   },
   category: "education",
   classification: "Educational Platform",
   other: {
     "msapplication-TileColor": "#000000",
-    "msapplication-TileImage": "/whispr/ms-icon-144x144.png",
+    "msapplication-TileImage": "/ms-icon-144x144.png",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
     "mobile-web-app-capable": "yes",

@@ -67,7 +67,7 @@ export default function LandingPage() {
               className="mb-2"
             >
               <Image
-                src="/whispr/logo.png"
+                src="/logo.png"
                 alt="Whispr Logo"
                 width={120}
                 height={120}
