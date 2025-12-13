@@ -1,12 +1,15 @@
 /**
  * POST /api/verify/initiate/
- * Initiate CAS verification flow.
+ * Initiate verification flow.
+ * 
+ * NOTE: This is a stub implementation. The actual verification method
+ * (email verification, OAuth, etc.) should be implemented here.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
-import { getCASLoginUrl, generateSessionToken, getSessionExpirationMinutes } from '@/lib/cas'
+import { getVerificationUrl, generateSessionToken, getSessionExpirationMinutes } from '@/lib/cas'
 
 export async function POST(request: NextRequest) {
     try {
@@ -45,13 +48,15 @@ export async function POST(request: NextRequest) {
             },
         })
 
-        // Generate CAS login URL
-        const casUrl = getCASLoginUrl(sessionToken)
+        // Generate verification URL (stub for now)
+        const verificationUrl = getVerificationUrl(sessionToken)
 
         return NextResponse.json({
-            cas_url: casUrl,
+            verification_url: verificationUrl,
             session_token: sessionToken,
             expires_in_minutes: expiresInMinutes,
+            // NOTE: This is a stub - in production, this would redirect to actual verification provider
+            message: 'Verification initiated. This is a stub implementation for development.',
         })
     } catch (error) {
         console.error('Initiate verification error:', error)

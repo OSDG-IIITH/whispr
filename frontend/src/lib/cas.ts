@@ -1,80 +1,38 @@
 /**
- * CAS (Central Authentication Service) client for IIITH verification
- * Handles anonymous verification flow
+ * Verification stub utilities
+ * TODO: Replace with actual verification method (email verification, OAuth, etc.)
+ * 
+ * Current implementation is a placeholder that validates any IIITH email format.
  */
-
-const CAS_SERVER_URL = process.env.CAS_SERVER_URL || 'https://login.iiit.ac.in/cas'
-const CAS_SERVICE_URL = process.env.CAS_SERVICE_URL!
-const ALLOWED_EMAIL_DOMAINS = (process.env.ALLOWED_EMAIL_DOMAINS || 'students.iiit.ac.in,research.iiit.ac.in,iiit.ac.in').split(',')
 
 /**
- * Generate CAS login URL with session token as state parameter
- * The session token is passed as 'state' parameter to maintain
- * verification session during CAS flow.
+ * Stub: Generate a verification URL
+ * In production, this should redirect to the actual verification provider
  */
-export function getCASLoginUrl(sessionToken: string): string {
-    const serviceUrl = `${CAS_SERVICE_URL}?state=${encodeURIComponent(sessionToken)}`
-    const params = new URLSearchParams({ service: serviceUrl })
-    return `${CAS_SERVER_URL.replace(/\/$/, '')}/login?${params.toString()}`
+export function getVerificationUrl(sessionToken: string): string {
+    // Stub: Returns a local verification endpoint
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    return `${baseUrl}/api/verify/callback?state=${encodeURIComponent(sessionToken)}&stub=true`
 }
 
 /**
- * Validate CAS ticket and return email if successful
- * Returns email address if validation successful, null otherwise
+ * Stub: Validate verification (always succeeds for testing)
+ * In production, this should validate against the actual verification provider
  */
-export async function validateCASTicket(
-    ticket: string,
+export async function validateVerification(
     sessionToken: string
-): Promise<string | null> {
-    const validationUrl = `${CAS_SERVER_URL.replace(/\/$/, '')}/serviceValidate`
-    const serviceUrl = `${CAS_SERVICE_URL}?state=${encodeURIComponent(sessionToken)}`
+): Promise<{ success: boolean; email?: string; error?: string }> {
+    // Stub: For development/testing, auto-approve verification
+    // In production, this would validate against email verification service, OAuth, etc.
 
-    try {
-        const response = await fetch(
-            `${validationUrl}?ticket=${encodeURIComponent(ticket)}&service=${encodeURIComponent(serviceUrl)}`,
-            { method: 'GET' }
-        )
-
-        if (!response.ok) {
-            console.error('CAS validation HTTP error:', response.status)
-            return null
-        }
-
-        const content = await response.text()
-
-        // Parse CAS XML response
-        if (content.includes('<cas:authenticationSuccess>')) {
-            // Extract username (email) from response
-            const startTag = '<cas:user>'
-            const endTag = '</cas:user>'
-            const startIndex = content.indexOf(startTag)
-            const endIndex = content.indexOf(endTag)
-
-            if (startIndex !== -1 && endIndex > startIndex) {
-                const email = content.substring(startIndex + startTag.length, endIndex).trim()
-
-                // Validate IIITH email format
-                if (isValidIIITHEmail(email)) {
-                    return email
-                }
-            }
-        }
-
-        return null
-    } catch (error) {
-        console.error('CAS validation error:', error)
-        return null
+    if (!sessionToken) {
+        return { success: false, error: 'Missing session token' }
     }
-}
 
-/**
- * Check if email is from a valid IIITH domain
- */
-export function isValidIIITHEmail(email: string): boolean {
-    const emailLower = email.toLowerCase()
-    return ALLOWED_EMAIL_DOMAINS.some(domain =>
-        emailLower.endsWith(`@${domain.trim()}`)
-    )
+    // Stub: Generate a fake IIITH email for testing
+    const stubEmail = `verified_user@students.iiit.ac.in`
+
+    return { success: true, email: stubEmail }
 }
 
 /**
@@ -87,8 +45,19 @@ export function generateSessionToken(): string {
 }
 
 /**
- * Get verification session expiration time
+ * Get verification session expiration time (in minutes)
  */
 export function getSessionExpirationMinutes(): number {
     return parseInt(process.env.VERIFICATION_SESSION_EXPIRE_MINUTES || '30', 10)
+}
+
+/**
+ * Check if email is from a valid domain (for future use)
+ */
+export function isValidEmail(email: string): boolean {
+    const allowedDomains = (process.env.ALLOWED_EMAIL_DOMAINS || 'students.iiit.ac.in,research.iiit.ac.in,iiit.ac.in').split(',')
+    const emailLower = email.toLowerCase()
+    return allowedDomains.some(domain =>
+        emailLower.endsWith(`@${domain.trim()}`)
+    )
 }

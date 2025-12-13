@@ -1,19 +1,22 @@
 /**
  * GET /api/verify/callback/
- * CAS callback handler - validates ticket and unmuffles user.
+ * Verification callback handler.
+ * 
+ * NOTE: This is a stub implementation that auto-approves verification.
+ * In production, this should validate against the actual verification provider.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
-import { validateCASTicket } from '@/lib/cas'
+import { validateVerification } from '@/lib/cas'
 
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
-        const ticket = searchParams.get('ticket')
         const state = searchParams.get('state') // session_token
+        const isStub = searchParams.get('stub') === 'true'
 
-        if (!ticket || !state) {
+        if (!state) {
             return NextResponse.redirect(new URL('/verify?error=missing_params', request.url))
         }
 
@@ -35,31 +38,35 @@ export async function GET(request: NextRequest) {
             return NextResponse.redirect(new URL('/verify?error=session_expired', request.url))
         }
 
-        // Validate CAS ticket
-        const email = await validateCASTicket(ticket, state)
+        // Validate verification (stub implementation)
+        const result = await validateVerification(state)
 
-        if (!email) {
-            return NextResponse.redirect(new URL('/verify?error=cas_validation_failed', request.url))
+        if (!result.success || !result.email) {
+            return NextResponse.redirect(new URL(`/verify?error=${result.error || 'validation_failed'}`, request.url))
         }
 
-        // Check if email is already used
+        // Check if email is already used (for future when real email verification is implemented)
         const existingEmail = await prisma.usedEmail.findUnique({
-            where: { email },
+            where: { email: result.email },
         })
 
-        if (existingEmail && existingEmail.verified_at) {
+        // For stub implementation, skip the email uniqueness check
+        // In production, you would want to enforce this
+        if (!isStub && existingEmail && existingEmail.verified_at) {
             await prisma.verificationSession.delete({
                 where: { id: session.id },
             })
             return NextResponse.redirect(new URL('/verify?error=email_already_used', request.url))
         }
 
-        // Mark email as used
-        await prisma.usedEmail.upsert({
-            where: { email },
-            update: { verified_at: new Date() },
-            create: { email, verified_at: new Date() },
-        })
+        // Mark email as used (for real verification, use actual email)
+        if (!isStub) {
+            await prisma.usedEmail.upsert({
+                where: { email: result.email },
+                update: { verified_at: new Date() },
+                create: { email: result.email, verified_at: new Date() },
+            })
+        }
 
         // Unmute the user
         await prisma.user.update({
@@ -79,7 +86,7 @@ export async function GET(request: NextRequest) {
         // Redirect to success page
         return NextResponse.redirect(new URL('/verify?success=true', request.url))
     } catch (error) {
-        console.error('CAS callback error:', error)
+        console.error('Verification callback error:', error)
         return NextResponse.redirect(new URL('/verify?error=internal_error', request.url))
     }
 }
