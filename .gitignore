@@ -3,12 +3,6 @@
 .env.*
 !.env.example
 
-# PostgreSQL data
-postgres_data/
-
-# Database backups
-backups/
-
 # IDE
 .idea/
 .vscode/
@@ -16,16 +10,20 @@ backups/
 *.swo
 .DS_Store
 
-# Docker
-.docker/
+# Node
+node_modules/
 
-# Virtual Environment
-venv/
-.venv/
+# Next.js
+.next/
+out/
 
-# Compiled TypeScript
+# Prisma
 *.tsbuildinfo
 next-env.d.ts
 
-# GitHub files
-.github/
+# Logs
+*.log
+npm-debug.log*
+
+# Vercel
+.vercel
