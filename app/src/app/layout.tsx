@@ -108,11 +108,11 @@ export const metadata: Metadata = {
     title: "Whispr - Anonymous Course & Professor Reviews",
     description:
       "Privacy-first anonymous review platform for IIITH students. Share honest feedback about courses and professors with institutional authentication.",
-    url: "https://whispr.vercel.app",
+    url: "https://whispr-iiith.vercel.app",
     siteName: "Whispr",
     images: [
       {
-        url: "https://whispr.vercel.app/logo.png",
+        url: "https://whispr-iiith.vercel.app/logo.png",
         width: 1200,
         height: 630,
         alt: "Whispr - Anonymous Review Platform for IIITH",
@@ -126,10 +126,10 @@ export const metadata: Metadata = {
     title: "Whispr - Anonymous Course & Professor Reviews",
     description:
       "Privacy-first anonymous review platform for IIITH students. Share honest feedback with institutional authentication.",
-    images: ["https://whispr.vercel.app/logo.png"],
+    images: ["https://whispr-iiith.vercel.app/logo.png"],
   },
   alternates: {
-    canonical: "https://whispr.vercel.app",
+    canonical: "https://whispr-iiith.vercel.app",
   },
   category: "education",
   classification: "Educational Platform",
