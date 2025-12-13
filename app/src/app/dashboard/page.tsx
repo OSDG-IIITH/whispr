@@ -15,22 +15,15 @@ import { getRankWithProgress } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { Feed } from "@/components/dashboard/Feed";
-import { feedAPI, User } from "@/lib/api";
+import { useStats } from "@/hooks/useData";
+import { User } from "@/lib/api";
 import Loader from "@/components/common/Loader";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [showVerificationBanner, setShowVerificationBanner] = useState(false);
-  const [stats, setStats] = useState({
-    review_count: 0,
-    reply_count: 0,
-    vote_count: 0,
-    followers_count: 0,
-    following_count: 0,
-    echoes: 0,
-  });
-  const [statsLoading, setStatsLoading] = useState(true);
+  const { stats, isLoading: statsLoading } = useStats();
 
   useEffect(() => {
     if (user) {
@@ -38,22 +31,8 @@ export default function DashboardPage() {
       setShowVerificationBanner(
         (user as User).is_muffled && !(user as User).is_banned
       );
-
-      // Fetch user stats
-      fetchStats();
     }
   }, [user]);
-
-  const fetchStats = async () => {
-    try {
-      const userStats = await feedAPI.getStats();
-      setStats(userStats);
-    } catch (error) {
-      console.error("Failed to fetch stats:", error);
-    } finally {
-      setStatsLoading(false);
-    }
-  };
 
   if (loading) {
     return (

@@ -1,37 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Users, Star, GraduationCap } from "lucide-react";
 import Link from "next/link";
-import { professorAPI, Professor } from "@/lib/api";
+import { useProfessors } from "@/hooks/useData";
+import { Professor } from "@/types/backend-models";
 import Loader from "@/components/common/Loader";
 
 export default function ProfessorsPage() {
-  const [professors, setProfessors] = useState<Professor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { professors, isLoading: loading, isError, mutate } = useProfessors(0, 1000);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLab, setSelectedLab] = useState("ALL");
   const [sortBy, setSortBy] = useState("rating");
-
-  useEffect(() => {
-    fetchProfessors();
-  }, []);
-
-  const fetchProfessors = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const professorsData = await professorAPI.getProfessors(0, 1000); // Get all professors
-      setProfessors(professorsData);
-    } catch (err) {
-      console.error("Error fetching professors:", err);
-      setError("Failed to load professors. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Get unique labs for filtering
   const labs = ["ALL", ...Array.from(new Set(professors.map(prof => prof.lab).filter(Boolean)))];
@@ -95,14 +76,14 @@ export default function ProfessorsPage() {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <GraduationCap className="w-16 h-16 text-secondary mx-auto mb-4" />
           <h3 className="text-xl font-semibold mb-2">Error Loading Professors</h3>
-          <p className="text-secondary mb-4">{error}</p>
-          <button onClick={fetchProfessors} className="btn btn-primary w-24 h-8">
+          <p className="text-secondary mb-4">Failed to load professors. Please try again later.</p>
+          <button onClick={() => mutate()} className="btn btn-primary w-24 h-8">
             Try Again
           </button>
         </div>

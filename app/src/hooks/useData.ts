@@ -141,3 +141,41 @@ export function useProfessor(id: string) {
         mutate,
     };
 }
+
+interface FeedStats {
+    review_count: number;
+    reply_count: number;
+    vote_count: number;
+    followers_count: number;
+    following_count: number;
+    echoes: number;
+}
+
+/**
+ * Hook for fetching user feed stats with caching
+ */
+export function useStats() {
+    const { data, error, isLoading, mutate } = useSWR<FeedStats>(
+        `${API_BASE}/feed/stats`,
+        fetcher,
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: STALE_TIMES.user,
+        }
+    );
+
+    return {
+        stats: data || {
+            review_count: 0,
+            reply_count: 0,
+            vote_count: 0,
+            followers_count: 0,
+            following_count: 0,
+            echoes: 0,
+        },
+        isLoading,
+        isError: !!error,
+        error,
+        mutate,
+    };
+}
