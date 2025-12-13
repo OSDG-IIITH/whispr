@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "professor reviews",
     "anonymous reviews",
     "institutional authentication",
-    "CAS authentication",
+    "Alt Auth",
     "International Institute of Information Technology Hyderabad",
     "student reviews",
     "academic reviews",
@@ -46,21 +46,61 @@ export const metadata: Metadata = {
   },
   icons: {
     apple: [
-      { url: "/whispr/apple-icon-57x57.png", sizes: "57x57", type: "image/png" },
-      { url: "/whispr/apple-icon-60x60.png", sizes: "60x60", type: "image/png" },
-      { url: "/whispr/apple-icon-72x72.png", sizes: "72x72", type: "image/png" },
-      { url: "/whispr/apple-icon-76x76.png", sizes: "76x76", type: "image/png" },
-      { url: "/whispr/apple-icon-114x114.png", sizes: "114x114", type: "image/png" },
-      { url: "/whispr/apple-icon-120x120.png", sizes: "120x120", type: "image/png" },
-      { url: "/whispr/apple-icon-144x144.png", sizes: "144x144", type: "image/png" },
-      { url: "/whispr/apple-icon-152x152.png", sizes: "152x152", type: "image/png" },
-      { url: "/whispr/apple-icon-180x180.png", sizes: "180x180", type: "image/png" },
+      {
+        url: "/whispr/apple-icon-57x57.png",
+        sizes: "57x57",
+        type: "image/png",
+      },
+      {
+        url: "/whispr/apple-icon-60x60.png",
+        sizes: "60x60",
+        type: "image/png",
+      },
+      {
+        url: "/whispr/apple-icon-72x72.png",
+        sizes: "72x72",
+        type: "image/png",
+      },
+      {
+        url: "/whispr/apple-icon-76x76.png",
+        sizes: "76x76",
+        type: "image/png",
+      },
+      {
+        url: "/whispr/apple-icon-114x114.png",
+        sizes: "114x114",
+        type: "image/png",
+      },
+      {
+        url: "/whispr/apple-icon-120x120.png",
+        sizes: "120x120",
+        type: "image/png",
+      },
+      {
+        url: "/whispr/apple-icon-144x144.png",
+        sizes: "144x144",
+        type: "image/png",
+      },
+      {
+        url: "/whispr/apple-icon-152x152.png",
+        sizes: "152x152",
+        type: "image/png",
+      },
+      {
+        url: "/whispr/apple-icon-180x180.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
     ],
     icon: [
       { url: "/whispr/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/whispr/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/whispr/favicon-96x96.png", sizes: "96x96", type: "image/png" },
-      { url: "/whispr/android-icon-192x192.png", sizes: "192x192", type: "image/png" },
+      {
+        url: "/whispr/android-icon-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
     ],
   },
   manifest: "/whispr/manifest.json",
@@ -103,7 +143,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: '#000000',
+  themeColor: "#000000",
   viewport: {
     width: "device-width",
     initialScale: 1,

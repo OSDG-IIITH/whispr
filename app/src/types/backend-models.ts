@@ -224,7 +224,7 @@ export interface VerificationStatus {
 }
 
 export interface VerificationResponse {
-  cas_url: string;
-  session_token: string;
+  alt_url: string;
+  nonce: string;
   expires_in_minutes: number;
 }

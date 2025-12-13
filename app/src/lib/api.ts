@@ -263,11 +263,13 @@ export const reviewAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
-      if (value !== undefined) {
-        searchParams.append(key, value.toString());
+    Object.entries(params).forEach(
+      ([key, value]: [string, string | number | boolean | undefined]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
       }
-    });
+    );
 
     return apiCall<Review[]>(`/reviews/?${searchParams.toString()}`);
   },
@@ -321,11 +323,13 @@ export const voteAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
-      if (value !== undefined) {
-        searchParams.append(key, value.toString());
+    Object.entries(params).forEach(
+      ([key, value]: [string, string | number | boolean | undefined]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
       }
-    });
+    );
 
     return apiCall<Vote[]>(`/votes/?${searchParams.toString()}`);
   },
@@ -339,11 +343,13 @@ export const voteAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
-      if (value !== undefined) {
-        searchParams.append(key, value.toString());
+    Object.entries(params).forEach(
+      ([key, value]: [string, string | number | boolean | undefined]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
       }
-    });
+    );
 
     return apiCall<Vote[]>(`/votes/me/?${searchParams.toString()}`);
   },
@@ -377,11 +383,13 @@ export const replyAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
-      if (value !== undefined) {
-        searchParams.append(key, value.toString());
+    Object.entries(params).forEach(
+      ([key, value]: [string, string | number | boolean | undefined]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
       }
-    });
+    );
 
     return apiCall<Reply[]>(`/replies/?${searchParams.toString()}`);
   },
@@ -427,11 +435,13 @@ export const reportAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
-      if (value !== undefined) {
-        searchParams.append(key, value.toString());
+    Object.entries(params).forEach(
+      ([key, value]: [string, string | number | boolean | undefined]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
       }
-    });
+    );
 
     return apiCall<Report[]>(`/reports/?${searchParams.toString()}`);
   },
@@ -445,11 +455,11 @@ export const reportAPI = {
     reply_id?: string;
     reported_user_id?: string;
     report_type:
-    | "spam"
-    | "harassment"
-    | "inappropriate"
-    | "misinformation"
-    | "other";
+      | "spam"
+      | "harassment"
+      | "inappropriate"
+      | "misinformation"
+      | "other";
     reason: string;
   }) => {
     return apiCall<Report>("/reports/", {
@@ -502,15 +512,20 @@ export const searchAPI = {
     limit?: number;
   }) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | string[] | undefined]) => {
-      if (value !== undefined) {
-        if (Array.isArray(value)) {
-          value.forEach((v) => searchParams.append(key, v));
-        } else {
-          searchParams.append(key, value.toString());
+    Object.entries(params).forEach(
+      ([key, value]: [
+        string,
+        string | number | boolean | string[] | undefined
+      ]) => {
+        if (value !== undefined) {
+          if (Array.isArray(value)) {
+            value.forEach((v) => searchParams.append(key, v));
+          } else {
+            searchParams.append(key, value.toString());
+          }
         }
       }
-    });
+    );
 
     return apiCall<SearchApiResponse>(`/search/?${searchParams.toString()}`);
   },
@@ -564,12 +579,12 @@ export const professorAPI = {
   },
 };
 
-// Verification API
+// Verification API (Alt Auth)
 export const verificationAPI = {
   initiate: async () => {
     return apiCall<{
-      cas_url: string;
-      session_token: string;
+      alt_url: string;
+      nonce: string;
       expires_in_minutes: number;
     }>("/verify/initiate/", {
       method: "POST",
@@ -593,13 +608,17 @@ export const notificationAPI = {
     } = {}
   ) => {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]: [string, string | number | boolean | undefined]) => {
-      if (value !== undefined) {
-        searchParams.append(key, value.toString());
+    Object.entries(params).forEach(
+      ([key, value]: [string, string | number | boolean | undefined]) => {
+        if (value !== undefined) {
+          searchParams.append(key, value.toString());
+        }
       }
-    });
+    );
 
-    return apiCall<Notification[]>(`/notifications/?${searchParams.toString()}`);
+    return apiCall<Notification[]>(
+      `/notifications/?${searchParams.toString()}`
+    );
   },
 
   getNotification: async (notificationId: string) => {

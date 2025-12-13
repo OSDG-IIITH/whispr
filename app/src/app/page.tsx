@@ -122,7 +122,10 @@ export default function LandingPage() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </button>
             </Link>
-            <Link href="https://drive.google.com/file/d/1jx2PZRUOXIz2mnGk-_YV8yOljhl0O7j8/view?usp=drivesdk" target="_blank">
+            <Link
+              href="https://drive.google.com/file/d/1jx2PZRUOXIz2mnGk-_YV8yOljhl0O7j8/view?usp=drivesdk"
+              target="_blank"
+            >
               <button className="btn  px-8 py-3 text-lg border border-primary text-primary hover:bg-primary/10">
                 Design Doc <Download className="ml-2 h-5 w-5" />
               </button>
@@ -205,7 +208,7 @@ export default function LandingPage() {
                 step: "2",
                 title: "Verify Your Student Status",
                 description:
-                  "Use CAS login once to prove you're from IIITH - we never store your email",
+                  "Use Alt Auth once to prove you're from IIITH - we never store your email",
                 icon: <Shield className="w-6 h-6" />,
               },
               {

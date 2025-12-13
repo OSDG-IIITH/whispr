@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import { verificationAPI } from "@/lib/api";
 import Loader from "@/components/common/Loader";
+import { useAuth } from "@/providers/AuthProvider";
+
+// Cookie name for Alt Auth state - must match backend
+const ALT_AUTH_STATE_COOKIE = "whispr_alt_auth_state";
 
 interface VerifyClientContentProps {
   refreshAuth: () => Promise<void>;
@@ -20,6 +24,7 @@ interface VerifyClientContentProps {
 export function VerifyClientContent({ refreshAuth }: VerifyClientContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [status, setStatus] = useState<
     "loading" | "success" | "error" | "initiate"
   >("loading");
@@ -53,8 +58,17 @@ export function VerifyClientContent({ refreshAuth }: VerifyClientContentProps) {
         case "session_expired":
           setMessage("Verification session expired. Please try again.");
           break;
-        case "cas_validation_failed":
-          setMessage("CAS validation failed. Please try again.");
+        case "missing_state":
+          setMessage("Authentication state missing. Please try again.");
+          break;
+        case "invalid_state":
+          setMessage("Invalid authentication state. Please try again.");
+          break;
+        case "alt_auth_failed":
+          setMessage("Alt Auth verification failed. Please try again.");
+          break;
+        case "invalid_email_domain":
+          setMessage("Only IIITH email addresses are allowed.");
           break;
         case "email_already_used":
           setMessage(
@@ -80,17 +94,29 @@ export function VerifyClientContent({ refreshAuth }: VerifyClientContentProps) {
         setStatus("loading");
         setMessage("Initiating verification...");
 
-        // Call backend API to initiate verification
+        // Call backend API to get nonce and Alt Auth URL
         const response = await verificationAPI.initiate();
-        const { cas_url } = response;
+        const { alt_url, nonce } = response;
 
-        // Redirect to CAS login
-        router.push(cas_url);
+        // Store nonce and user ID in cookie for callback verification
+        // SameSite=Lax allows cross-site redirects while protecting against CSRF
+        const stateData = JSON.stringify({
+          nonce,
+          userId: user?.id,
+        });
+        document.cookie = `${ALT_AUTH_STATE_COOKIE}=${encodeURIComponent(
+          stateData
+        )}; path=/; SameSite=Lax`;
+
+        // Redirect to Alt Auth login
+        window.location.href = alt_url;
       } catch (error: unknown) {
         console.error("Verification initiation failed:", error);
         setStatus("error");
         setMessage(
-          error instanceof Error ? error.message : "Failed to initiate verification. Please try again."
+          error instanceof Error
+            ? error.message
+            : "Failed to initiate verification. Please try again."
         );
       }
     }
@@ -176,8 +202,8 @@ export function VerifyClientContent({ refreshAuth }: VerifyClientContentProps) {
                       <li className="flex items-start gap-3">
                         <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                         <span>
-                          We use CAS only to verify you&apos;re a real IIITH
-                          student
+                          We use Alt Auth only to verify you&apos;re a real
+                          IIITH student
                         </span>
                       </li>
                       <li className="flex items-start gap-3">
@@ -241,7 +267,7 @@ export function VerifyClientContent({ refreshAuth }: VerifyClientContentProps) {
                     </div>
                     <h3 className="font-semibold mb-2">Ready to Verify</h3>
                     <p className="text-sm text-secondary">
-                      You&apos;ll be redirected to IIITH CAS login.
+                      You&apos;ll be redirected to IIITH Alt Auth login.
                       <br />
                       After verification, you&apos;ll return here automatically.
                     </p>
@@ -258,7 +284,7 @@ export function VerifyClientContent({ refreshAuth }: VerifyClientContentProps) {
                       onClick={handleInitiateVerification}
                       className="btn btn-primary px-6 py-3"
                     >
-                      Proceed to CAS
+                      Proceed to Alt Auth
                     </button>
                   </div>
                 </motion.div>

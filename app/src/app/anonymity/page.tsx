@@ -114,7 +114,7 @@ export default function AnonymityPage() {
             </div>
           </motion.section>
 
-          {/* CAS Verification */}
+          {/* Alt Auth Verification */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -123,18 +123,18 @@ export default function AnonymityPage() {
           >
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
               <UserCheck className="w-6 h-6 text-primary" />
-              Student Verification via CAS
+              Student Verification via Alt Auth
             </h2>
             <div className="space-y-4">
               <p className="text-secondary">
                 To unlock full platform features, you can verify your student
-                status using the College Authentication Service (CAS) - but your
+                status using Alt Auth (IIITH Authentication) - but your
                 anonymity remains completely protected.
               </p>
 
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                 <h3 className="font-semibold text-blue-400 mb-2">
-                  How CAS Verification Works
+                  How Alt Auth Verification Works
                 </h3>
                 <div className="space-y-3 text-sm text-secondary">
                   <div className="flex items-start gap-3">
@@ -142,8 +142,8 @@ export default function AnonymityPage() {
                       1
                     </span>
                     <p>
-                      You click &quot;Verify with CAS&quot; (optional, only when
-                      you want full access)
+                      You click &quot;Verify with Alt Auth&quot; (optional, only
+                      when you want full access)
                     </p>
                   </div>
                   <div className="flex items-start gap-3">
@@ -151,7 +151,7 @@ export default function AnonymityPage() {
                       2
                     </span>
                     <p>
-                      You&apos;re redirected to the official college
+                      You&apos;re redirected to the IIITH Alt Auth
                       authentication system
                     </p>
                   </div>
@@ -160,8 +160,8 @@ export default function AnonymityPage() {
                       3
                     </span>
                     <p>
-                      CAS confirms you&apos;re a valid student (using your
-                      college email)
+                      Alt Auth confirms you&apos;re a valid student (using your
+                      college email via OTP)
                     </p>
                   </div>
                   <div className="flex items-start gap-3">
