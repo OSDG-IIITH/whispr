@@ -26,53 +26,21 @@ export async function GET(request: NextRequest) {
 
         const [
             totalUsers,
-            verifiedUsers,
             bannedUsers,
-            totalReviews,
-            totalReplies,
-            totalCourses,
-            totalProfessors,
             pendingReports,
-            totalReports,
+            underReviewReports,
         ] = await Promise.all([
             prisma.user.count(),
-            prisma.user.count({ where: { is_muffled: false } }),
             prisma.user.count({ where: { is_banned: true } }),
-            prisma.review.count(),
-            prisma.reply.count(),
-            prisma.course.count(),
-            prisma.professor.count(),
             prisma.report.count({ where: { status: 'pending' } }),
-            prisma.report.count(),
-        ])
-
-        // Get recent activity (last 7 days)
-        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        const [recentUsers, recentReviews, recentReports] = await Promise.all([
-            prisma.user.count({ where: { created_at: { gte: sevenDaysAgo } } }),
-            prisma.review.count({ where: { created_at: { gte: sevenDaysAgo } } }),
-            prisma.report.count({ where: { created_at: { gte: sevenDaysAgo } } }),
+            prisma.report.count({ where: { status: 'under_review' } }),
         ])
 
         return NextResponse.json({
-            users: {
-                total: totalUsers,
-                verified: verifiedUsers,
-                banned: bannedUsers,
-                recent: recentUsers,
-            },
-            content: {
-                reviews: totalReviews,
-                replies: totalReplies,
-                courses: totalCourses,
-                professors: totalProfessors,
-                recent_reviews: recentReviews,
-            },
-            reports: {
-                total: totalReports,
-                pending: pendingReports,
-                recent: recentReports,
-            },
+            total_users: totalUsers,
+            banned_users: bannedUsers,
+            pending_reports: pendingReports,
+            under_review_reports: underReviewReports,
         })
     } catch (error) {
         console.error('Get admin stats error:', error)
