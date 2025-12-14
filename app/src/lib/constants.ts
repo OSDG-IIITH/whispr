@@ -44,15 +44,15 @@ export const RANKS = {
         name: "Reviewer",
         min: 50,
         icon: "📝",
-        color: "#3B82F6",
-        gradient: "from-blue-500 to-blue-600"
+        color: "#14B8A6",
+        gradient: "from-teal-500 to-green-500"
     },
     EXPERT: {
         name: "Expert",
         min: 150,
         icon: "🎯",
-        color: "#8B5CF6",
-        gradient: "from-purple-500 to-purple-600"
+        color: "#059669",
+        gradient: "from-emerald-500 to-teal-500"
     },
     LEGEND: {
         name: "Legend",

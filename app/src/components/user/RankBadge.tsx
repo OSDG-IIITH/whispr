@@ -49,9 +49,9 @@ export function RankBadge({
 
       {showProgress && rank.max !== Infinity && (
         <div className="flex items-center gap-2 text-xs text-secondary">
-          <div className="flex-1 bg-muted rounded-full h-1.5">
+          <div className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-primary to-green-600 h-1.5 rounded-full transition-all duration-500"
+              className={`bg-gradient-to-r ${rank.gradient} h-1.5 rounded-full transition-all duration-500`}
               style={{ width: `${progress}%` }}
             />
           </div>
