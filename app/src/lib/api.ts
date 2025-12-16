@@ -19,6 +19,9 @@ import {
   FrontendCourse,
   FrontendProfessor,
   FrontendCourseInstructor,
+  FeedParams,
+  FeedResponse,
+  FeedStats,
 } from "@/types/frontend-models";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
@@ -51,6 +54,9 @@ export type {
   FrontendCourse,
   FrontendProfessor,
   FrontendCourseInstructor,
+  FeedParams,
+  FeedResponse,
+  FeedStats,
 };
 
 // Helper function for API calls
@@ -455,11 +461,11 @@ export const reportAPI = {
     reply_id?: string;
     reported_user_id?: string;
     report_type:
-      | "spam"
-      | "harassment"
-      | "inappropriate"
-      | "misinformation"
-      | "other";
+    | "spam"
+    | "harassment"
+    | "inappropriate"
+    | "misinformation"
+    | "other";
     reason: string;
   }) => {
     return apiCall<Report>("/reports/", {
@@ -666,18 +672,18 @@ export const userSearchAPI = {
 
 // Feed API
 export const feedAPI = {
-  getFeed: async (skip = 0, limit = 20) => {
-    return apiCall<Review[]>(`/feed/?skip=${skip}&limit=${limit}`);
+  getFeed: async (params: FeedParams = {}) => {
+    const searchParams = new URLSearchParams();
+    if (params.skip !== undefined) searchParams.append('skip', params.skip.toString());
+    if (params.limit !== undefined) searchParams.append('limit', params.limit.toString());
+    if (params.phase) searchParams.append('phase', params.phase);
+    if (params.following_exhausted) searchParams.append('following_exhausted', 'true');
+    if (params.general_skip !== undefined) searchParams.append('general_skip', params.general_skip.toString());
+
+    return apiCall<FeedResponse>(`/feed/?${searchParams.toString()}`);
   },
 
   getStats: async () => {
-    return apiCall<{
-      review_count: number;
-      reply_count: number;
-      vote_count: number;
-      followers_count: number;
-      following_count: number;
-      echoes: number;
-    }>("/feed/stats/");
+    return apiCall<FeedStats>("/feed/stats/");
   },
 };

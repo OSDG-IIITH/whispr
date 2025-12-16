@@ -1,45 +1,54 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BookOpen } from "lucide-react";
 import { useCourses } from "@/hooks/useData";
 import { CourseCard } from "./CourseCard";
-import { SearchInput, SortSelector, EmptyState, ResultsCount, Select } from "@/components/ui";
+import { SearchInput, SortSelector, EmptyState, ResultsCount, Select, Pagination } from "@/components/ui";
 import Loader from "@/components/common/Loader";
 
+const PAGE_SIZE = 21; // 7 rows of 3 cards
+
 /**
- * Self-contained courses list component
- * All filter/search state lives here to prevent parent page re-renders
+ * Courses list with server-side filtering and numbered pagination
  */
 export function CoursesList() {
-  const { courses, isLoading, isError, mutate } = useCourses(0, 1000);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("ALL");
   const [selectedYear, setSelectedYear] = useState("ALL");
-  const [sortBy, setSortBy] = useState("rating");
+  const [sortBy, setSortBy] = useState("code");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter and sort logic - memoized
-  const filteredAndSortedCourses = useMemo(() => {
-    const filtered = courses.filter((course) => {
-      const matchesSearch =
-        course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.code.toLowerCase().includes(searchQuery.toLowerCase());
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-      const matchesSemester =
-        selectedSemester === "ALL" ||
-        (course.course_instructors &&
-          course.course_instructors.some((ci) => ci.semester === selectedSemester));
+  // Reset page on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedSemester, selectedYear]);
 
-      const matchesYear =
-        selectedYear === "ALL" ||
-        (course.course_instructors &&
-          course.course_instructors.some((ci) => String(ci.year) === selectedYear));
+  const { courses, total, isLoading, isError, mutate } = useCourses({
+    skip: (currentPage - 1) * PAGE_SIZE,
+    limit: PAGE_SIZE,
+    search: debouncedSearch,
+    semester: selectedSemester,
+    year: selectedYear,
+  });
 
-      return matchesSearch && matchesSemester && matchesYear;
-    });
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
-    return [...filtered].sort((a, b) => {
+  // Sort client-side
+  const sortedCourses = useMemo(() => {
+    if (!courses || courses.length === 0) return [];
+    return [...courses].sort((a, b) => {
       switch (sortBy) {
         case "rating":
           return parseFloat(b.average_rating) - parseFloat(a.average_rating);
@@ -47,22 +56,12 @@ export function CoursesList() {
           return b.review_count - a.review_count;
         case "name":
           return a.name.localeCompare(b.name);
+        case "code":
         default:
-          return 0;
+          return a.code.localeCompare(b.code);
       }
     });
-  }, [courses, searchQuery, selectedSemester, selectedYear, sortBy]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="text-center">
-          <Loader className="mx-auto mb-4" />
-          <p className="text-secondary">Loading courses...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [courses, sortBy]);
 
   if (isError) {
     return (
@@ -112,6 +111,7 @@ export function CoursesList() {
               onChange={setSelectedYear}
               options={[
                 { value: "ALL", label: "All Years" },
+                { value: "2025", label: "2025" },
                 { value: "2024", label: "2024" },
                 { value: "2023", label: "2023" },
                 { value: "2022", label: "2022" },
@@ -130,33 +130,52 @@ export function CoursesList() {
         className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0"
       >
         <SortSelector
-          options={["rating", "reviews", "name"]}
+          options={["code", "rating", "reviews", "name"]}
           selected={sortBy}
           onChange={setSortBy}
         />
-        <ResultsCount count={filteredAndSortedCourses.length} singular="course" />
+        <ResultsCount count={total} singular="course" />
       </motion.div>
 
-      {/* Courses Grid */}
-      {filteredAndSortedCourses.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAndSortedCourses.map((course, index) => (
-            <motion.div
-              key={course.id + searchQuery}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * Math.min(index, 10) }}
-            >
-              <CourseCard course={course} />
-            </motion.div>
-          ))}
+      {/* Loading state */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <Loader className="mx-auto mb-4" />
+            <p className="text-secondary">Loading courses...</p>
+          </div>
         </div>
-      ) : (
+      ) : sortedCourses.length === 0 ? (
         <EmptyState
           icon={<BookOpen className="w-16 h-16" />}
           title="No courses found"
           description="Try adjusting your search criteria or filters"
         />
+      ) : (
+        <>
+          {/* Courses Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedCourses.map((course, index) => (
+              <motion.div
+                key={course.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.03 * Math.min(index, 6) }}
+              >
+                <CourseCard course={course} />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </>
       )}
     </div>
   );

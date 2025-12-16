@@ -37,7 +37,7 @@ const getNotificationIcon = (type: string) => {
 
 export function NotificationPanel({ onClose }: NotificationPanelProps) {
   const router = useRouter();
-  const { notifications, loading, unreadCount, markAsRead, markAllAsRead } =
+  const { notifications, loading, unreadCount, markAsRead, markAllAsRead, dismissNotification } =
     useNotifications();
 
   return (
@@ -187,9 +187,21 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                       {formatDate(notification.created_at)}
                     </p>
                   </div>
-                  {!notification.read && (
-                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-2"></div>
-                  )}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {!notification.read && (
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dismissNotification(notification.id);
+                      }}
+                      className="p-1 text-secondary hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                      title="Dismiss notification"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))}

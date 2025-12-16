@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { RefreshCw, Sparkles } from "lucide-react";
-import { feedAPI, reviewAPI, voteAPI, userAPI } from "@/lib/api";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { RefreshCw, Sparkles, Users } from "lucide-react";
+import { feedAPI, voteAPI, userAPI, FeedResponse } from "@/lib/api";
 import {
   FrontendReview,
   convertReviewToFrontendReview,
@@ -11,6 +11,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { FeedReviewCard } from "@/components/reviews/FeedReviewCard";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { reviewAPI } from "@/lib/api";
 import Loader from "@/components/common/Loader";
 
 export function Feed() {
@@ -18,11 +19,18 @@ export function Feed() {
   const { showError, showSuccess } = useToast();
   const [reviews, setReviews] = useState<FrontendReview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [skip, setSkip] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  
+  // Two-phase feed state
+  const [feedPhase, setFeedPhase] = useState<'following' | 'general'>('following');
+  const [followingSkip, setFollowingSkip] = useState(0);
+  const [generalSkip, setGeneralSkip] = useState(0);
+  const [followingExhausted, setFollowingExhausted] = useState(false);
+  const fetchingRef = useRef(false);
 
   const funLoadingMessages = [
     "Brewing fresh reviews...",
@@ -45,34 +53,54 @@ export function Feed() {
     if (!user?.id) return;
 
     try {
-      const following = await userAPI.getFollowing(user.id, 0, 1000); // Get up to 1000 following
+      const following = await userAPI.getFollowing(user.id, 0, 1000);
       setFollowingIds(new Set(following.map((u) => u.id)));
     } catch (error) {
       console.error("Failed to fetch following list:", error);
     }
   };
 
-  const fetchFeed = async (skipCount = 0, isRefresh = false) => {
+  const fetchFeed = useCallback(async (isRefresh = false) => {
+    // Prevent concurrent fetches
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+
     try {
       setError(null);
       if (isRefresh) {
         setRefreshing(true);
         setLoadingMessage(
-          funLoadingMessages[
-            Math.floor(Math.random() * funLoadingMessages.length)
-          ]
+          funLoadingMessages[Math.floor(Math.random() * funLoadingMessages.length)]
         );
+      } else if (!loading) {
+        setLoadingMore(true);
       }
 
-      const backendReviews = await feedAPI.getFeed(skipCount, 20);
+      // Build request params based on current state
+      const params: Parameters<typeof feedAPI.getFeed>[0] = {
+        limit: 10,
+        phase: isRefresh ? 'following' : feedPhase,
+        following_exhausted: isRefresh ? false : followingExhausted,
+      };
 
-      // Get all user votes for these reviews in one call if logged in
+      if (isRefresh) {
+        params.skip = 0;
+        params.general_skip = 0;
+      } else if (feedPhase === 'following') {
+        params.skip = followingSkip;
+      } else {
+        params.general_skip = generalSkip;
+      }
+
+      const response: FeedResponse = await feedAPI.getFeed(params);
+      const backendReviews = response.reviews;
+
+      // Get all user votes for these reviews
       const userVotes = new Map();
       if (user?.id && backendReviews.length > 0) {
         try {
           const reviewIds = backendReviews.map((r) => r.id);
           const votes = await voteAPI.getVotes({ user_id: user.id });
-          // Create a map of review_id -> vote for quick lookup
           votes.forEach((vote) => {
             if (vote.review_id && reviewIds.includes(vote.review_id)) {
               userVotes.set(vote.review_id, vote);
@@ -86,14 +114,13 @@ export function Feed() {
       // Convert backend reviews to frontend format
       const frontendReviews = backendReviews.map((review) => {
         const userVote = userVotes.get(review.id) || null;
-
         const convertedReview = convertReviewToFrontendReview(
           review,
           userVote,
           user?.id
         );
 
-        // Set follow status based on followingIds
+        // Mark if from following and set follow status
         if (convertedReview.user?.id) {
           const isFollowing = followingIds.has(convertedReview.user.id);
           convertedReview.user = {
@@ -102,14 +129,21 @@ export function Feed() {
           };
         }
 
+        // Add marker for reviews from people you follow
+        (convertedReview as FrontendReview & { isFromFollowing?: boolean }).isFromFollowing = 
+          followingIds.has(review.user_id);
+
         return convertedReview;
       });
 
+      // Update state based on response
       if (isRefresh) {
         setReviews(frontendReviews);
-        setSkip(20);
+        setFeedPhase(response.phase);
+        setFollowingExhausted(response.following_exhausted);
+        setFollowingSkip(response.phase === 'following' ? 20 : 0);
+        setGeneralSkip(response.general_skip);
       } else {
-        // Merge and ensure uniqueness by review id
         setReviews((prev) => {
           const merged = [...prev, ...frontendReviews];
           const uniqueMap = new Map();
@@ -118,46 +152,58 @@ export function Feed() {
           }
           return Array.from(uniqueMap.values());
         });
-        setSkip((prev) => prev + 20);
+
+        // Update phase and skip counters
+        setFeedPhase(response.phase);
+        setFollowingExhausted(response.following_exhausted);
+        
+        if (response.phase === 'following') {
+          setFollowingSkip((prev) => prev + frontendReviews.length);
+        } else {
+          setGeneralSkip(response.general_skip);
+        }
       }
 
-      setHasMore(frontendReviews.length === 20);
+      setHasMore(response.has_more);
     } catch (error) {
       console.error("Failed to fetch feed:", error);
       setError("Failed to load feed. Please try again.");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
       setRefreshing(false);
+      fetchingRef.current = false;
     }
-  };
+  }, [feedPhase, followingSkip, generalSkip, followingExhausted, user?.id, followingIds, loading, funLoadingMessages]);
 
   const handleRefresh = async () => {
-    await fetchFeed(0, true);
+    // Reset all state
+    setFeedPhase('following');
+    setFollowingSkip(0);
+    setGeneralSkip(0);
+    setFollowingExhausted(false);
+    setHasMore(true);
+    await fetchFeed(true);
   };
 
-  const handleLoadMore = async () => {
-    if (!loading && hasMore) {
-      setLoading(true);
-      await fetchFeed(skip, false);
+  const handleLoadMore = useCallback(async () => {
+    if (!loadingMore && hasMore && !loading) {
+      await fetchFeed(false);
     }
-  };
+  }, [loadingMore, hasMore, loading, fetchFeed]);
 
   const handleVote = async (reviewId: string, type: "up" | "down") => {
     if (!user) return;
 
     try {
-      // Find the review and current vote
       const review = reviews.find((r) => r.id === reviewId);
       if (!review) return;
 
       const currentVote = review.user_vote;
       const voteType = type === "up";
 
-      // If user already voted the same way, remove the vote
       if (currentVote && currentVote.vote_type === voteType) {
         await voteAPI.deleteVote(currentVote.id);
-
-        // Update local state
         setReviews((prev) =>
           prev.map((r) => {
             if (r.id === reviewId) {
@@ -173,13 +219,11 @@ export function Feed() {
           })
         );
       } else {
-        // Create new vote or update existing
         const newVote = await voteAPI.createVote({
           review_id: reviewId,
           vote_type: voteType,
         });
 
-        // Update local state
         setReviews((prev) =>
           prev.map((r) => {
             if (r.id === reviewId) {
@@ -212,16 +256,9 @@ export function Feed() {
   };
 
   const handleFollowChange = async (userId: string, isFollowing: boolean) => {
-    console.log("handleFollowChange called", {
-      userId,
-      isFollowing,
-      user: user?.id,
-    });
-
     if (!user) return;
 
     try {
-      // Update followingIds set
       setFollowingIds((prev) => {
         const newSet = new Set(prev);
         if (isFollowing) {
@@ -229,11 +266,9 @@ export function Feed() {
         } else {
           newSet.delete(userId);
         }
-        console.log("Updated followingIds", newSet);
         return newSet;
       });
 
-      // Update local state optimistically
       setReviews((prev) =>
         prev.map((review) => {
           if (review.user?.id === userId) {
@@ -251,9 +286,8 @@ export function Feed() {
         })
       );
     } catch (error) {
-      console.error("Failed to update follow status in feed:", error);
-
-      // Revert optimistic updates on error
+      console.error("Failed to update follow status:", error);
+      // Revert on error
       setFollowingIds((prev) => {
         const newSet = new Set(prev);
         if (isFollowing) {
@@ -263,28 +297,10 @@ export function Feed() {
         }
         return newSet;
       });
-
-      setReviews((prev) =>
-        prev.map((review) => {
-          if (review.user?.id === userId) {
-            return {
-              ...review,
-              user: review.user
-                ? {
-                    ...review.user,
-                    isFollowing: !isFollowing,
-                  }
-                : review.user,
-            };
-          }
-          return review;
-        })
-      );
     }
   };
 
   const handleReply = async (reviewId: string) => {
-    // For now, just log - this could open a reply modal
     console.log("Reply to review:", reviewId);
   };
 
@@ -299,8 +315,6 @@ export function Feed() {
 
     try {
       await reviewAPI.updateReview(reviewId, data);
-
-      // Update the review in the local state
       setReviews((prev) =>
         prev.map((review) =>
           review.id === reviewId
@@ -313,7 +327,6 @@ export function Feed() {
             : review
         )
       );
-
       showSuccess("Review updated successfully!");
     } catch (error: unknown) {
       console.error("Failed to edit review:", error);
@@ -333,10 +346,7 @@ export function Feed() {
 
     try {
       await reviewAPI.deleteReview(reviewId);
-
-      // Remove the review from the local state
       setReviews((prev) => prev.filter((review) => review.id !== reviewId));
-
       showSuccess("Review deleted successfully!");
     } catch (error: unknown) {
       console.error("Failed to delete review:", error);
@@ -356,7 +366,6 @@ export function Feed() {
     console.log(
       `Reporting review ${reviewId} with type ${reportType} and reason: ${reason}`
     );
-    // TODO: Implement report functionality
   };
 
   useEffect(() => {
@@ -364,7 +373,7 @@ export function Feed() {
       if (user?.id) {
         await fetchFollowingList();
       }
-      await fetchFeed();
+      await fetchFeed(true);
     };
 
     initializeFeed();
@@ -373,8 +382,13 @@ export function Feed() {
   const { loadMoreRef } = useInfiniteScroll({
     hasMore,
     onLoadMore: handleLoadMore,
-    loading,
+    loading: loading || loadingMore,
   });
+
+  // Count reviews from following for section indicator
+  const followingReviewsCount = reviews.filter(
+    (r) => (r as FrontendReview & { isFromFollowing?: boolean }).isFromFollowing
+  ).length;
 
   if (loading && reviews.length === 0) {
     return (
@@ -433,25 +447,53 @@ export function Feed() {
         </div>
       ) : (
         <div className="space-y-4">
-          {reviews.map((review) => (
-            <FeedReviewCard
-              key={review.id}
-              review={review}
-              onVote={handleVote}
-              onReply={handleReply}
-              onFollowChange={handleFollowChange}
-              currentUserId={user?.id}
-              showVoteButtons={!!user && !user.is_muffled && !user.is_banned}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onReport={handleReport}
-            />
-          ))}
+          {/* Following section indicator */}
+          {followingReviewsCount > 0 && feedPhase === 'following' && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg text-sm text-primary">
+              <Users className="w-4 h-4" />
+              <span>From people you follow</span>
+            </div>
+          )}
+
+          {reviews.map((review, index) => {
+            // Show transition indicator when switching to general reviews
+            const isFromFollowing = (review as FrontendReview & { isFromFollowing?: boolean }).isFromFollowing;
+            const prevReview = index > 0 ? reviews[index - 1] : null;
+            const prevIsFromFollowing = prevReview 
+              ? (prevReview as FrontendReview & { isFromFollowing?: boolean }).isFromFollowing 
+              : true;
+            const showTransition = !isFromFollowing && prevIsFromFollowing && followingReviewsCount > 0;
+
+            return (
+              <div key={review.id}>
+                {showTransition && (
+                  <div className="flex items-center gap-3 py-4 my-2">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-sm text-secondary px-3">
+                      Discover more reviews
+                    </span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                )}
+                <FeedReviewCard
+                  review={review}
+                  onVote={handleVote}
+                  onReply={handleReply}
+                  onFollowChange={handleFollowChange}
+                  currentUserId={user?.id}
+                  showVoteButtons={!!user && !user.is_muffled && !user.is_banned}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onReport={handleReport}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* Load More Indicator */}
-      {loading && reviews.length > 0 && (
+      {loadingMore && (
         <div className="flex flex-col items-center justify-center py-8 space-y-4">
           <Loader className="w-6 h-6" />
           <p className="text-primary font-medium animate-pulse">

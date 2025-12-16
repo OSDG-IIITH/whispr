@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, Pencil, Trash2, GitMerge, AlertTriangle } from "lucide-react";
+import { GraduationCap, Pencil, Trash2, GitMerge, AlertTriangle, Plus } from "lucide-react";
 import { adminAPI, AdminProfessor } from "@/lib/admin-api";
 import { useToast } from "@/providers/ToastProvider";
 import { SearchInput, Select, EmptyState, Modal, Pagination } from "@/components/ui";
@@ -72,6 +72,78 @@ function ProfessorEditModal({ professor, onClose, onSave, labs }: ProfessorEditM
             className="px-4 py-2 bg-primary text-black rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+interface ProfessorAddModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAdd: (data: { name: string; lab: string }) => Promise<void>;
+  labs: string[];
+}
+
+function ProfessorAddModal({ isOpen, onClose, onAdd, labs }: ProfessorAddModalProps) {
+  const [name, setName] = useState("");
+  const [lab, setLab] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleAdd = async () => {
+    setSaving(true);
+    try {
+      await onAdd({ name, lab });
+      setName("");
+      setLab("");
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClose = () => {
+    setName("");
+    setLab("");
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleClose} title="Add Professor">
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-2">Name *</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Professor's full name"
+            className="w-full py-3 px-4 bg-input border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">Lab (optional)</label>
+          <Select
+            value={lab}
+            onChange={setLab}
+            placeholder="Select a lab or leave empty"
+            options={[
+              { value: "", label: "No lab" },
+              ...labs.map((l) => ({ value: l, label: l })),
+            ]}
+          />
+        </div>
+        <div className="flex justify-end gap-3 pt-4">
+          <button onClick={handleClose} className="px-4 py-2 text-secondary hover:text-white transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={handleAdd}
+            disabled={saving || !name.trim()}
+            className="px-4 py-2 bg-primary text-black rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50"
+          >
+            {saving ? "Adding..." : "Add Professor"}
           </button>
         </div>
       </div>
@@ -232,6 +304,7 @@ export function ProfessorsManagement() {
   const [editingProfessor, setEditingProfessor] = useState<AdminProfessor | null>(null);
   const [mergingProfessor, setMergingProfessor] = useState<AdminProfessor | null>(null);
   const [deletingProfessor, setDeletingProfessor] = useState<AdminProfessor | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const fetchProfessors = useCallback(async () => {
     // Only show refreshing indicator after initial load
@@ -306,6 +379,18 @@ export function ProfessorsManagement() {
     }
   };
 
+  const handleAdd = async (data: { name: string; lab: string }) => {
+    try {
+      await adminAPI.createProfessor(data);
+      showSuccess("Professor added successfully");
+      fetchProfessors();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to add professor";
+      showError(message);
+      throw error;
+    }
+  };
+
   if (initialLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -322,6 +407,16 @@ export function ProfessorsManagement() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-card border border-primary/20 rounded-xl p-4 sm:p-6"
       >
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Professors</h2>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-lg font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Professor
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
             <SearchInput
@@ -441,6 +536,14 @@ export function ProfessorsManagement() {
         professors={professors}
         onClose={() => setMergingProfessor(null)}
         onMerge={handleMerge}
+      />
+
+      {/* Add Professor Modal */}
+      <ProfessorAddModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAdd}
+        labs={labs}
       />
 
       {/* Delete Confirmation Modal */}

@@ -1,6 +1,8 @@
 import { AdminPageWrapper } from "@/components/layout/AdminPageWrapper";
 import { AdminsManagement } from "@/components/admin";
 
+export const dynamic = 'force-dynamic';
+
 export default function AdminsPage() {
   return (
     <AdminPageWrapper

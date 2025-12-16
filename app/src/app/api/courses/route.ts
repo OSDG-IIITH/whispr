@@ -14,22 +14,58 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const skip = parseInt(searchParams.get('skip') || '0', 10)
-        const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 100)
+        const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100)
+        const search = searchParams.get('search') || ''
+        const semester = searchParams.get('semester') || ''
+        const year = searchParams.get('year') || ''
 
-        const courses = await prisma.course.findMany({
-            skip,
-            take: limit,
-            include: {
-                course_instructors: {
-                    include: {
-                        professor: true,
+        // Build where clause
+        interface WhereClause {
+            OR?: { code?: { contains: string; mode: 'insensitive' }; name?: { contains: string; mode: 'insensitive' } }[];
+            course_instructors?: { some: { semester?: string; year?: number } };
+        }
+
+        const where: WhereClause = {}
+
+        // Search filter
+        if (search) {
+            where.OR = [
+                { code: { contains: search, mode: 'insensitive' } },
+                { name: { contains: search, mode: 'insensitive' } },
+            ]
+        }
+
+        // Semester/year filter via course_instructors
+        if (semester || year) {
+            const ciFilter: { semester?: string; year?: number } = {}
+            if (semester) ciFilter.semester = semester
+            if (year) ciFilter.year = parseInt(year, 10)
+            where.course_instructors = { some: ciFilter }
+        }
+
+        const [courses, total] = await Promise.all([
+            prisma.course.findMany({
+                where,
+                skip,
+                take: limit,
+                include: {
+                    course_instructors: {
+                        include: {
+                            professor: true,
+                        },
                     },
                 },
-            },
-            orderBy: { code: 'asc' },
-        })
+                orderBy: { code: 'asc' },
+            }),
+            prisma.course.count({ where }),
+        ])
 
-        return NextResponse.json(courses, {
+        return NextResponse.json({
+            courses,
+            total,
+            skip,
+            limit,
+        }, {
             headers: {
                 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
             },

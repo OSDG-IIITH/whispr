@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Ban, Shield, AlertTriangle } from "lucide-react";
+import { Ban, Shield, AlertTriangle, Key } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
 import { adminAPI } from "@/lib/admin-api";
 import { AdminUser } from "@/types/admin-models";
-import { SearchInput, FilterToggle, DataTable } from "@/components/ui";
+import { SearchInput, FilterToggle, DataTable, Modal } from "@/components/ui";
 import { BanUserModal } from "./BanUserModal";
 
 /**
@@ -24,6 +24,9 @@ export function UsersManagement() {
   const [filterAdmin, setFilterAdmin] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [showBanModal, setShowBanModal] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -97,6 +100,22 @@ export function UsersManagement() {
     } catch (error) {
       console.error("Failed to toggle admin status:", error);
       showError("Failed to update admin status.");
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser) return;
+    setResettingPassword(true);
+    try {
+      const result = await adminAPI.resetUserPassword(resetPasswordUser.id);
+      setTempPassword(result.temporary_password);
+      showSuccess(`Password reset for ${resetPasswordUser.username}.`);
+    } catch (error) {
+      console.error("Failed to reset password:", error);
+      showError("Failed to reset password.");
+      setResetPasswordUser(null);
+    } finally {
+      setResettingPassword(false);
     }
   };
 
@@ -175,22 +194,32 @@ export function UsersManagement() {
           )}
 
           {userData.id !== user?.id && (
-            <button
-              onClick={() =>
-                handleToggleAdmin(
-                  userData.id,
-                  userData.username,
+            <>
+              <button
+                onClick={() =>
+                  handleToggleAdmin(
+                    userData.id,
+                    userData.username,
+                    userData.is_admin
+                  )
+                }
+                className={`px-3 py-1 border rounded hover:opacity-80 transition-colors text-sm ${
                   userData.is_admin
-                )
-              }
-              className={`px-3 py-1 border rounded hover:opacity-80 transition-colors text-sm ${
-                userData.is_admin
-                  ? "bg-yellow-500/20 text-yellow-300 border-yellow-500"
-                  : "bg-blue-500/20 text-blue-300 border-blue-500"
-              }`}
-            >
-              {userData.is_admin ? "Remove Admin" : "Make Admin"}
-            </button>
+                    ? "bg-yellow-500/20 text-yellow-300 border-yellow-500"
+                    : "bg-blue-500/20 text-blue-300 border-blue-500"
+                }`}
+              >
+                {userData.is_admin ? "Remove Admin" : "Make Admin"}
+              </button>
+              <button
+                onClick={() => setResetPasswordUser(userData)}
+                className="px-3 py-1 bg-purple-500/20 text-purple-300 border border-purple-500 rounded hover:bg-purple-500/30 transition-colors text-sm flex items-center gap-1"
+                title="Reset Password"
+              >
+                <Key className="w-3 h-3" />
+                Reset
+              </button>
+            </>
           )}
         </div>
       ),
@@ -260,6 +289,72 @@ export function UsersManagement() {
         user={selectedUser}
         onBan={handleBanUser}
       />
+
+      {/* Reset Password Confirmation Modal */}
+      <Modal
+        isOpen={!!resetPasswordUser && !tempPassword}
+        onClose={() => setResetPasswordUser(null)}
+        title="Reset Password"
+      >
+        <div className="space-y-4">
+          <p>
+            Are you sure you want to reset the password for{" "}
+            <span className="font-medium">{resetPasswordUser?.username}</span>?
+          </p>
+          <p className="text-sm text-secondary">
+            A new temporary password will be generated. Make sure to share it securely with the user.
+          </p>
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              onClick={() => setResetPasswordUser(null)}
+              className="px-4 py-2 text-secondary hover:text-white transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleResetPassword}
+              disabled={resettingPassword}
+              className="px-4 py-2 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 disabled:opacity-50"
+            >
+              {resettingPassword ? "Resetting..." : "Reset Password"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Temporary Password Display Modal */}
+      <Modal
+        isOpen={!!tempPassword}
+        onClose={() => {
+          setTempPassword(null);
+          setResetPasswordUser(null);
+        }}
+        title="Password Reset Successful"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-secondary">
+            The temporary password for <span className="font-medium">{resetPasswordUser?.username}</span> is:
+          </p>
+          <div className="bg-input border border-primary/30 rounded-lg p-4 font-mono text-lg text-center select-all">
+            {tempPassword}
+          </div>
+          <p className="text-sm text-yellow-400 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            This password will only be shown once. Make sure to copy it now.
+          </p>
+          <div className="flex justify-end pt-4">
+            <button
+              onClick={() => {
+                setTempPassword(null);
+                setResetPasswordUser(null);
+              }}
+              className="px-4 py-2 bg-primary text-black rounded-lg font-medium hover:bg-primary/90"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

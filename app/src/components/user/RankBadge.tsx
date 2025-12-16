@@ -38,7 +38,7 @@ export function RankBadge({
       <div
         className={`
           inline-flex items-center gap-1.5 rounded-full font-medium
-          bg-gradient-to-r ${rank.gradient}
+          bg-gradient-to-r
           text-primary shadow-sm
           ${sizeClasses[size]}
         `}

@@ -6,14 +6,19 @@ import {
   AdminActionRequest,
   AdminProfessor,
   ProfessorUpdateRequest,
+  CreateProfessorRequest,
   ProfessorMergeRequest,
   ProfessorMergePreview,
   AdminCourse,
   CourseUpdateRequest,
+  CreateCourseRequest,
+  CourseMergeRequest,
+  CourseMergePreview,
   AuditLogEntry,
   AuditLogFilters,
   AuditActionType,
   AuditEntityType,
+  AdminEmail,
 } from "@/types/admin-models";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
@@ -67,7 +72,6 @@ async function apiCall<T>(
   }
 }
 
-// Re-export types for convenience
 export type {
   AdminUser,
   AdminStats,
@@ -76,14 +80,19 @@ export type {
   AdminActionRequest,
   AdminProfessor,
   ProfessorUpdateRequest,
+  CreateProfessorRequest,
   ProfessorMergeRequest,
   ProfessorMergePreview,
   AdminCourse,
   CourseUpdateRequest,
+  CreateCourseRequest,
+  CourseMergeRequest,
+  CourseMergePreview,
   AuditLogEntry,
   AuditLogFilters,
   AuditActionType,
   AuditEntityType,
+  AdminEmail,
 };
 
 export const adminAPI = {
@@ -144,6 +153,12 @@ export const adminAPI = {
     });
   },
 
+  resetUserPassword: async (userId: string): Promise<{ message: string; temporary_password: string }> => {
+    return apiCall<{ message: string; temporary_password: string }>(`/admin/users/${userId}/reset-password`, {
+      method: "POST",
+    });
+  },
+
   // =============================================================================
   // Report Management
   // =============================================================================
@@ -200,6 +215,15 @@ export const adminAPI = {
 
   getProfessor: async (id: string): Promise<AdminProfessor & { courses: unknown[]; reviews_count: number }> => {
     return apiCall(`/admin/professors/${id}`);
+  },
+
+  createProfessor: async (
+    data: CreateProfessorRequest
+  ): Promise<AdminProfessor> => {
+    return apiCall<AdminProfessor>(`/admin/professors`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   },
 
   updateProfessor: async (
@@ -283,6 +307,34 @@ export const adminAPI = {
     });
   },
 
+  createCourse: async (data: CreateCourseRequest): Promise<AdminCourse> => {
+    return apiCall<AdminCourse>(`/admin/courses`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  mergeCourses: async (
+    data: CourseMergeRequest
+  ): Promise<{ success: boolean; message: string; canonical_id: string }> => {
+    return apiCall<{ success: boolean; message: string; canonical_id: string }>(
+      `/admin/courses/merge`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
+  },
+
+  previewCourseMerge: async (
+    data: CourseMergeRequest
+  ): Promise<CourseMergePreview> => {
+    return apiCall<CourseMergePreview>(`/admin/courses/merge`, {
+      method: "POST",
+      body: JSON.stringify({ ...data, preview: true }),
+    });
+  },
+
   // =============================================================================
   // Audit Log
   // =============================================================================
@@ -302,4 +354,107 @@ export const adminAPI = {
 
     return apiCall(`/admin/audit-log?${searchParams.toString()}`);
   },
+
+  // =============================================================================
+  // Email Management
+  // =============================================================================
+  getEmails: async (
+    params: {
+      skip?: number;
+      limit?: number;
+      search?: string;
+    } = {}
+  ): Promise<{ emails: AdminEmail[]; total: number }> => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.append(key, value.toString());
+      }
+    });
+
+    return apiCall<{ emails: AdminEmail[]; total: number }>(
+      `/admin/emails?${searchParams.toString()}`
+    );
+  },
+
+  addEmail: async (email: string): Promise<AdminEmail> => {
+    return apiCall<AdminEmail>(`/admin/emails`, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  deleteEmail: async (id: string): Promise<void> => {
+    return apiCall<void>(`/admin/emails`, {
+      method: "DELETE",
+      body: JSON.stringify({ id }),
+    });
+  },
+
+  // =============================================================================
+  // Course Instructors
+  // =============================================================================
+
+  getCourseInstructors: async (filters?: {
+    course_id?: string;
+    professor_id?: string;
+  }): Promise<{
+    course_instructors: CourseInstructorDetail[];
+  }> => {
+    const params = new URLSearchParams();
+    if (filters?.course_id) params.append("course_id", filters.course_id);
+    if (filters?.professor_id) params.append("professor_id", filters.professor_id);
+    return apiCall<{ course_instructors: CourseInstructorDetail[] }>(
+      `/admin/course-instructors?${params.toString()}`
+    );
+  },
+
+  createCourseInstructor: async (data: {
+    course_id: string;
+    professor_id: string;
+    semester?: string;
+    year?: number;
+  }): Promise<CourseInstructorDetail> => {
+    return apiCall<CourseInstructorDetail>(`/admin/course-instructors`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteCourseInstructor: async (id: string): Promise<void> => {
+    return apiCall<void>(`/admin/course-instructors?id=${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  updateCourseInstructor: async (data: {
+    id: string;
+    semester?: string;
+    year?: number;
+  }): Promise<CourseInstructorDetail> => {
+    return apiCall<CourseInstructorDetail>(`/admin/course-instructors`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
 };
+
+// CourseInstructorDetail type for admin panel
+export interface CourseInstructorDetail {
+  id: string;
+  course_id: string;
+  professor_id: string;
+  semester?: string;
+  year?: number;
+  course: {
+    id: string;
+    code: string;
+    name: string;
+  };
+  professor: {
+    id: string;
+    name: string;
+    lab?: string;
+  };
+  created_at: string;
+}

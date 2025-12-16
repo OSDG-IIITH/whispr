@@ -13,6 +13,7 @@ import {
   BookOpen,
   History,
   ArrowRight,
+  Mail,
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/providers/ToastProvider";
@@ -240,6 +241,13 @@ export default function AdminDashboardPage() {
               title="Manage Courses"
               description="Edit and manage course records"
             />
+            <QuickAction
+              href="/admin/course-instructors"
+              icon={<Users className="w-5 h-5 text-white" />}
+              iconColor="from-teal-500 to-teal-600"
+              title="Course Instructors"
+              description="Link professors to courses with semester/year"
+            />
           </div>
         </motion.div>
 
@@ -260,6 +268,13 @@ export default function AdminDashboardPage() {
               iconColor="from-amber-500 to-amber-600"
               title="Audit Log"
               description="View all admin actions and changes"
+            />
+            <QuickAction
+              href="/admin/emails"
+              icon={<Mail className="w-5 h-5 text-white" />}
+              iconColor="from-teal-500 to-teal-600"
+              title="Email Management"
+              description="View and manage registered IIITH emails"
             />
           </div>
         </motion.div>

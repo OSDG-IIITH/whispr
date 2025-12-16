@@ -14,23 +14,64 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const skip = parseInt(searchParams.get('skip') || '0', 10)
-        const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 100)
+        const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100)
+        const search = searchParams.get('search') || ''
+        const lab = searchParams.get('lab') || ''
 
-        const professors = await prisma.professor.findMany({
-            skip,
-            take: limit,
-            include: {
-                social_media: true,
-                course_instructors: {
-                    include: {
-                        course: true,
+        // Build where clause
+        interface WhereClause {
+            OR?: { name?: { contains: string; mode: 'insensitive' }; lab?: { contains: string; mode: 'insensitive' } }[];
+            lab?: string;
+        }
+
+        const where: WhereClause = {}
+
+        // Search filter
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { lab: { contains: search, mode: 'insensitive' } },
+            ]
+        }
+
+        // Lab filter
+        if (lab) {
+            where.lab = lab
+        }
+
+        const [professors, total] = await Promise.all([
+            prisma.professor.findMany({
+                where,
+                skip,
+                take: limit,
+                include: {
+                    social_media: true,
+                    course_instructors: {
+                        include: {
+                            course: true,
+                        },
                     },
                 },
-            },
-            orderBy: { name: 'asc' },
-        })
+                orderBy: { name: 'asc' },
+            }),
+            prisma.professor.count({ where }),
+        ])
 
-        return NextResponse.json(professors, {
+        // Get unique labs for filter dropdown
+        const allLabs = await prisma.professor.findMany({
+            select: { lab: true },
+            distinct: ['lab'],
+            where: { lab: { not: null } },
+        })
+        const labs = allLabs.map(p => p.lab).filter(Boolean) as string[]
+
+        return NextResponse.json({
+            professors,
+            total,
+            skip,
+            limit,
+            labs,
+        }, {
             headers: {
                 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
             },

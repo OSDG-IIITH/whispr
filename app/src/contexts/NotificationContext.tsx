@@ -14,6 +14,7 @@ interface NotificationContextType {
   unreadCount: number;
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  dismissNotification: (notificationId: string) => Promise<void>;
   addNotification: (notification: Omit<Notification, "id">) => void;
   refresh: () => Promise<void>;
 }
@@ -97,12 +98,30 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const dismissNotification = async (notificationId: string) => {
+    // Optimistically remove from local state
+    const notification = notifications.find(n => n.id === notificationId);
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+    if (notification && !notification.read) {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
+
+    // Delete from backend (async, non-blocking)
+    try {
+      await notificationAPI.deleteNotification(notificationId);
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+      // Could optionally restore the notification on error
+    }
+  };
+
   const value = {
     notifications,
     loading,
     unreadCount,
     markAsRead,
     markAllAsRead,
+    dismissNotification,
     addNotification,
     refresh: fetchNotifications,
   };

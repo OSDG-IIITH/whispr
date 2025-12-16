@@ -142,12 +142,43 @@ export interface ReportRequest {
   reply_id?: string;
   reported_user_id?: string;
   report_type:
-    | "spam"
-    | "harassment"
-    | "inappropriate"
-    | "misinformation"
-    | "other";
+  | "spam"
+  | "harassment"
+  | "inappropriate"
+  | "misinformation"
+  | "other";
   reason: string;
+}
+
+// =============================================================================
+// Feed Types
+// =============================================================================
+
+export type FeedPhase = 'following' | 'general';
+
+export interface FeedParams {
+  skip?: number;
+  limit?: number;
+  phase?: FeedPhase;
+  following_exhausted?: boolean;
+  general_skip?: number;
+}
+
+export interface FeedResponse {
+  reviews: Review[];
+  phase: FeedPhase;
+  has_more: boolean;
+  following_exhausted: boolean;
+  general_skip: number;
+}
+
+export interface FeedStats {
+  review_count: number;
+  reply_count: number;
+  vote_count: number;
+  followers_count: number;
+  following_count: number;
+  echoes: number;
 }
 
 // UI Related Interfaces

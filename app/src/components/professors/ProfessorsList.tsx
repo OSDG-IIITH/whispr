@@ -1,66 +1,69 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { GraduationCap } from "lucide-react";
 import { useProfessors } from "@/hooks/useData";
 import { ProfessorCard } from "./ProfessorCard";
-import { SearchInput, SortSelector, EmptyState, ResultsCount, Select } from "@/components/ui";
+import { SearchInput, SortSelector, EmptyState, ResultsCount, Select, Pagination } from "@/components/ui";
 import Loader from "@/components/common/Loader";
 
+const PAGE_SIZE = 21; // 7 rows of 3 cards
+
 /**
- * Self-contained professors list component
- * All filter/search state lives here to prevent parent page re-renders
+ * Professors list with server-side filtering and numbered pagination
  */
 export function ProfessorsList() {
-  const { professors, isLoading, isError, mutate } = useProfessors(0, 1000);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedLab, setSelectedLab] = useState("ALL");
-  const [sortBy, setSortBy] = useState("rating");
+  const [sortBy, setSortBy] = useState("name");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Get unique labs for filtering - memoized to avoid recalculation
-  const labOptions = useMemo(() => {
-    const labSet = new Set(professors.map((prof) => prof.lab).filter(Boolean));
-    return [
-      { value: "ALL", label: "All Labs" },
-      ...Array.from(labSet).map((lab) => ({ value: lab as string, label: lab as string })),
-    ];
-  }, [professors]);
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  // Filter and sort logic - memoized
-  const filteredAndSortedProfessors = useMemo(() => {
-    const filtered = professors.filter((prof) => {
-      const matchesSearch =
-        prof.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (prof.lab && prof.lab.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesLab = selectedLab === "ALL" || prof.lab === selectedLab;
-      return matchesSearch && matchesLab;
-    });
+  // Reset page on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedLab]);
 
-    return [...filtered].sort((a, b) => {
+  const { professors, total, labs, isLoading, isError, mutate } = useProfessors({
+    skip: (currentPage - 1) * PAGE_SIZE,
+    limit: PAGE_SIZE,
+    search: debouncedSearch,
+    lab: selectedLab,
+  });
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  // Build lab options
+  const labOptions = useMemo(() => [
+    { value: "ALL", label: "All Labs" },
+    ...labs.map((lab) => ({ value: lab, label: lab })),
+  ], [labs]);
+
+  // Sort client-side
+  const sortedProfessors = useMemo(() => {
+    if (!professors || professors.length === 0) return [];
+    return [...professors].sort((a, b) => {
       switch (sortBy) {
         case "rating":
           return parseFloat(b.average_rating) - parseFloat(a.average_rating);
         case "reviews":
           return b.review_count - a.review_count;
         case "name":
-          return a.name.localeCompare(b.name);
         default:
-          return 0;
+          return a.name.localeCompare(b.name);
       }
     });
-  }, [professors, searchQuery, selectedLab, sortBy]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="text-center">
-          <Loader className="mx-auto mb-4" />
-          <p className="text-secondary">Loading professors...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [professors, sortBy]);
 
   if (isError) {
     return (
@@ -109,36 +112,52 @@ export function ProfessorsList() {
         className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0"
       >
         <SortSelector
-          options={["rating", "reviews", "name"]}
+          options={["name", "rating", "reviews"]}
           selected={sortBy}
           onChange={setSortBy}
         />
-        <ResultsCount
-          count={filteredAndSortedProfessors.length}
-          singular="professor"
-        />
+        <ResultsCount count={total} singular="professor" />
       </motion.div>
 
-      {/* Professors Grid */}
-      {filteredAndSortedProfessors.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAndSortedProfessors.map((professor, index) => (
-            <motion.div
-              key={professor.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * Math.min(index, 10) }}
-            >
-              <ProfessorCard professor={professor} />
-            </motion.div>
-          ))}
+      {/* Loading state */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <Loader className="mx-auto mb-4" />
+            <p className="text-secondary">Loading professors...</p>
+          </div>
         </div>
-      ) : (
+      ) : sortedProfessors.length === 0 ? (
         <EmptyState
           icon={<GraduationCap className="w-16 h-16" />}
           title="No professors found"
           description="Try adjusting your search criteria or filters"
         />
+      ) : (
+        <>
+          {/* Professors Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedProfessors.map((professor, index) => (
+              <motion.div
+                key={professor.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.03 * Math.min(index, 6) }}
+              >
+                <ProfessorCard professor={professor} />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </>
       )}
     </div>
   );

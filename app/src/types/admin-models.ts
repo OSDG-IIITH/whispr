@@ -75,6 +75,12 @@ export interface ProfessorUpdateRequest {
   lab?: string;
 }
 
+export interface CreateProfessorRequest {
+  name: string;
+  lab?: string;
+  course_ids?: string[];  // Link to existing courses
+}
+
 export interface ProfessorMergeRequest {
   canonical_id: string;
   variant_id: string;
@@ -124,6 +130,26 @@ export interface CourseInstructorInfo {
   average_rating: string;
 }
 
+export interface CreateCourseRequest {
+  code: string;
+  name: string;
+  credits?: number;
+  description?: string;
+  professor_ids?: string[];  // Link to existing professors
+}
+
+export interface CourseMergeRequest {
+  canonical_id: string;
+  variant_id: string;
+}
+
+export interface CourseMergePreview {
+  canonical: AdminCourse;
+  variant: AdminCourse;
+  instructors_to_transfer: number;
+  reviews_to_transfer: number;
+}
+
 // =============================================================================
 // Audit Log Types
 // =============================================================================
@@ -167,6 +193,17 @@ export interface AuditLogFilters {
   to_date?: string;
   skip?: number;
   limit?: number;
+}
+
+// =============================================================================
+// Email Management Types
+// =============================================================================
+
+export interface AdminEmail {
+  id: string;
+  email: string;
+  verified_at: string | null;
+  created_at: string;
 }
 
 // =============================================================================

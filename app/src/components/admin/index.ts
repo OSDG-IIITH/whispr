@@ -7,3 +7,5 @@ export { ProfessorsManagement } from "./ProfessorsManagement";
 export { CoursesManagement } from "./CoursesManagement";
 export { AuditLogViewer } from "./AuditLogViewer";
 export { AdminsManagement } from "./AdminsManagement";
+export { EmailsManagement } from "./EmailsManagement";
+export { CourseInstructorsManagement } from "./CourseInstructorsManagement";

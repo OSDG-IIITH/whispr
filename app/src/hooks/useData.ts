@@ -33,11 +33,36 @@ const STALE_TIMES = {
 } as const;
 
 /**
- * Hook for fetching courses with caching
+ * Hook for fetching courses with caching and filtering
  */
-export function useCourses(skip = 0, limit = 100) {
-    const { data, error, isLoading, mutate } = useSWR<Course[]>(
-        `${API_BASE}/courses?skip=${skip}&limit=${limit}`,
+interface CoursesParams {
+    skip?: number;
+    limit?: number;
+    search?: string;
+    semester?: string;
+    year?: string;
+}
+
+interface CoursesResponse {
+    courses: Course[];
+    total: number;
+    skip: number;
+    limit: number;
+}
+
+export function useCourses(params: CoursesParams = {}) {
+    const { skip = 0, limit = 20, search = '', semester = '', year = '' } = params;
+
+    // Build query string
+    const queryParams = new URLSearchParams();
+    queryParams.set('skip', skip.toString());
+    queryParams.set('limit', limit.toString());
+    if (search) queryParams.set('search', search);
+    if (semester && semester !== 'ALL') queryParams.set('semester', semester);
+    if (year && year !== 'ALL') queryParams.set('year', year);
+
+    const { data, error, isLoading, mutate } = useSWR<CoursesResponse>(
+        `${API_BASE}/courses?${queryParams.toString()}`,
         fetcher,
         {
             revalidateOnFocus: false,
@@ -46,7 +71,8 @@ export function useCourses(skip = 0, limit = 100) {
     );
 
     return {
-        courses: data || [],
+        courses: data?.courses || [],
+        total: data?.total || 0,
         isLoading,
         isError: !!error,
         error,
@@ -55,11 +81,35 @@ export function useCourses(skip = 0, limit = 100) {
 }
 
 /**
- * Hook for fetching professors with caching
+ * Hook for fetching professors with caching and filtering
  */
-export function useProfessors(skip = 0, limit = 100) {
-    const { data, error, isLoading, mutate } = useSWR<Professor[]>(
-        `${API_BASE}/professors?skip=${skip}&limit=${limit}`,
+interface ProfessorsParams {
+    skip?: number;
+    limit?: number;
+    search?: string;
+    lab?: string;
+}
+
+interface ProfessorsResponse {
+    professors: Professor[];
+    total: number;
+    skip: number;
+    limit: number;
+    labs: string[];
+}
+
+export function useProfessors(params: ProfessorsParams = {}) {
+    const { skip = 0, limit = 20, search = '', lab = '' } = params;
+
+    // Build query string
+    const queryParams = new URLSearchParams();
+    queryParams.set('skip', skip.toString());
+    queryParams.set('limit', limit.toString());
+    if (search) queryParams.set('search', search);
+    if (lab && lab !== 'ALL') queryParams.set('lab', lab);
+
+    const { data, error, isLoading, mutate } = useSWR<ProfessorsResponse>(
+        `${API_BASE}/professors?${queryParams.toString()}`,
         fetcher,
         {
             revalidateOnFocus: false,
@@ -68,7 +118,9 @@ export function useProfessors(skip = 0, limit = 100) {
     );
 
     return {
-        professors: data || [],
+        professors: data?.professors || [],
+        total: data?.total || 0,
+        labs: data?.labs || [],
         isLoading,
         isError: !!error,
         error,
